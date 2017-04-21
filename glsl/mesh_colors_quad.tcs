@@ -1,0 +1,92 @@
+#version 430
+
+layout (vertices = 4) out;
+
+uniform int R;
+
+struct VertexData
+{
+	vec4 pos;
+	vec4 normal;
+	vec4 colorDisplacement;
+};
+
+struct EdgeData
+{
+	uvec2 v;
+	uint cPtr;
+	uint isBoundary;
+};
+
+struct QuadData
+{
+	ivec4 e;
+	uint cPtr;
+};
+
+layout(std430, binding = 0) buffer vertexData
+{
+	VertexData v[];
+};
+
+layout(std430, binding = 1) buffer edgeData
+{
+	EdgeData e[];
+};
+
+layout(std430, binding = 2) buffer quadData
+{
+    QuadData quads[];
+};
+
+uint startVertex(int edgeId)
+{
+	if(edgeId >= 0)
+		return e[edgeId].v[0];
+	else
+		return e[-edgeId - 1].v[1];
+}
+
+uint edgeIndex(int edgeId)
+{
+	if (edgeId >= 0)
+		return edgeId;
+	else
+		return -edgeId - 1;
+}
+
+out TCS_OUT
+{
+	vec4 pos;
+	vec4 n;
+} vertex[];
+
+patch out uint quadId;
+
+void main(void)
+{
+	int quadIdx = gl_PrimitiveID;
+	int vIdx = gl_InvocationID;
+
+	QuadData quad = quads[quadIdx];
+	int eId = quad.e[vIdx];
+	uint eIndex = edgeIndex(eId);
+	int prevEId = quad.e[(vIdx + 3) % 4];
+	uint prevEIndex = edgeIndex(prevEId);
+	vertex[gl_InvocationID].pos = v[startVertex(eId)].pos;
+	
+	vec3 n = v[startVertex(quad.e[vIdx])].normal.xyz;
+
+	vertex[gl_InvocationID].n = vec4(normalize(n), 0);	
+
+
+	quadId = quadIdx;
+
+	gl_TessLevelOuter[0] = R; 
+	gl_TessLevelOuter[1] = R; 
+	gl_TessLevelOuter[2] = R; 
+	gl_TessLevelOuter[3] = R; 
+
+	gl_TessLevelInner[0] = R; 
+	gl_TessLevelInner[1] = R; 
+}

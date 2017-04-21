@@ -1,0 +1,74 @@
+#version 430
+
+layout(isolines, equal_spacing) in;
+
+in TCS_OUT
+{
+	vec4 pos;
+	vec4 n;
+} vIn[];
+
+out vec3 color_frag;
+
+patch in int edgeId;
+
+uniform mat4 mv;
+uniform mat4 mvp;
+
+uniform int R;
+
+struct VertexData
+{
+	vec4 pos;
+	vec4 normal;
+	vec4 colorDisplacement;
+};
+
+struct EdgeData
+{
+	uvec2 v;
+	uint cPtr;
+	uint isBoundary;
+};
+
+layout(std430, binding = 0) buffer vertexData
+{
+	VertexData v[];
+};
+
+layout(std430, binding = 1) buffer edgeData
+{
+	EdgeData e[];
+};
+
+layout(std430, binding = 3) buffer colorData
+{
+    vec4 c[];
+};
+
+vec4 colorDisplacement(uint coord)
+{
+	//corners
+	if(coord == 0)
+		return v[e[edgeId].v[0]].colorDisplacement;
+	else if(coord == R)
+		return v[e[edgeId].v[1]].colorDisplacement;
+	
+	else
+		return c[e[edgeId].cPtr + coord - 1];
+}
+
+void main(void)
+{
+	float t = gl_TessCoord.x;
+	
+	uint i = uint(round(R * t));
+	vec4 cd = colorDisplacement(i);
+
+	vec4 n = (1 - t) * vIn[0].n + t * vIn[1].n;
+	vec4 p = (1 - t) * vIn[0].pos + t * vIn[1].pos + cd.w * n;
+	
+	color_frag = vec3(0, 0, 0);
+
+	gl_Position = mvp * p;	
+}

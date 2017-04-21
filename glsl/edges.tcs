@@ -1,0 +1,57 @@
+#version 430
+
+layout (vertices = 2) out;
+
+uniform int R;
+
+struct VertexData
+{
+	vec4 pos;
+	vec4 normal;
+	vec4 colorDisplacement;
+};
+
+struct EdgeData
+{
+	uvec2 v;
+	uint cPtr;
+	uint isBoundary;
+};
+
+layout(std430, binding = 0) buffer vertexData
+{
+	VertexData v[];
+};
+
+layout(std430, binding = 1) buffer edgeData
+{
+	EdgeData e[];
+};
+
+in int eid[];
+
+out TCS_OUT
+{
+	vec4 pos;
+	vec4 n;
+} vertex[];
+
+patch out int edgeId;
+
+void main(void)
+{
+	int edgeIdx = eid[0];
+	int vIdx = gl_InvocationID;
+
+	EdgeData edge = e[edgeIdx];
+		
+	vertex[gl_InvocationID].pos = v[edge.v[gl_InvocationID]].pos;		
+
+	vec3 n = v[edge.v[gl_InvocationID]].normal.xyz;
+	vertex[gl_InvocationID].n = vec4(normalize(n), 0);	
+
+	edgeId = edgeIdx;
+
+	gl_TessLevelOuter[0] = 1; 
+	gl_TessLevelOuter[1] = R; 	
+}

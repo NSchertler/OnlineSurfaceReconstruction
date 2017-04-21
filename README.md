@@ -1,1 +1,21 @@
-# OnlineSurfaceReconstruction
+# Online Surface Reconstruction
+
+This repository contains the source code for the research paper:
+> **Field-Aligned Online Surface Reconstruction**
+> Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+> ACM TOG 36, 4, July 2017
+> DOI: http://dx.doi.org/10.1145/3072959.3073635
+
+## Pre-requisites:
+* Boost with file system component
+
+## Tested compilers
+* MSVC 2015 x64
+* MinGW / gcc 6.3
+* Broader compatibility coming soon
+
+## Data sets
+coming soon
+
+## Documentation
+coming soon

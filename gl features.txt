@@ -1,0 +1,6 @@
+gl 4.3
+GL_ARB_debug_output
+GL_ARB_shader_storage_buffer_object
+GL_ARB_tessellation_shader
+GL_KHR_debug
+GL_AMD_debug_output

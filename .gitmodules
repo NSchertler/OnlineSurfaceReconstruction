@@ -1,0 +1,9 @@
+[submodule "ext/tbb"]
+	path = ext/tbb
+	url = https://github.com/wjakob/tbb.git
+[submodule "ext/dset"]
+	path = ext/dset
+	url = https://github.com/wjakob/dset.git
+[submodule "ext/nanogui"]
+	path = ext/nanogui
+	url = https://github.com/NSchertler/nanogui.git
