@@ -1,9 +1,9 @@
 # Online Surface Reconstruction
 
 This repository contains the source code for the research paper:
-> **Field-Aligned Online Surface Reconstruction**
-> Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
-> ACM TOG 36, 4, July 2017
+> **Field-Aligned Online Surface Reconstruction** <br/>
+> Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo <br/>
+> ACM TOG 36, 4, July 2017 <br/>
 > DOI: http://dx.doi.org/10.1145/3072959.3073635
 
 ## Pre-requisites:
