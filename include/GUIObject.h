@@ -25,8 +25,19 @@ namespace osr {
 		public:
 			virtual void draw(const Matrix4f& mv, const Matrix4f& proj) { };
 
+			//Gets called when a mouse button is released or pressed. p is the position of the mouse within the window. The other 
+			//parameters are forwarded from the according GLFW callback (see http://www.glfw.org/docs/latest/input_guide.html#input_mouse_button).
+			//The method must return true if it handled the input and false otherwise.
 			virtual bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers) { return false; };
+
+			//Gets called when the mouse moves. p is the position of the mouse within the window and rel is the relative movement
+			//since the last call. The other have the same meaning as in mouseButtonEvent().
+			//The method must return true if it handled the input and false otherwise.
 			virtual bool mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vector2i & rel, int button, int modifiers) { return false; };
+
+			//Gets called when the scroll wheel is used. p is the position of the mouse within the window and rel is the relative movement
+			//of the scroll wheel since the last call (see http://www.glfw.org/docs/latest/input_guide.html#scrolling).
+			//The method must return true if it handled the input and false otherwise.
 			virtual bool scrollEvent(const Eigen::Vector2i & p, const Eigen::Vector2f & rel) { return false; };
 		};
 	}

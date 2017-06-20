@@ -23,7 +23,7 @@ namespace osr {
 	namespace gui {
 		namespace loaders
 		{
-			//Abstract class that is responsible from providing new scan data
+			//Abstract class that is responsible for providing new scan data
 			class ScanLoader : public GUIObject
 			{
 			public:
