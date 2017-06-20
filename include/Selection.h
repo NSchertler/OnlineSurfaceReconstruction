@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #pragma once
 
 #include "GLBuffer.h"
@@ -5,28 +18,37 @@
 #include "common.h"
 #include "AbstractViewer.h"
 
-//Rendering helper that maintains a set of user-defined selection spheres.
-class Selection
-{
-public:
-	Selection();
+namespace osr {
+	namespace gui {
+		namespace tools
+		{
 
-	void init();
+			//Rendering helper that maintains a set of user-defined selection spheres.
+			class Selection
+			{
+			public:
+				Selection();
 
-	void draw(const Matrix4f& mv, const Matrix4f& proj, float opacity, int begin = 0, int count = -1, const Vector3f& color = Vector3f(1, 0.8f, 0), bool gradient = true, bool additive = true);
+				void init();
 
-	void addSphere(const Vector3f& position, float radius);
-	void addSphere(const Vector4f& positionRadius);
-	void resize(size_t);
+				void draw(const Matrix4f& mv, const Matrix4f& proj, float opacity, int begin = 0, int count = -1, const Vector3f& color = Vector3f(1, 0.8f, 0), bool gradient = true, bool additive = true);
 
-	Matrix4Xf positions;
+				void addSphere(const Vector3f& position, float radius);
+				void addSphere(const Vector4f& positionRadius);
+				void resize(size_t);
 
-	void setFirstToScreenPos(const Eigen::Vector2i& p, float radius, AbstractViewer* viewer);
+				Matrix4Xf positions;
 
-	void uploadData();
+				void setFirstToScreenPos(const Eigen::Vector2i& p, float radius, AbstractViewer* viewer);
 
-private:
+				void uploadData();
 
-	GLBuffer positionsBuffer;
-	GLVertexArray vao;	
-};
+			private:
+
+				GLBuffer positionsBuffer;
+				GLVertexArray vao;
+			};
+
+		}
+	}
+}

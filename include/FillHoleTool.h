@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #pragma once
 
 #include <nanogui/window.h>
@@ -12,72 +25,80 @@
 #include "Tool.h"
 #include "Selection.h"
 
-//Represents a modification tool that fills a hole in a point cloud by plane fitting and RBF-based reconstruction
-class FillHoleTool : public Tool
-{
-public:
-	FillHoleTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
+namespace osr {
+	namespace gui {
+		namespace tools
+		{
 
-	void enterTool();
-	void exitTool();
+			//Represents a modification tool that fills a hole in a point cloud by plane fitting and RBF-based reconstruction
+			class FillHoleTool : public Tool
+			{
+			public:
+				FillHoleTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
 
-	void draw(const Matrix4f& mv, const Matrix4f& proj);
+				void enterTool();
+				void exitTool();
 
-	bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
-	bool mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vector2i & rel, int button, int modifiers);
-	bool scrollEvent(const Eigen::Vector2i & p, const Eigen::Vector2f & rel);
+				void draw(const Matrix4f& mv, const Matrix4f& proj);
 
-private:
+				bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
+				bool mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vector2i & rel, int button, int modifiers);
+				bool scrollEvent(const Eigen::Vector2i & p, const Eigen::Vector2f & rel);
 
-	const double fillRatePerSecond = 0.6; //the percentage of the selection circle that is filled within a second
+			private:
 
-	enum State
-	{
-		DefineSupport,
-		AddPoints,
-		AddingPoints,
-	};
+				const double fillRatePerSecond = 0.6; //the percentage of the selection circle that is filled within a second
 
-	State state;
+				enum State
+				{
+					DefineSupport,
+					AddPoints,
+					AddingPoints,
+				};
 
-	//returns the value of the underlying RBF
-	float rbf(float);
-	//returns the derivative of the underlying RBF
-	float rbfDeriv(float);
+				State state;
 
-	//calculates the supporting plane and RBF weights for reconstruction
-	void calculateBasis();
+				//returns the value of the underlying RBF
+				float rbf(float);
+				//returns the derivative of the underlying RBF
+				float rbfDeriv(float);
 
-	//generates n points in the given sphere
-	void addPoints(const Vector3f& center, float radius, int n);
+				//calculates the supporting plane and RBF weights for reconstruction
+				void calculateBasis();
 
-	void resetSupport();
+				//generates n points in the given sphere
+				void addPoints(const Vector3f& center, float radius, int n);
 
-	AbstractViewer* viewer;
-	nanogui::Window* window;
-	nanogui::Label* lblStatus;
+				void resetSupport();
 
-	Selection support;
+				AbstractViewer* viewer;
+				nanogui::Window* window;
+				nanogui::Label* lblStatus;
 
-	GLBuffer planePositionsBuffer;
-	GLVertexArray planeVAO;
+				Selection support;
 
-	float& selectionRadius;
+				GLBuffer planePositionsBuffer;
+				GLVertexArray planeVAO;
 
-	DataGL& data;
+				float& selectionRadius;
 
-	//Control points for the RBFs (subset of selected points)
-	std::vector<THierarchy::VertexIndex> rbfCenters;
-	Eigen::Matrix<double, Eigen::Dynamic, 4> weights;
-	Vector3f centroid;
-	Matrix3f eigenVectors;
+				DataGL& data;
 
-	int pixelsMoved;
+				//Control points for the RBFs (subset of selected points)
+				std::vector<THierarchy::VertexIndex> rbfCenters;
+				Eigen::Matrix<double, Eigen::Dynamic, 4> weights;
+				Vector3f centroid;
+				Matrix3f eigenVectors;
 
-	std::chrono::high_resolution_clock::time_point lastPointsAdded;
+				int pixelsMoved;
 
-	std::mt19937 rnd;
-	Scan* scan;
+				std::chrono::high_resolution_clock::time_point lastPointsAdded;
 
-	static int scanNr;
-};
+				std::mt19937 rnd;
+				Scan* scan;
+
+				static int scanNr;
+			};
+		}
+	}
+}

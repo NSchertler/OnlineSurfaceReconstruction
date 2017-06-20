@@ -26,6 +26,7 @@
 
 #include "INeighborQueryable.h"
 #include "IndentationLog.h"
+#include "common.h"
 
 /// Compute the rigid motion for point-to-point and point-to-plane distances
 namespace RigidMotionEstimator {
@@ -225,8 +226,8 @@ namespace SICP {
     /// @param Parameters
 
 	template <typename Index>
-	inline Eigen::Affine3f point_to_point(const Matrix3Xf& X, const Matrix3Xf& N,
-		const IPointQueryable<Index>& Y,
+	inline Eigen::Affine3f point_to_point(const osr::Matrix3Xf& X, const osr::Matrix3Xf& N,
+		const osr::IPointQueryable<Index>& Y,
 		Parameters par = Parameters())
 	{
 		/// Buffers
@@ -307,8 +308,8 @@ namespace SICP {
     /// @param Target normals (one 3D normal per column)
     /// @param Parameters
 	template <typename Index>
-	Eigen::Affine3f point_to_plane(const Matrix3Xf& X, const Matrix3Xf& N,
-		const IPointQueryable<Index>& Y,
+	Eigen::Affine3f point_to_plane(const osr::Matrix3Xf& X, const osr::Matrix3Xf& N,
+		const osr::IPointQueryable<Index>& Y,
 		Parameters par = Parameters())
 	{
         /// Buffers

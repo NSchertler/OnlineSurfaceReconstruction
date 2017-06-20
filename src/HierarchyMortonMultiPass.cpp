@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #include "HierarchyMortonMultiPass.h"
 #include "HierarchyOptimizationHelper.h"
 
@@ -10,6 +23,7 @@
 
 #include <boost/iterator/transform_iterator.hpp>
 
+using namespace osr;
 using namespace HierarchyMortonMultiPass;
 
 //#define MEASURE_REOPTIMIZATION
@@ -527,40 +541,43 @@ void Hierarchy::ApplyChangesToHierarchy(std::vector<MortonContainer<NodeState>>&
 std::mt19937 rng;
 std::uniform_real_distribution<float> distDir(0, 2 * (float)M_PI);
 
-namespace HierarchyMortonMultiPass
+namespace osr
 {
-	template <>
-	void Hierarchy::initializeWithParentSolution<DirField>(Node& node, Node& parentNode)
+	namespace HierarchyMortonMultiPass
 	{
-		auto& nodeAttribute = node.attribute<DirField>();
-		auto& parentAttribute = parentNode.attribute<DirField>();
+		template <>
+		void Hierarchy::initializeWithParentSolution<DirField>(Node& node, Node& parentNode)
+		{
+			auto& nodeAttribute = node.attribute<DirField>();
+			auto& parentAttribute = parentNode.attribute<DirField>();
 
-		//if (std::isnan(nodeAttribute.x()))
+			//if (std::isnan(nodeAttribute.x()))
 			nodeAttribute = parentAttribute; //just copy if the node has no solution
 		//else
-		{
-			//average the previous and the parent's solution
-			//Vector3f compat1, compat2;
-			//optimizer.meshSettings().rosy->findCompatible(nodeAttribute, node.attribute<Normal>(), parentAttribute, parentNode.attribute<Normal>(), compat1, compat2);
-			//nodeAttribute = (compat1 + compat2).normalized();
+			{
+				//average the previous and the parent's solution
+				//Vector3f compat1, compat2;
+				//optimizer.meshSettings().rosy->findCompatible(nodeAttribute, node.attribute<Normal>(), parentAttribute, parentNode.attribute<Normal>(), compat1, compat2);
+				//nodeAttribute = (compat1 + compat2).normalized();
+			}
 		}
-	}
 
-	template <>
-	void Hierarchy::initializeWithParentSolution<PosField>(Node& node, Node& parentNode)
-	{
-		auto& nodeAttribute = node.attribute<PosField>();
-		auto& parentAttribute = parentNode.attribute<PosField>();
+		template <>
+		void Hierarchy::initializeWithParentSolution<PosField>(Node& node, Node& parentNode)
+		{
+			auto& nodeAttribute = node.attribute<PosField>();
+			auto& parentAttribute = parentNode.attribute<PosField>();
 
-		//if (std::isnan(nodeAttribute.x()))
+			//if (std::isnan(nodeAttribute.x()))
 			nodeAttribute = parentAttribute; //just copy if the node has no solution
 		//else
-		{
-			//average the previous and the parent's solution
-			//Vector3f compat1, compat2;
-			//optimizer.meshSettings().posy->findCompatible(node.attribute<Position>(), node.attribute<Normal>(), node.attribute<DirField>(), nodeAttribute,
-			//	parentNode.attribute<Position>(), parentNode.attribute<Normal>(), parentNode.attribute<DirField>(), parentAttribute, optimizer.meshSettings().scale(), 1.0f / optimizer.meshSettings().scale(), compat1, compat2);
-			//nodeAttribute = 0.8f * compat1 + 0.2f * compat2;
+			{
+				//average the previous and the parent's solution
+				//Vector3f compat1, compat2;
+				//optimizer.meshSettings().posy->findCompatible(node.attribute<Position>(), node.attribute<Normal>(), node.attribute<DirField>(), nodeAttribute,
+				//	parentNode.attribute<Position>(), parentNode.attribute<Normal>(), parentNode.attribute<DirField>(), parentAttribute, optimizer.meshSettings().scale(), 1.0f / optimizer.meshSettings().scale(), compat1, compat2);
+				//nodeAttribute = 0.8f * compat1 + 0.2f * compat2;
+			}
 		}
 	}
 }
@@ -920,21 +937,21 @@ MortonCode64 Hierarchy::mortonCode(const Vector3f& p, int level) const
 }
 
 template<>
-void saveToFile(const LevelInfo& level, FILE* f)
+void osr::saveToFile(const LevelInfo& level, FILE* f)
 {
 	for (int i = 0; i < SHIFTS; ++i)
 		level.shiftedSequences[i].saveToFile(f);
 	level.originalData.saveToFile(f);
-	::saveToFile(level.toLocalOffset, f);
+	osr::saveToFile(level.toLocalOffset, f);
 }
 
 template<>
-void loadFromFile(LevelInfo& level, FILE* f)
+void osr::loadFromFile(LevelInfo& level, FILE* f)
 {
 	for (int i = 0; i < SHIFTS; ++i)
 		level.shiftedSequences[i].loadFromFile(f);
 	level.originalData.loadFromFile(f);
-	::loadFromFile(level.toLocalOffset, f);
+	osr::loadFromFile(level.toLocalOffset, f);
 }
 
 void Hierarchy::saveToFile(FILE* f) const

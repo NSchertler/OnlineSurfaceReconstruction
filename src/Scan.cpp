@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #include "Scan.h"
 
 #include "ShaderPool.h"
@@ -9,8 +22,10 @@
 
 #include <fstream>
 
+using namespace osr;
+
 Scan::Scan(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C, const MatrixXu& F, const std::string& name, const Eigen::Affine3f& transform)
-	: positionBuffer(VertexBuffer), normalBuffer(VertexBuffer), colorBuffer(VertexBuffer), indexBuffer(IndexBuffer),
+	: positionBuffer(osr::gui::VertexBuffer), normalBuffer(osr::gui::VertexBuffer), colorBuffer(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
 	showInput(true), showNormals(false), mTransform(transform)
 {
 	mV = V;

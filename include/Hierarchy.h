@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #pragma once
 
 #include <boost/signals2.hpp>
@@ -5,92 +18,95 @@
 #include "ExtractedMesh.h"
 #include "BoundingBox.h"
 
-class Optimizer;
-
-//All implemented hierarchies must conform to this interface in order to work.
-template <typename TVertexIndex>
-class AbstractHierarchy
+namespace osr
 {
-public:
-	AbstractHierarchy(const Optimizer& optimizer, ExtractedMesh& extractionResult)
-		: optimizer(optimizer), extractionResult(extractionResult)
-	{ 	}
+	class Optimizer;
 
-	//defines the type used to address points
-	typedef TVertexIndex VertexIndex;
+	//All implemented hierarchies must conform to this interface in order to work.
+	template <typename TVertexIndex>
+	class AbstractHierarchy
+	{
+	public:
+		AbstractHierarchy(const Optimizer& optimizer, ExtractedMesh& extractionResult)
+			: optimizer(optimizer), extractionResult(extractionResult)
+		{ 	}
 
-	//signals that are emitted whenever data are changed
-	boost::signals2::signal<void()> PositionsChanged;
-	boost::signals2::signal<void()> NormalsChanged;
-	boost::signals2::signal<void()> AdjacencyChanged;
-	boost::signals2::signal<void()> DirFieldChanged;
-	boost::signals2::signal<void()> PosFieldChanged;	
+		//defines the type used to address points
+		typedef TVertexIndex VertexIndex;
 
-	//attribute access in the following form for every Index possibly emitted by the hierarchy:
-	//  template<Attribute A> typename AttributeTraits<A>::Type& attribute(const Index& i);
-	//  template<Attribute A> const typename AttributeTraits<A>::Type& attribute(const Index& i) const;
+		//signals that are emitted whenever data are changed
+		boost::signals2::signal<void()> PositionsChanged;
+		boost::signals2::signal<void()> NormalsChanged;
+		boost::signals2::signal<void()> AdjacencyChanged;
+		boost::signals2::signal<void()> DirFieldChanged;
+		boost::signals2::signal<void()> PosFieldChanged;
 
-	//integrate new points in the hierarchy
-	virtual void addPoints(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C) = 0;
+		//attribute access in the following form for every Index possibly emitted by the hierarchy:
+		//  template<Attribute A> typename AttributeTraits<A>::Type& attribute(const Index& i);
+		//  template<Attribute A> const typename AttributeTraits<A>::Type& attribute(const Index& i) const;
 
-	//modifies the given points by changing their position, normal, and color
-	virtual void modifyPoints(const std::vector<VertexIndex>& points, const Matrix3Xf& newV, const Matrix3Xf& newN, const Matrix3Xus& newC) = 0;
+		//integrate new points in the hierarchy
+		virtual void addPoints(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C) = 0;
 
-	//removes the specified points.
-	virtual void removePoints(std::vector<VertexIndex>& points) = 0;
+		//modifies the given points by changing their position, normal, and color
+		virtual void modifyPoints(const std::vector<VertexIndex>& points, const Matrix3Xf& newV, const Matrix3Xf& newN, const Matrix3Xus& newC) = 0;
 
-	//Starts the optimization for the entire hierarchy from scratch and extracts the final mesh afterwards.
-	virtual void optimizeFull() = 0;
+		//removes the specified points.
+		virtual void removePoints(std::vector<VertexIndex>& points) = 0;
 
-	virtual void reset() = 0;
+		//Starts the optimization for the entire hierarchy from scratch and extracts the final mesh afterwards.
+		virtual void optimizeFull() = 0;
 
-	//access to the original vertices (on the finest levels) in the following form:
-	//  IteratorHelper<Iterator> vertices()
-	//    IteratorHelper<T> - exposes  T begin()  and  T end() 
-	//    Iterator - any valid iterator that can be used to iterate the vertices. Must at 
-	//               least conform to the forward iterator concept
-	//if HierarchyCapabilities<>::AllowAccessToAllLevels, then vertices() must support the parameter int level
+		virtual void reset() = 0;
 
-	//access to neighbors in the following form for every Index possibly emitted by the hierarchy:
-	//  template <typename Callback>
-	//  void forEachNeighbor(const Index& v, const Callback& callback) const;
-	//    Callback - a callable object in the form void(const Index& v)
+		//access to the original vertices (on the finest levels) in the following form:
+		//  IteratorHelper<Iterator> vertices()
+		//    IteratorHelper<T> - exposes  T begin()  and  T end() 
+		//    Iterator - any valid iterator that can be used to iterate the vertices. Must at 
+		//               least conform to the forward iterator concept
+		//if HierarchyCapabilities<>::AllowAccessToAllLevels, then vertices() must support the parameter int level
 
-	//radius query. Does not need to be exact but must guarantee to include all vertices in the epsilon-ball.
-	//  template <typename Callback>
-	//  void findNearestPointsRadius(const Vector3f& p, Float radius, const Callback& callback) const;
-	//    Callback of type void(const VertexIndex&)
+		//access to neighbors in the following form for every Index possibly emitted by the hierarchy:
+		//  template <typename Callback>
+		//  void forEachNeighbor(const Index& v, const Callback& callback) const;
+		//    Callback - a callable object in the form void(const Index& v)
 
-	//returns the number of vertices on the finest level of the hierarchy
-	//if HierarchyCapabilities<>::AllowAccessToAllLevels, then vertexCount() must support the parameter int level
-	virtual size_t vertexCount() const = 0;
+		//radius query. Does not need to be exact but must guarantee to include all vertices in the epsilon-ball.
+		//  template <typename Callback>
+		//  void findNearestPointsRadius(const Vector3f& p, Float radius, const Callback& callback) const;
+		//    Callback of type void(const VertexIndex&)
 
-	const BoundingBox<Float, 3>& boundingBox() const { return bbox; }
+		//returns the number of vertices on the finest level of the hierarchy
+		//if HierarchyCapabilities<>::AllowAccessToAllLevels, then vertexCount() must support the parameter int level
+		virtual size_t vertexCount() const = 0;
 
-	void setMaxNeighborRadius(Float r) { maxNeighborRadius = r; }
+		const BoundingBox<Float, 3>& boundingBox() const { return bbox; }
 
-	//returns the size of the hierarchy
-	virtual size_t sizeInBytes() const = 0;
+		void setMaxNeighborRadius(Float r) { maxNeighborRadius = r; }
 
-	const MeshSettings& meshSettings() const { return optimizer.meshSettings(); }
+		//returns the size of the hierarchy
+		virtual size_t sizeInBytes() const = 0;
 
-	ExtractedMesh& extractionResult;
+		const MeshSettings& meshSettings() const { return optimizer.meshSettings(); }
 
-	virtual float averagePointSpacing() const = 0;
+		ExtractedMesh& extractionResult;
 
-protected:
-	virtual void init();
+		virtual float averagePointSpacing() const = 0;
 
-	BoundingBox<Float, 3> bbox;
+	protected:
+		virtual void init();
 
-	const Optimizer& optimizer;	
-	
+		BoundingBox<Float, 3> bbox;
 
-	Float maxNeighborRadius;	
-};
+		const Optimizer& optimizer;
 
-template<typename TVertexIndex>
-inline void AbstractHierarchy<TVertexIndex>::init()
-{	
-	bbox.reset();
+
+		Float maxNeighborRadius;
+	};
+
+	template<typename TVertexIndex>
+	inline void AbstractHierarchy<TVertexIndex>::init()
+	{
+		bbox.reset();
+	}
 }

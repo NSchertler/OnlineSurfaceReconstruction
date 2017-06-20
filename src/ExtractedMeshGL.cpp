@@ -1,7 +1,22 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #include "ExtractedMeshGL.h"
 
 #include "ShaderPool.h"
 
+using namespace osr;
+using namespace gui;
 using namespace ExtractionHelper;
 
 struct VertexData
@@ -34,9 +49,9 @@ struct QuadData
 
 ExtractedMeshGL::ExtractedMeshGL(const MeshSettings& meshSettings)
 	: ExtractedMesh(meshSettings), adjDirty(true), drawAdjacency(false), drawCollapsed(false), drawExtracted(true), drawModified(false), wireframe(false), coarseWireframe(false), highlightBoundary(true),
-	vertexBuffer(ShaderStorageBuffer), edgeBuffer(ShaderStorageBuffer), triBuffer(ShaderStorageBuffer), quadBuffer(ShaderStorageBuffer), colorBuffer(ShaderStorageBuffer), adjPositionBuffer(VertexBuffer), adjColorBuffer(VertexBuffer),
-	collapsedPositionBuffer(VertexBuffer), collapsedColorBuffer(VertexBuffer),
-	edgesWireframeBuffer(VertexBuffer)
+	vertexBuffer(osr::gui::ShaderStorageBuffer), edgeBuffer(osr::gui::ShaderStorageBuffer), triBuffer(osr::gui::ShaderStorageBuffer), quadBuffer(osr::gui::ShaderStorageBuffer), colorBuffer(osr::gui::ShaderStorageBuffer), adjPositionBuffer(osr::gui::VertexBuffer), adjColorBuffer(osr::gui::VertexBuffer),
+	collapsedPositionBuffer(osr::gui::VertexBuffer), collapsedColorBuffer(osr::gui::VertexBuffer),
+	edgesWireframeBuffer(osr::gui::VertexBuffer)
 {	
 }
 

@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #pragma once
 
 #include "Tool.h"
@@ -5,29 +18,37 @@
 #include "Selection.h"
 #include "AbstractViewer.h"
 
-//Represents a modification tool that removes points within a user-defined region.
-class RemoveTool : public Tool
-{
-public:
-	RemoveTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
+namespace osr {
+	namespace gui {
+		namespace tools
+		{
 
-	void enterTool();
-	void exitTool();
+			//Represents a modification tool that removes points within a user-defined region.
+			class RemoveTool : public Tool
+			{
+			public:
+				RemoveTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
 
-	void draw(const Matrix4f& mv, const Matrix4f& proj);
+				void enterTool();
+				void exitTool();
 
-	bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
-	bool mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vector2i & rel, int button, int modifiers);
-	bool scrollEvent(const Eigen::Vector2i & p, const Eigen::Vector2f & rel);
+				void draw(const Matrix4f& mv, const Matrix4f& proj);
 
-private:
-	float& selectionRadius;
+				bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
+				bool mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vector2i & rel, int button, int modifiers);
+				bool scrollEvent(const Eigen::Vector2i & p, const Eigen::Vector2f & rel);
 
-	DataGL& data;	
+			private:
+				float& selectionRadius;
 
-	Selection selection;	
+				DataGL& data;
 
-	int pixelsMoved;
+				Selection selection;
 
-	AbstractViewer* viewer;
-};
+				int pixelsMoved;
+
+				AbstractViewer* viewer;
+			};
+		}
+	}
+}

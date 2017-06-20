@@ -1,7 +1,22 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #include "Colors.h"
 
 #include <algorithm>
 #include <iostream>
+
+using namespace osr;
 
 const double delta = 6.0 / 29.0;
 const double delta3 = delta * delta * delta;
@@ -27,7 +42,7 @@ double fInv(double t)
 		return 3 * delta * delta * (t - 4.0 / 29.0);
 }
 
-Eigen::Matrix<unsigned short, 3, 1> RGBToLab(const Eigen::Matrix<unsigned short, 3, 1>& rgb)
+Eigen::Matrix<unsigned short, 3, 1> osr::RGBToLab(const Eigen::Matrix<unsigned short, 3, 1>& rgb)
 {
 	Eigen::Matrix3d mRGBToXYZ;
 	mRGBToXYZ <<
@@ -54,7 +69,7 @@ Eigen::Matrix<unsigned short, 3, 1> RGBToLab(const Eigen::Matrix<unsigned short,
 }
 
 
-Eigen::Matrix<unsigned short, 3, 1> LabToRGB(const Eigen::Matrix<unsigned short, 3, 1>& Lab)
+Eigen::Matrix<unsigned short, 3, 1> osr::LabToRGB(const Eigen::Matrix<unsigned short, 3, 1>& Lab)
 {
 	double L = Lab.x() / 655.35;
 	double a = (Lab.y() - 32768) / 327.67;

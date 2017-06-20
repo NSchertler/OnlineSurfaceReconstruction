@@ -5,6 +5,10 @@
 
 #include <boost/bind.hpp>
 
+using namespace osr;
+using namespace osr::gui;
+using namespace osr::gui::loaders;
+
 DavidTurntableConnection::DavidTurntableConnection()
 	: turntablePort(nullptr), _status(Invalid)
 {

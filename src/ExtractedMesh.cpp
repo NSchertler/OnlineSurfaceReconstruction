@@ -1,3 +1,17 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Wenzel Jakob
+	@author Nico Schertler
+*/
+
 #include "ExtractedMesh.h"
 
 #include <tbb/tbb.h>
@@ -8,6 +22,7 @@
 
 #include "IndentationLog.h"
 
+using namespace osr;
 using namespace ExtractionHelper;
 
 ExtractedMesh::ExtractedMesh(const MeshSettings& meshSettings)
@@ -1420,7 +1435,7 @@ void ExtractedMesh::getInterpolatedPositionNormal(const ExtractionHelper::Quad& 
 	out_normal = bilinear(v[0].normal, v[1].normal, v[2].normal, v[3].normal, uv);
 }
 
-Vector4f repairSolution(const Vector4f& sol)
+Vector4f osr::repairSolution(const Vector4f& sol)
 {
 	Vector4f r = sol;
 
@@ -1466,7 +1481,7 @@ void ExtractedMesh::calculateCollapsedGraphVisualization(const std::vector<size_
 	collapsedGraphData(std::move(visPos), std::move(visCol));
 }
 
-void checkSymmetry(std::vector<std::vector<TaggedLink>>& adj)
+void osr::checkSymmetry(std::vector<std::vector<TaggedLink>>& adj)
 {
 	for (uint32_t i = 0; i < adj.size(); ++i)
 	{
@@ -1489,7 +1504,7 @@ void checkSymmetry(std::vector<std::vector<TaggedLink>>& adj)
 }
 
 template<>
-void saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
+void osr::saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.edges, f);
@@ -1497,7 +1512,7 @@ void saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
 }
 
 template<>
-void loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
+void osr::loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.edges, f);
@@ -1505,7 +1520,7 @@ void loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
 }
 
 template<>
-void saveToFile(const ExtractionHelper::Quad & object, FILE * f)
+void osr::saveToFile(const ExtractionHelper::Quad & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.edges, f);
@@ -1513,7 +1528,7 @@ void saveToFile(const ExtractionHelper::Quad & object, FILE * f)
 }
 
 template<>
-void loadFromFile(ExtractionHelper::Quad & object, FILE * f)
+void osr::loadFromFile(ExtractionHelper::Quad & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.edges, f);
@@ -1521,7 +1536,7 @@ void loadFromFile(ExtractionHelper::Quad & object, FILE * f)
 }
 
 template<>
-void saveToFile(const ExtractionHelper::Edge & object, FILE * f)
+void osr::saveToFile(const ExtractionHelper::Edge & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.v, f);
@@ -1531,7 +1546,7 @@ void saveToFile(const ExtractionHelper::Edge & object, FILE * f)
 }
 
 template<>
-void loadFromFile(ExtractionHelper::Edge & object, FILE * f)
+void osr::loadFromFile(ExtractionHelper::Edge & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.v, f);
@@ -1541,7 +1556,7 @@ void loadFromFile(ExtractionHelper::Edge & object, FILE * f)
 }
 
 template<>
-void saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
+void osr::saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.position, f);
@@ -1551,7 +1566,7 @@ void saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
 }
 
 template<>
-void loadFromFile(ExtractionHelper::Vertex & object, FILE * f)
+void osr::loadFromFile(ExtractionHelper::Vertex & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.position, f);

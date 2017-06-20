@@ -1,10 +1,25 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Wenzel Jakob
+*/
+
 #include "common.h"
 
 #include <tbb/tbb.h>
 #include <iomanip>
 #include <Eigen/Geometry>
 
-std::string memString(size_t size, bool precise)
+using namespace osr;
+
+std::string osr::memString(size_t size, bool precise)
 {
 	double value = (double)size;
 	const char *suffixes[] = {
@@ -22,7 +37,7 @@ std::string memString(size_t size, bool precise)
 	return os.str();
 }
 
-void coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c) 
+void osr::coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c) 
 {
 	if (std::abs(a.x()) > std::abs(a.y())) {
 		Float invLen = 1.0f / std::sqrt(a.x() * a.x() + a.z() * a.z());
@@ -35,18 +50,18 @@ void coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c)
 	b = c.cross(a);
 }
 
-Float signum(Float value) 
+Float osr::signum(Float value) 
 {
 	return std::copysign((Float)1, value);
 }
 
-Float modulo(Float a, Float b)
+Float osr::modulo(Float a, Float b)
 {
 	Float r = std::fmod(a, b);
 	return (r < 0.0) ? r + b : r;
 }
 
-float fast_acos(float x) 
+float osr::fast_acos(float x) 
 {
 	float negate = float(x < 0.0f);
 	x = std::abs(x);

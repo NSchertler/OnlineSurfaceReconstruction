@@ -1,7 +1,23 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Wenzel Jakob
+	@author Nico Schertler
+*/
+
 #include "field.h"
 #include "common.h"
 
 #include <Eigen/Geometry>
+
+using namespace osr;
 
 static const Float sqrt_3_over_4 = 0.866025403784439f;
 
@@ -240,7 +256,7 @@ void OrientationFieldTraits<6>::findCompatible(const Vector3f &dirField0, const 
 	}
 }
 
-IOrientationFieldTraits * getOrientationFieldTraits(int roSy)
+IOrientationFieldTraits * osr::getOrientationFieldTraits(int roSy)
 {
 	if (roSy == 2) {
 		return new OrientationFieldTraits<2>();
@@ -269,7 +285,7 @@ PositionFieldTraits<PoSy>::PositionFieldTraits()
 {
 }
 
-IPositionFieldTraits * getPositionFieldTraits(int poSy)
+IPositionFieldTraits * osr::getPositionFieldTraits(int poSy)
 {
 	if (poSy == 4) {
 		return new PositionFieldTraits<4>();

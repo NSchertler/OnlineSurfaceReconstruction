@@ -207,21 +207,31 @@ source_group(third_party FILES ${THIRD_PARTY})
 
 SET(GUI_FILES	src/AbstractViewer.cpp include/AbstractViewer.h
 				src/Camera.cpp include/Camera.h
-				src/Viewer.cpp include/Viewer.h
-				include/ScanLoader.h
-				src/FileScanLoader.cpp include/FileScanLoader.h
-				src/ProceduralScanLoader.cpp include/ProceduralScanLoader.h
-				include/GUIObject.h
+				src/Viewer.cpp include/Viewer.h				
+				include/GUIObject.h				
+				src/GLBuffer.cpp include/GLBuffer.h
+				src/GLShader.cpp include/GLShader.h
+				src/GLVertexArray.cpp include/GLVertexArray.h
+				src/HierarchyRenderer.cpp include/HierarchyRenderer.h
+				src/ExtractedMeshGL.cpp include/ExtractedMeshGL.h)
+source_group(gui FILES ${GUI_FILES})
+
+SET(GUI_TOOL_FILES
 				include/Tool.h
 				src/FillHoleTool.cpp include/FillHoleTool.h
 				src/SmoothTool.cpp include/SmoothTool.h
 				src/RemoveTool.cpp include/RemoveTool.h
 				src/ManualCoarseRegistrationTool.cpp include/ManualCoarseRegistrationTool.h
-				src/Selection.cpp include/Selection.h
-				src/GLBuffer.cpp include/GLBuffer.h
-				src/GLShader.cpp include/GLShader.h
-				src/GLVertexArray.cpp include/GLVertexArray.h)
-source_group(gui FILES ${GUI_FILES})
+				src/Selection.cpp include/Selection.h)
+			
+source_group(gui\\tools FILES ${GUI_TOOL_FILES})
+			
+SET(GUI_LOADERS_FILES
+				include/ScanLoader.h
+				src/FileScanLoader.cpp include/FileScanLoader.h
+				src/ProceduralScanLoader.cpp include/ProceduralScanLoader.h)
+
+source_group(gui\\loaders FILES ${GUI_LOADERS_FILES})				
 
 add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	glsl.cpp
@@ -243,8 +253,7 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	include/HierarchyDef.h
 	include/Hierarchy.h
 	include/PreparedVertexSet.h
-	src/HierarchyOptimizationHelper.cpp include/HierarchyOptimizationHelper.h
-	src/HierarchyRenderer.cpp include/HierarchyRenderer.h
+	src/HierarchyOptimizationHelper.cpp include/HierarchyOptimizationHelper.h	
 	#src/HierarchyUnstructured.cpp include/HierarchyUnstructured.h
 	#src/HierarchyRegularSubdiv.cpp include/HierarchyRegularSubdiv.h
 	#src/HierarchyOctree.cpp include/HierarchyOctree.h
@@ -259,12 +268,14 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	src/Scan.cpp include/Scan.h
 	src/ExtractedMesh.cpp include/ExtractedMesh.h
 	include/ExtractionUtils.h
-	src/ExtractionAttributeMapping.cpp include/ExtractionAttributeMapping.h
-	src/ExtractedMeshGL.cpp include/ExtractedMeshGL.h
+	src/ExtractionAttributeMapping.cpp include/ExtractionAttributeMapping.h	
 	src/ShaderPool.cpp include/ShaderPool.h
 	src/BatchSession.cpp include/BatchSession.h
 	src/Colors.cpp include/Colors.h
+	include/Serialization.h
 	${GUI_FILES}
+	${GUI_TOOL_FILES}
+	${GUI_LOADERS_FILES}
 	${ADDITIONAL_SRC}
 	${GLSL_FILES}
 	${THIRD_PARTY})

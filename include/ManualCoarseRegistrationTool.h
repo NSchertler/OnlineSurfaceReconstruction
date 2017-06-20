@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #pragma once
 
 #include <nanogui/window.h>
@@ -9,41 +22,49 @@
 
 #include <boost/signals2.hpp>
 
-//Represents a modification tool that calculates a translation to register a scan to the hierarchy by two-click interaction.
-class ManualCoarseRegistrationTool : public Tool
-{
-public:
-	ManualCoarseRegistrationTool(AbstractViewer* viewer, DataGL& data);
+namespace osr {
+	namespace gui {
+		namespace tools
+		{
 
-	//Sets the scan that should be registered.
-	void setAffectedScan(Scan* s);
+			//Represents a modification tool that calculates a translation to register a scan to the hierarchy by two-click interaction.
+			class ManualCoarseRegistrationTool : public Tool
+			{
+			public:
+				ManualCoarseRegistrationTool(AbstractViewer* viewer, DataGL& data);
 
-	void enterTool();
-	void exitTool();
+				//Sets the scan that should be registered.
+				void setAffectedScan(Scan* s);
 
-	void draw(const Matrix4f& mv, const Matrix4f& proj);
+				void enterTool();
+				void exitTool();
 
-	bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
+				void draw(const Matrix4f& mv, const Matrix4f& proj);
 
-	boost::signals2::signal<void()> finished;
+				bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
 
-private:	
+				boost::signals2::signal<void()> finished;
 
-	enum State
-	{
-		ClickOnScan,
-		ClickOnHierarchy,
-	};
+			private:
 
-	State state;	
+				enum State
+				{
+					ClickOnScan,
+					ClickOnHierarchy,
+				};
 
-	AbstractViewer* viewer;
-	nanogui::Window* window;
-	nanogui::Label* lblStatus;
+				State state;
 
-	Vector3f correspondenceScan;
+				AbstractViewer* viewer;
+				nanogui::Window* window;
+				nanogui::Label* lblStatus;
 
-	DataGL& data;
+				Vector3f correspondenceScan;
 
-	Scan* scan;
-};
+				DataGL& data;
+
+				Scan* scan;
+			};
+		}
+	}
+}

@@ -1,3 +1,16 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Nico Schertler
+*/
+
 #include "Viewer.h"
 
 #include "meshio.h"
@@ -31,6 +44,8 @@
 #include "FileScanLoader.h"
 #include "ProceduralScanLoader.h"
 
+using namespace osr;
+using namespace osr::gui;
 
 template <typename Hierarchy>
 struct Viewer::HierarchySpecific<Hierarchy, true>
@@ -88,10 +103,10 @@ Viewer::Viewer()
 {
 	ShaderPool::Instance()->CompileAll();
 
-	scanLoader.push_back(new FileScanLoader());
-	scanLoader.push_back(new ProceduralScanLoader());
+	scanLoader.push_back(new loaders::FileScanLoader());
+	scanLoader.push_back(new loaders::ProceduralScanLoader());
 #ifdef USE_DAVIDVIVE
-	davidVive = new DavidViveScanLoader(this);
+	davidVive = new loaders::DavidViveScanLoader(this);
 	scanLoader.push_back(davidVive);
 #endif		
 
@@ -414,10 +429,10 @@ void Viewer::SetupGUI()
 		stats.close();
 	});
 
-	fillHoleTool = new FillHoleTool(this, data, selectionRadius);
-	smoothTool = new SmoothTool(this, data, selectionRadius);
-	removeTool = new RemoveTool(this, data, selectionRadius);
-	manualCoarseRegistrationTool = new ManualCoarseRegistrationTool(this, data);
+	fillHoleTool = new tools::FillHoleTool(this, data, selectionRadius);
+	smoothTool = new tools::SmoothTool(this, data, selectionRadius);
+	removeTool = new tools::RemoveTool(this, data, selectionRadius);
+	manualCoarseRegistrationTool = new tools::ManualCoarseRegistrationTool(this, data);
 	manualCoarseRegistrationTool->finished.connect([this]() {selectedTool->exitTool(); selectedTool = nullptr; });
 
 	toolsWidget = new nanogui::Widget(mainWindow);
@@ -438,7 +453,7 @@ void Viewer::SetupGUI()
 	selectedTool = nullptr;
 }
 
-void Viewer::SetupToolGUI(nanogui::Widget* parent, int icon, const std::string& tooltip, Tool* tool)
+void Viewer::SetupToolGUI(nanogui::Widget* parent, int icon, const std::string& tooltip, tools::Tool* tool)
 {
 	auto toolBtn = new nanogui::ToolButton(parent, icon);
 	toolBtn->setTooltip(tooltip);

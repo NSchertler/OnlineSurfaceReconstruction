@@ -11,6 +11,10 @@
 
 #include <ostream>
 
+using namespace osr;
+using namespace osr::gui;
+using namespace osr::gui::loaders;
+
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 

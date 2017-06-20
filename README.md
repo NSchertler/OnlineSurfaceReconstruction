@@ -18,4 +18,4 @@ This repository contains the source code for the research paper:
 A selection of data sets that we presented in our paper can be found here: https://wwwpub.zih.tu-dresden.de/~s0244354/OSRData/. This repository contains the original scan data, a project file for the OSR application, and the final reconstruction.
 
 ## Documentation
-coming soon
+Source code documentation can be found in the [wiki](wiki)

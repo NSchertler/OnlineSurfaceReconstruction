@@ -1,3 +1,17 @@
+/*
+	This file is part of the implementation for the technical paper
+
+		Field-Aligned Online Surface Reconstruction
+		Nico Schertler, Marco Tarini, Wenzel Jakob, Misha Kazhdan, Stefan Gumhold, Daniele Panozzo
+		ACM TOG 36, 4, July 2017 (Proceedings of SIGGRAPH 2017)
+
+	Use of this source code is granted via a BSD-style license, which can be found
+	in License.txt in the repository root.
+
+	@author Wenzel Jakob
+	@author Nico Schertler
+*/
+
 #include "meshio.h"
 #include <unordered_map>
 #include <fstream>
@@ -19,6 +33,8 @@
 extern "C" {
     #include "rply.h"
 }
+
+using namespace osr;
 
 inline uint32_t str_to_uint32_t(const std::string &str) {
 	char *end_ptr = nullptr;
@@ -59,7 +75,7 @@ inline std::vector<std::string> str_tokenize(const std::string &s, char delim, b
 	return elems;
 }
 
-void write_mesh(const std::string &filename, const MatrixXu &F,
+void osr::write_mesh(const std::string &filename, const MatrixXu &F,
                 const Matrix3Xf &V, const Matrix3Xf &N, const Matrix3Xf &Nf,
                 const Matrix3Xf &UV, const Matrix3Xf &C) 
 {
@@ -75,7 +91,7 @@ void write_mesh(const std::string &filename, const MatrixXu &F,
         throw std::runtime_error("write_mesh: Unknown file extension \"" + extension + "\" (.ply/.obj are supported)");
 }
 
-void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
+void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
               Matrix3Xf &N, Matrix3Xus &C, bool pointcloud)
 {
     auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
@@ -314,7 +330,7 @@ void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 	std::cout << ", took " << timeString(timer.value()) << ")" << std::endl;
 }
 
-void write_ply(const std::string &filename, const MatrixXu &F,
+void osr::write_ply(const std::string &filename, const MatrixXu &F,
                const Matrix3Xf &V, const Matrix3Xf &N, const Matrix3Xf &Nf, const Matrix3Xf &UV,
                const Matrix3Xf &C)
 {
@@ -438,7 +454,7 @@ void write_ply(const std::string &filename, const MatrixXu &F,
 	std::cout << "took " << timeString(timer.value()) << ")" << std::endl;
 }
 
-void load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V)
+void osr::load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V)
 {
     /// Vertex indices used by the OBJ format
     struct obj_vertex {
@@ -593,7 +609,7 @@ struct XYZGatherActionPositionsAndNormals
 	}
 };
 
-void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N)
+void osr::load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N)
 {
 	boost::iostreams::mapped_file mmap(filename, boost::iostreams::mapped_file::readonly);
 	auto f = mmap.const_data();
@@ -627,7 +643,7 @@ void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N)
 
 }
 
-void write_obj(const std::string &filename, const MatrixXu &F,
+void osr::write_obj(const std::string &filename, const MatrixXu &F,
                 const Matrix3Xf &V, const Matrix3Xf &N, const Matrix3Xf &Nf,
                 const Matrix3Xf &UV, const Matrix3Xf &C)
 {
