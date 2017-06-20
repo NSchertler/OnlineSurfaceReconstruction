@@ -145,11 +145,6 @@ Viewer::~Viewer()
 {
 	for (auto loader : scanLoader)
 		delete loader;
-
-	delete fillHoleTool;
-	delete removeTool;
-	delete smoothTool;
-	delete manualCoarseRegistrationTool;
 }
 
 void Viewer::SetupGUI()
@@ -430,19 +425,19 @@ void Viewer::SetupGUI()
 		stats.close();
 	});
 
-	fillHoleTool = new tools::FillHoleTool(this, data, selectionRadius);
-	smoothTool = new tools::SmoothTool(this, data, selectionRadius);
-	removeTool = new tools::RemoveTool(this, data, selectionRadius);
-	manualCoarseRegistrationTool = new tools::ManualCoarseRegistrationTool(this, data);
+	fillHoleTool = std::make_unique<tools::FillHoleTool>(this, data, selectionRadius);
+	smoothTool = std::make_unique<tools::SmoothTool>(this, data, selectionRadius);
+	removeTool = std::make_unique<tools::RemoveTool>(this, data, selectionRadius);
+	manualCoarseRegistrationTool = std::make_unique<tools::ManualCoarseRegistrationTool>(this, data);
 	manualCoarseRegistrationTool->finished.connect([this]() {selectedTool->exitTool(); selectedTool = nullptr; });
 
 	toolsWidget = new nanogui::Widget(mainWindow);
 	toolsWidget->setLayout(new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 0, 6));
 	new nanogui::Label(toolsWidget, "Tools:    ");
 
-	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_PLUS, "Fill Holes Tool", fillHoleTool);
-	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_MINUS, "Delete Points Tool", removeTool);
-	SetupToolGUI(toolsWidget, ENTYPO_ICON_FEATHER, "Smooth Tool", smoothTool);
+	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_PLUS, "Fill Holes Tool", fillHoleTool.get());
+	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_MINUS, "Delete Points Tool", removeTool.get());
+	SetupToolGUI(toolsWidget, ENTYPO_ICON_FEATHER, "Smooth Tool", smoothTool.get());
 
 	performLayout(ctx);
 
@@ -508,7 +503,7 @@ void Viewer::SetupScanGUI(Scan* scan)
 		if (data.hierarchy.vertexCount() == 0)
 			return; 
 		manualCoarseRegistrationTool->setAffectedScan(scan);
-		selectedTool = manualCoarseRegistrationTool;
+		selectedTool = manualCoarseRegistrationTool.get();
 		selectedTool->enterTool();
 	});
 
@@ -570,7 +565,7 @@ void Viewer::render(const Eigen::Matrix4f& mv, const Eigen::Matrix4f& proj)
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 
-	if (selectedTool != manualCoarseRegistrationTool)
+	if (selectedTool != manualCoarseRegistrationTool.get())
 	{
 		if (showScans->checked())
 			for (auto mesh : data.scans)

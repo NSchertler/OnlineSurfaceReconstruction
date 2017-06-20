@@ -98,10 +98,12 @@ namespace osr {
 			//Tools
 			nanogui::Widget* toolsWidget;
 			float selectionRadius;
-			tools::FillHoleTool* fillHoleTool;
-			tools::SmoothTool* smoothTool;
-			tools::RemoveTool* removeTool;
-			tools::ManualCoarseRegistrationTool* manualCoarseRegistrationTool;
+			std::unique_ptr<tools::FillHoleTool> fillHoleTool;
+			std::unique_ptr<tools::SmoothTool> smoothTool;
+			std::unique_ptr<tools::RemoveTool> removeTool;
+			std::unique_ptr<tools::ManualCoarseRegistrationTool> manualCoarseRegistrationTool;
+			
+			tools::Tool* selectedTool;
 
 			const int screenshotWidth = 4096;
 			const int screenshotHeight = 3072;
@@ -113,9 +115,7 @@ namespace osr {
 			loaders::DavidViveScanLoader* davidVive;
 #endif
 
-			void SetupToolGUI(nanogui::Widget* parent, int icon, const std::string& tooltip, tools::Tool* tool);
-
-			tools::Tool* selectedTool;
+			void SetupToolGUI(nanogui::Widget* parent, int icon, const std::string& tooltip, tools::Tool* tool);			
 		};
 	}
 }
