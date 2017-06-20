@@ -197,6 +197,7 @@ void Viewer::SetupGUI()
 	smoothnessSlider->setCallback([smoothnessTxt, this](float value)
 	{
 		std::stringstream ss;
+		ss.precision(2);
 		ss << value;
 		smoothnessTxt->setValue(ss.str());
 		data.meshSettings.smoothness = value;
@@ -286,7 +287,7 @@ void Viewer::SetupGUI()
 	subsampleSlider->setCallback([subsampleTxt, this](float value)
 	{
 		std::stringstream ss;
-		ss << value * 100 << "%";
+		ss << (int)std::round(value * 100) << "%";
 		subsampleTxt->setValue(ss.str());
 		data.meshSettings.scanSubsample = value;
 	});
