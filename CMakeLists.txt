@@ -110,32 +110,6 @@ if(OPENMP_FOUND)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-if(OSR_USE_DAVIDVIVE)
-	set(ADDITIONAL_SRC ${ADDITIONAL_SRC} src/DavidViveScanLoader.cpp include/DavidViveScanLoader.h src/DavidTurntableConnection.cpp include/DavidTurntableConnection.h)
-	add_definitions (/DUSE_DAVIDVIVE)
-	find_package(OpenVR REQUIRED)
-	set(ADDITIONAL_INCLUDE ${ADDITIONAL_INCLUDE} ${OPENVR_INCLUDE_DIRS})
-	set(LIBS ${LIBS} ${OPENVR_LIB})
-
-	set(DAVIDVIVE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/TakeDavidScan.au3" "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/viveController.ply")
-
-	JOIN("${DAVIDVIVE_FILES}" "," davidvive_string)
-	set(bin2c_cmdline
-		-DOUTPUT_C=davidviveres.cpp
-		-DOUTPUT_H=davidviveres.h
-		"-DINPUT_FILES=${davidvive_string}"
-		-P "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/resources/bin2c.cmake")
-
-	add_custom_command(
-	  OUTPUT davidviveres.cpp davidviveres.h
-	  COMMAND ${CMAKE_COMMAND} ARGS ${bin2c_cmdline}
-	  DEPENDS ${DAVIDVIVE_FILES}
-	  COMMENT "Running bin2c"
-	  PRE_BUILD VERBATIM)
-
-	set(ADDITIONAL_SRC ${ADDITIONAL_SRC} davidviveres.cpp)
-endif(OSR_USE_DAVIDVIVE)
-
 #Do not use Eigen parallelization as we will parallelize manually
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 
@@ -202,77 +176,106 @@ add_custom_command(
   PRE_BUILD VERBATIM)
 
 SET(THIRD_PARTY 	ext/rply/rply.c
-					include/ICP.h)
+					include/3rd/ICP.h)
 source_group(third_party FILES ${THIRD_PARTY})
 
-SET(GUI_FILES	src/AbstractViewer.cpp include/AbstractViewer.h
-				src/Camera.cpp include/Camera.h
-				src/Viewer.cpp include/Viewer.h				
-				include/GUIObject.h				
-				src/GLBuffer.cpp include/GLBuffer.h
-				src/GLShader.cpp include/GLShader.h
-				src/GLVertexArray.cpp include/GLVertexArray.h
-				src/HierarchyRenderer.cpp include/HierarchyRenderer.h
-				src/ExtractedMeshGL.cpp include/ExtractedMeshGL.h)
+SET(GUI_FILES	src/osr/gui/AbstractViewer.cpp include/osr/gui/AbstractViewer.h
+				src/osr/gui/Camera.cpp include/osr/gui/Camera.h
+				src/osr/gui/Viewer.cpp include/osr/gui/Viewer.h				
+				include/osr/gui/GUIObject.h				
+				src/osr/gui/GLBuffer.cpp include/osr/gui/GLBuffer.h
+				src/osr/gui/GLShader.cpp include/osr/gui/GLShader.h
+				src/osr/gui/GLVertexArray.cpp include/osr/gui/GLVertexArray.h
+				src/osr/gui/HierarchyRenderer.cpp include/osr/gui/HierarchyRenderer.h
+				src/osr/gui/ExtractedMeshGL.cpp include/osr/gui/ExtractedMeshGL.h
+				src/osr/gui/ShaderPool.cpp include/osr/gui/ShaderPool.h)
 source_group(gui FILES ${GUI_FILES})
 
 SET(GUI_TOOL_FILES
-				include/Tool.h
-				src/FillHoleTool.cpp include/FillHoleTool.h
-				src/SmoothTool.cpp include/SmoothTool.h
-				src/RemoveTool.cpp include/RemoveTool.h
-				src/ManualCoarseRegistrationTool.cpp include/ManualCoarseRegistrationTool.h
-				src/Selection.cpp include/Selection.h)
+				include/osr/gui/tools/Tool.h
+				src/osr/gui/tools/FillHoleTool.cpp include/osr/gui/tools/FillHoleTool.h
+				src/osr/gui/tools/SmoothTool.cpp include/osr/gui/tools/SmoothTool.h
+				src/osr/gui/tools/RemoveTool.cpp include/osr/gui/tools/RemoveTool.h
+				src/osr/gui/tools/ManualCoarseRegistrationTool.cpp include/osr/gui/tools/ManualCoarseRegistrationTool.h
+				src/osr/gui/tools/Selection.cpp include/osr/gui/tools/Selection.h)
 			
 source_group(gui\\tools FILES ${GUI_TOOL_FILES})
 			
 SET(GUI_LOADERS_FILES
-				include/ScanLoader.h
-				src/FileScanLoader.cpp include/FileScanLoader.h
-				src/ProceduralScanLoader.cpp include/ProceduralScanLoader.h)
+				include/osr/gui/loaders/ScanLoader.h
+				src/osr/gui/loaders/FileScanLoader.cpp include/osr/gui/loaders/FileScanLoader.h
+				src/osr/gui/loaders/ProceduralScanLoader.cpp include/osr/gui/loaders/ProceduralScanLoader.h)
+
+if(OSR_USE_DAVIDVIVE)
+	set(GUI_LOADERS_FILES ${GUI_LOADERS_FILES} 
+		src/osr/gui/loaders/DavidViveScanLoader.cpp include/osr/gui/loaders/DavidViveScanLoader.h 
+		src/osr/gui/loaders/DavidTurntableConnection.cpp include/osr/gui/loaders/DavidTurntableConnection.h)
+
+	add_definitions (/DUSE_DAVIDVIVE)
+	find_package(OpenVR REQUIRED)
+	set(ADDITIONAL_INCLUDE ${ADDITIONAL_INCLUDE} ${OPENVR_INCLUDE_DIRS})
+	set(LIBS ${LIBS} ${OPENVR_LIB})
+
+	set(DAVIDVIVE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/TakeDavidScan.au3" "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/viveController.ply")
+
+	JOIN("${DAVIDVIVE_FILES}" "," davidvive_string)
+	set(bin2c_cmdline
+		-DOUTPUT_C=davidviveres.cpp
+		-DOUTPUT_H=davidviveres.h
+		"-DINPUT_FILES=${davidvive_string}"
+		-P "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/resources/bin2c.cmake")
+
+	add_custom_command(
+	  OUTPUT davidviveres.cpp davidviveres.h
+	  COMMAND ${CMAKE_COMMAND} ARGS ${bin2c_cmdline}
+	  DEPENDS ${DAVIDVIVE_FILES}
+	  COMMENT "Running bin2c"
+	  PRE_BUILD VERBATIM)
+
+	set(ADDITIONAL_SRC ${ADDITIONAL_SRC} davidviveres.cpp)
+endif(OSR_USE_DAVIDVIVE)
 
 source_group(gui\\loaders FILES ${GUI_LOADERS_FILES})				
 
 add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	glsl.cpp
 	src/main.cpp
-	include/Attributes.h
-	include/AttributeConsistency.h
-	src/common.cpp include/common.h
-	src/Timer.cpp include/Timer.h
-	src/BoundingBox.cpp include/BoundingBox.h
-	include/ParallelCG.h
-	src/Parallelization.cpp include/Parallelization.h
-	src/Data.cpp include/Data.h
-	include/MeshSettings.h
-	src/field.cpp include/field.h
-	src/LeastSquaresSystem.cpp include/LeastSquaresSystem.h
-	include/Indexing.h
-	include/HierarchyOptions.h
-	include/HierarchyDecl.h
-	include/HierarchyDef.h
-	include/Hierarchy.h
-	include/PreparedVertexSet.h
-	src/HierarchyOptimizationHelper.cpp include/HierarchyOptimizationHelper.h	
+	include/osr/Attributes.h
+	include/osr/AttributeConsistency.h
+	src/osr/common.cpp include/osr/common.h
+	src/osr/Timer.cpp include/osr/Timer.h
+	src/osr/BoundingBox.cpp include/osr/BoundingBox.h
+	include/osr/ParallelCG.h
+	src/osr/Parallelization.cpp include/osr/Parallelization.h
+	src/osr/Data.cpp include/osr/Data.h
+	include/osr/MeshSettings.h
+	src/osr/field.cpp include/osr/field.h
+	src/osr/LeastSquaresSystem.cpp include/osr/LeastSquaresSystem.h
+	include/osr/Indexing.h
+	include/osr/HierarchyOptions.h
+	include/osr/HierarchyDecl.h
+	include/osr/HierarchyDef.h
+	include/osr/Hierarchy.h
+	include/osr/PreparedVertexSet.h
+	src/osr/HierarchyOptimizationHelper.cpp include/osr/HierarchyOptimizationHelper.h	
 	#src/HierarchyUnstructured.cpp include/HierarchyUnstructured.h
 	#src/HierarchyRegularSubdiv.cpp include/HierarchyRegularSubdiv.h
 	#src/HierarchyOctree.cpp include/HierarchyOctree.h
-	src/HierarchyMortonMultiPass.cpp include/HierarchyMortonMultiPass.h
-	include/HierarchyCapabilities.h
-	src/IndentationLog.cpp include/IndentationLog.h
-	include/PersistentIndexContainer.h
-	src/Morton.cpp include/Morton.h
-	include/INeighborQueryable.h
-	src/meshio.cpp include/meshio.h
-	src/Optimizer.cpp include/Optimizer.h
-	src/Scan.cpp include/Scan.h
-	src/ExtractedMesh.cpp include/ExtractedMesh.h
-	include/ExtractionUtils.h
-	src/ExtractionAttributeMapping.cpp include/ExtractionAttributeMapping.h	
-	src/ShaderPool.cpp include/ShaderPool.h
-	src/BatchSession.cpp include/BatchSession.h
-	src/Colors.cpp include/Colors.h
-	include/Serialization.h
+	src/osr/HierarchyMortonMultiPass.cpp include/osr/HierarchyMortonMultiPass.h
+	include/osr/HierarchyCapabilities.h
+	src/osr/IndentationLog.cpp include/osr/IndentationLog.h
+	include/osr/PersistentIndexContainer.h
+	src/osr/Morton.cpp include/osr/Morton.h
+	include/osr/INeighborQueryable.h
+	src/osr/meshio.cpp include/osr/meshio.h
+	src/osr/Optimizer.cpp include/osr/Optimizer.h
+	src/osr/Scan.cpp include/osr/Scan.h
+	src/osr/ExtractedMesh.cpp include/osr/ExtractedMesh.h
+	include/osr/ExtractionUtils.h
+	src/osr/ExtractionAttributeMapping.cpp include/osr/ExtractionAttributeMapping.h		
+	src/osr/BatchSession.cpp include/osr/BatchSession.h
+	src/osr/Colors.cpp include/osr/Colors.h
+	include/osr/Serialization.h
 	${GUI_FILES}
 	${GUI_TOOL_FILES}
 	${GUI_LOADERS_FILES}

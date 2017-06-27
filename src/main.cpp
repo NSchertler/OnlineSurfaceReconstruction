@@ -15,10 +15,8 @@
 
 #include <nanogui/nanogui.h>
 
-#include "Viewer.h"
-#include "BatchSession.h"
-#include "Morton.h"
-#include "common.h"
+#include "osr/gui/Viewer.h"
+#include "osr/BatchSession.h"
 
 static std::string FormatDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, const char* msg)
 {
