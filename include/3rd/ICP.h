@@ -24,9 +24,9 @@
 #include <Eigen/Dense>
 #include <vector>
 
-#include "INeighborQueryable.h"
-#include "IndentationLog.h"
-#include "common.h"
+#include "osr/INeighborQueryable.h"
+#include "osr/IndentationLog.h"
+#include "osr/common.h"
 
 /// Compute the rigid motion for point-to-point and point-to-plane distances
 namespace RigidMotionEstimator {
@@ -247,7 +247,7 @@ namespace SICP {
 #pragma omp parallel for
 				for (int i = 0; i < X.cols(); ++i)
 				{
-					Vector3f px = transform * X.col(i);
+					Eigen::Vector3f px = transform * X.col(i);
 					auto idx = Y.findClosestCompatiblePoint(px, transform.linear() * N.col(i));
 					if (Y.isIndexValid(idx))
 					{
@@ -333,7 +333,7 @@ namespace SICP {
 #pragma omp parallel for reduction(+ : sumWeight)
 				for (int i = 0; i < X.cols(); ++i)
 				{
-					Vector3f px = transform * X.col(i);
+					Eigen::Vector3f px = transform * X.col(i);
 					auto idx = Y.findClosestCompatiblePoint(px, transform.linear() * N.col(i));
 					if (Y.isIndexValid(idx))
 					{
@@ -346,7 +346,7 @@ namespace SICP {
 					else
 					{
 						Qp.col(i).setZero();
-						Qn.col(i) = Vector3f::UnitX();
+						Qn.col(i) = Eigen::Vector3f::UnitX();
 						w(i) = 0;
 					}
 				}
