@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.9)
+cmake_minimum_required (VERSION 3.1)
 project(OnlineSurfaceReconstruction)
 
 FUNCTION(PREPEND var prefix)
@@ -15,11 +15,14 @@ FUNCTION(JOIN VALUES GLUE OUTPUT)
   set (${OUTPUT} "${_TMP_STR}" PARENT_SCOPE)
 ENDFUNCTION()
 
-option(OSR_USE_DAVIDVIVE "Use the DAVID/Vive scan loader")
+option(OSR_USE_DAVIDVIVE "[Under Construction] Use the DAVID/Vive scan loader")
 option(OSR_ACCURATE_TIMING "Display all timings in ms")
 option(OSR_DEBUG_VISUALIZATION "Generate debug visualizations")
 option(OSR_REDUCED_TIMINGS "Measure time only for high-priority TimedBlocks")
 option(OSR_GEOMETRIC_LAPLACIAN "Use the more time-consuming but higher-quality geometric formulation of the Laplacian for displacement map calculation")
+option(OSR_USE_MEMORY_MAPPED_FILE "Use the boost memory-mapped file for XYZ input. This requires the boost iostreams library.")
+
+set(NANOGUI_USE_GLAD ON)
 
 set(ADDITIONAL_SRC)
 set(ADDITIONAL_INCLUDE)
@@ -65,10 +68,7 @@ elseif(APPLE)
   string(REGEX REPLACE "^.*X([0-9.]*).sdk$" "\\1" CMAKE_OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_SYSROOT}")
 endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  # Enable C++11 mode on GCC / Clang
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-endif()
+set (CMAKE_CXX_STANDARD 14)
 
 # Build NanoGUI
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
@@ -93,14 +93,23 @@ set(ADDITIONAL_INCLUDE 	${ADDITIONAL_INCLUDE}
 						${CMAKE_CURRENT_SOURCE_DIR}/ext/tbb/include  )
 set(LIBS ${LIBS} tbb_static)
 
+set(BOOST_COMPONENTS)
+if(OSR_USE_MEMORY_MAPPED_FILE)
+	set(BOOST_COMPONENTS ${BOOST_COMPONENTS} iostreams)
+	add_definitions(/DOSR_USE_MEMORY_MAPPED_FILE)
+endif()
+
 # Boost required for any and cstdint on MSVC < 2010
-find_package(Boost COMPONENTS filesystem REQUIRED)
+find_package(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 if(MSVC AND (MSVC_VERSION LESS 1600))
 	add_definitions(-DBOOST_STDINT)
 endif(MSVC AND (MSVC_VERSION LESS 1600))
 set(ADDITIONAL_INCLUDE 	${ADDITIONAL_INCLUDE}
 						${Boost_INCLUDE_DIRS} )
-link_directories(${Boost_LIBRARY_DIRS})
+if(NOT "${BOOST_COMPONENTS}" STREQUAL "")
+	message("We have some boost components")
+	link_directories(${Boost_LIBRARY_DIRS})
+endif()
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -257,6 +266,7 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	include/osr/HierarchyDef.h
 	include/osr/Hierarchy.h
 	include/osr/PreparedVertexSet.h
+	src/osr/filehelper.cpp include/osr/filehelper.h
 	src/osr/HierarchyOptimizationHelper.cpp include/osr/HierarchyOptimizationHelper.h	
 	#src/HierarchyUnstructured.cpp include/HierarchyUnstructured.h
 	#src/HierarchyRegularSubdiv.cpp include/HierarchyRegularSubdiv.h
@@ -285,5 +295,3 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 
 add_definitions(${NANOGUI_EXTRA_DEFS})
 target_link_libraries(OnlineSurfaceReconstruction ${LIBS})
-
-set_target_properties(OnlineSurfaceReconstruction PROPERTIES OUTPUT_NAME "Online Surface Reconstruction")

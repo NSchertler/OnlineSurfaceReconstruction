@@ -86,100 +86,106 @@ struct BufferUploader<Color, Hierarchy, false>
 	}
 };
 
-template <typename Hierarchy>
-struct HierarchyRenderer::HierarchySpecific<Hierarchy, true>
+namespace osr
 {
-	void updateVertexCount()
+	namespace gui
 	{
-		if (renderer.hierarchy.levels() == 0)
-			renderer.vertexCount = 0;
-		else
+		template <typename Hierarchy>
+		struct HierarchyRenderer::HierarchySpecific<Hierarchy, true>
 		{
-			if (renderer.level >= renderer.hierarchy.levels())
-				renderer.level = renderer.hierarchy.levels() - 1;
-			renderer.vertexCount = renderer.hierarchy.vertexCount(renderer.level);
-		}
-	}
-
-	template<Attribute A>
-	void uploadDataToBuffer(GLBufferState & buffer)
-	{
-		BufferUploader<A, Hierarchy, true>::uploadData(buffer, renderer.hierarchy, renderer.level);
-	}
-
-	void uploadAdjacency()
-	{
-		//Generate vertex buffer for adjacency
-		std::vector<Vector3f> adjData; adjData.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
-		std::vector<Vector3f> adjColor; adjColor.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
-		for (auto v : renderer.hierarchy.vertices(renderer.level))
-		{
-			renderer.hierarchy.forEachNeighbor(v, [&](const auto& n)
+			void updateVertexCount()
 			{
-				adjData.push_back(renderer.hierarchy.attribute<Position>(v));
-				adjData.push_back(renderer.hierarchy.attribute<Position>(n));
+				if (renderer.hierarchy.levels() == 0)
+					renderer.vertexCount = 0;
+				else
+				{
+					if (renderer.level >= renderer.hierarchy.levels())
+						renderer.level = renderer.hierarchy.levels() - 1;
+					renderer.vertexCount = renderer.hierarchy.vertexCount(renderer.level);
+				}
+			}
 
-				adjColor.push_back(Vector3f(0.5f, 0.25f, 0.0f));
-				adjColor.push_back(Vector3f(0.0f, 0.25f, 0.5f));
-			});
-		}
-		renderer.adjacencyEdges = adjData.size() / 2;
-		renderer.adjBuffer.buffer.uploadData(adjData.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjData.data()));
-		renderer.adjColorBuffer.buffer.uploadData(adjColor.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjColor.data()));
-		renderer.adjBuffer.dirty = false;
-	}
-
-
-	HierarchySpecific(HierarchyRenderer& renderer)
-		:renderer(renderer)
-	{ }
-
-	HierarchyRenderer& renderer;
-};
-
-template <typename Hierarchy>
-struct HierarchyRenderer::HierarchySpecific<Hierarchy, false>
-{
-	void updateVertexCount()
-	{
-		renderer.vertexCount = renderer.hierarchy.vertexCount();
-	}
-
-	template<Attribute A>
-	void uploadDataToBuffer(GLBufferState & buffer)
-	{
-		BufferUploader<A, Hierarchy, true>::uploadData(buffer, renderer.hierarchy, 0);
-	}
-
-	void uploadAdjacency()
-	{
-		//Generate vertex buffer for adjacency
-		std::vector<Vector3f> adjData; adjData.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
-		std::vector<Vector3f> adjColor; adjColor.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
-		for (auto v : renderer.hierarchy.vertices())
-		{
-			renderer.hierarchy.forEachNeighbor(v, [&](const auto& n)
+			template<Attribute A>
+			void uploadDataToBuffer(GLBufferState & buffer)
 			{
-				adjData.push_back(renderer.hierarchy.attribute<Position>(v));
-				adjData.push_back(renderer.hierarchy.attribute<Position>(n));
+				BufferUploader<A, Hierarchy, true>::uploadData(buffer, renderer.hierarchy, renderer.level);
+			}
 
-				adjColor.push_back(Vector3f(0.5f, 0.25f, 0.0f));
-				adjColor.push_back(Vector3f(0.0f, 0.25f, 0.5f));
-			});
-		}
-		renderer.adjacencyEdges = adjData.size() / 2;
-		renderer.adjBuffer.buffer.uploadData(adjData.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjData.data()));
-		renderer.adjColorBuffer.buffer.uploadData(adjColor.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjColor.data()));
-		renderer.adjBuffer.dirty = false;
+			void uploadAdjacency()
+			{
+				//Generate vertex buffer for adjacency
+				std::vector<Vector3f> adjData; adjData.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
+				std::vector<Vector3f> adjColor; adjColor.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
+				for (auto v : renderer.hierarchy.vertices(renderer.level))
+				{
+					renderer.hierarchy.forEachNeighbor(v, [&](const auto& n)
+					{
+						adjData.push_back(renderer.hierarchy.attribute<Position>(v));
+						adjData.push_back(renderer.hierarchy.attribute<Position>(n));
+
+						adjColor.push_back(Vector3f(0.5f, 0.25f, 0.0f));
+						adjColor.push_back(Vector3f(0.0f, 0.25f, 0.5f));
+					});
+				}
+				renderer.adjacencyEdges = adjData.size() / 2;
+				renderer.adjBuffer.buffer.uploadData(adjData.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjData.data()));
+				renderer.adjColorBuffer.buffer.uploadData(adjColor.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjColor.data()));
+				renderer.adjBuffer.dirty = false;
+			}
+
+
+			HierarchySpecific(HierarchyRenderer& renderer)
+				:renderer(renderer)
+			{ }
+
+			HierarchyRenderer& renderer;
+		};
+
+		template <typename Hierarchy>
+		struct HierarchyRenderer::HierarchySpecific<Hierarchy, false>
+		{
+			void updateVertexCount()
+			{
+				renderer.vertexCount = renderer.hierarchy.vertexCount();
+			}
+
+			template<Attribute A>
+			void uploadDataToBuffer(GLBufferState & buffer)
+			{
+				BufferUploader<A, Hierarchy, true>::uploadData(buffer, renderer.hierarchy, 0);
+			}
+
+			void uploadAdjacency()
+			{
+				//Generate vertex buffer for adjacency
+				std::vector<Vector3f> adjData; adjData.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
+				std::vector<Vector3f> adjColor; adjColor.reserve(renderer.hierarchy.vertexCount() * 2 * 6);
+				for (auto v : renderer.hierarchy.vertices())
+				{
+					renderer.hierarchy.forEachNeighbor(v, [&](const auto& n)
+					{
+						adjData.push_back(renderer.hierarchy.attribute<Position>(v));
+						adjData.push_back(renderer.hierarchy.attribute<Position>(n));
+
+						adjColor.push_back(Vector3f(0.5f, 0.25f, 0.0f));
+						adjColor.push_back(Vector3f(0.0f, 0.25f, 0.5f));
+					});
+				}
+				renderer.adjacencyEdges = adjData.size() / 2;
+				renderer.adjBuffer.buffer.uploadData(adjData.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjData.data()));
+				renderer.adjColorBuffer.buffer.uploadData(adjColor.size() * 3, 3, sizeof(float), GL_FLOAT, false, reinterpret_cast<uint8_t*>(adjColor.data()));
+				renderer.adjBuffer.dirty = false;
+			}
+
+
+			HierarchySpecific(HierarchyRenderer& renderer)
+				:renderer(renderer)
+			{ }
+
+			HierarchyRenderer& renderer;
+		};
 	}
-
-
-	HierarchySpecific(HierarchyRenderer& renderer)
-		:renderer(renderer)
-	{ }
-
-	HierarchyRenderer& renderer;
-};
+}
 
 HierarchyRenderer::HierarchyRenderer(THierarchy & hierarchy)
 	: hierarchy(hierarchy), positionBuffer(VertexBuffer), normalBuffer(VertexBuffer), indexBuffer(IndexBuffer),

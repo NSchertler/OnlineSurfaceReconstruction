@@ -938,22 +938,25 @@ MortonCode64 Hierarchy::mortonCode(const Vector3f& p, int level) const
 		return parent(code, 0, level);
 }
 
-template<>
-void osr::saveToFile(const LevelInfo& level, FILE* f)
+namespace osr
 {
-	for (int i = 0; i < SHIFTS; ++i)
-		level.shiftedSequences[i].saveToFile(f);
-	level.originalData.saveToFile(f);
-	osr::saveToFile(level.toLocalOffset, f);
-}
+	template<>
+	void saveToFile(const LevelInfo& level, FILE* f)
+	{
+		for (int i = 0; i < SHIFTS; ++i)
+			level.shiftedSequences[i].saveToFile(f);
+		level.originalData.saveToFile(f);
+		osr::saveToFile(level.toLocalOffset, f);
+	}
 
-template<>
-void osr::loadFromFile(LevelInfo& level, FILE* f)
-{
-	for (int i = 0; i < SHIFTS; ++i)
-		level.shiftedSequences[i].loadFromFile(f);
-	level.originalData.loadFromFile(f);
-	osr::loadFromFile(level.toLocalOffset, f);
+	template<>
+	void loadFromFile(LevelInfo& level, FILE* f)
+	{
+		for (int i = 0; i < SHIFTS; ++i)
+			level.shiftedSequences[i].loadFromFile(f);
+		level.originalData.loadFromFile(f);
+		osr::loadFromFile(level.toLocalOffset, f);
+	}
 }
 
 void Hierarchy::saveToFile(FILE* f) const

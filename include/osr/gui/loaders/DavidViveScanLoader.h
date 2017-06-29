@@ -22,8 +22,6 @@
 
 #include <openvr.h>
 
-#include <boost/filesystem.hpp>
-
 namespace osr {
 	namespace gui 	{
 		namespace loaders

@@ -33,8 +33,6 @@
 
 #include <tbb/tbb.h>
 
-#include <boost/filesystem.hpp>
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "3rd/stb_image_write.h"
 
@@ -47,56 +45,63 @@
 using namespace osr;
 using namespace osr::gui;
 
-template <typename Hierarchy>
-struct Viewer::HierarchySpecific<Hierarchy, true>
+namespace osr
 {
-	void addLevelWidget(nanogui::Widget* parent)
+	namespace gui
 	{
-		nanogui::Widget* levelPanel = new nanogui::Widget(parent);
-		levelPanel->setLayout(new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 10, 20));
-		auto levelSlider = new nanogui::Slider(levelPanel);
-		levelSlider->setFixedWidth(100);
-		viewer.levelTxt = new nanogui::TextBox(levelPanel);
-		viewer.levelTxt->setValue("0");
-		viewer.levelTxt->setFixedSize(Vector2i(50, 25));
-		auto viewerPtr = &viewer;
-		levelSlider->setCallback([&, viewerPtr](float value)
+
+		template <typename Hierarchy>
+		struct Viewer::HierarchySpecific<Hierarchy, true>
 		{
-			if (viewerPtr->data.hierarchy.levels() == 0)
+			void addLevelWidget(nanogui::Widget* parent)
 			{
-				viewerPtr->levelTxt->setValue("0");
-				viewerPtr->hierarchyRenderer.setLevel(0);
+				nanogui::Widget* levelPanel = new nanogui::Widget(parent);
+				levelPanel->setLayout(new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 10, 20));
+				auto levelSlider = new nanogui::Slider(levelPanel);
+				levelSlider->setFixedWidth(100);
+				viewer.levelTxt = new nanogui::TextBox(levelPanel);
+				viewer.levelTxt->setValue("0");
+				viewer.levelTxt->setFixedSize(Vector2i(50, 25));
+				auto viewerPtr = &viewer;
+				levelSlider->setCallback([&, viewerPtr](float value)
+				{
+					if (viewerPtr->data.hierarchy.levels() == 0)
+					{
+						viewerPtr->levelTxt->setValue("0");
+						viewerPtr->hierarchyRenderer.setLevel(0);
+					}
+					else
+					{
+						int level = value * viewerPtr->data.hierarchy.levels();
+						if (level >= viewerPtr->data.hierarchy.levels())
+							level = viewerPtr->data.hierarchy.levels() - 1;
+						std::stringstream ss;
+						ss << level;
+						viewerPtr->levelTxt->setValue(ss.str());
+						viewerPtr->hierarchyRenderer.setLevel(level);
+					}
+				});
 			}
-			else
-			{
-				int level = value * viewerPtr->data.hierarchy.levels();
-				if (level >= viewerPtr->data.hierarchy.levels())
-					level = viewerPtr->data.hierarchy.levels() - 1;
-				std::stringstream ss;
-				ss << level;
-				viewerPtr->levelTxt->setValue(ss.str());
-				viewerPtr->hierarchyRenderer.setLevel(level);
-			}
-		});
+
+			HierarchySpecific(Viewer& viewer)
+				: viewer(viewer)
+			{ }
+
+			Viewer& viewer;
+		};
+
+
+		template <typename Hierarchy>
+		struct Viewer::HierarchySpecific<Hierarchy, false>
+		{
+			void addLevelWidget(nanogui::Widget* parent)
+			{ }
+
+			HierarchySpecific(Viewer& viewer)
+			{ }
+		};
 	}
-
-	HierarchySpecific(Viewer& viewer)
-		: viewer(viewer)
-	{ }
-
-	Viewer& viewer;
-};
-
-
-template <typename Hierarchy>
-struct Viewer::HierarchySpecific<Hierarchy, false>
-{
-	void addLevelWidget(nanogui::Widget* parent)
-	{ }
-
-	HierarchySpecific(Viewer& viewer)
-	{ }
-};
+}
 
 Viewer::Viewer()
 	: mainWindow(nullptr), hierarchyRenderer(data.hierarchy)

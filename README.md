@@ -7,11 +7,17 @@ This repository contains the source code for the research paper:
 > DOI: http://dx.doi.org/10.1145/3072959.3073635
 
 ## Pre-requisites:
-* Boost with file system component
+* Boost headers (no compiled components are necessary)
+
+On Linux, the following packages are necessary (available via `apt-get`):
+* xorg-dev
+* libglu1-mesa-dev
+* libboost-dev (only the header files are needed)
 
 ## Tested compilers
-* MSVC 2015 x64
-* MinGW / gcc 6.3
+* MSVC 2015 x64 / Windows
+* gcc 5.4 / Ubuntu on Windows
+* gcc 6.3 / Windows
 * Broader compatibility coming soon
 
 ## Data sets

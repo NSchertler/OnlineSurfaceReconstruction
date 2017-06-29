@@ -243,7 +243,7 @@ namespace SICP {
 			if (par.print_icpn) std::cout << "Iteration #" << icp << "/" << par.max_icp << std::endl;
 			/// Find closest point
 			{
-				TimedBlock b("Finding correspondences ..");
+				osr::TimedBlock b("Finding correspondences ..");
 #pragma omp parallel for
 				for (int i = 0; i < X.cols(); ++i)
 				{
@@ -328,7 +328,7 @@ namespace SICP {
 
             /// Find closest point
 			{
-				TimedBlock b("Finding correspondences ..");
+				osr::TimedBlock b("Finding correspondences ..");
 				float sumWeight = 0;
 #pragma omp parallel for reduction(+ : sumWeight)
 				for (int i = 0; i < X.cols(); ++i)

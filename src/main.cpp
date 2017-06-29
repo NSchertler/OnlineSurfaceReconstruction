@@ -171,7 +171,18 @@ void runBatch(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	std::cout.imbue(std::locale("en-US"));	
+	try
+	{
+#if _WIN32
+		std::cout.imbue(std::locale("en-US"));
+#else	
+		std::cout.imbue(std::locale("en_US.utf8"));
+#endif
+	}
+	catch (...)
+	{
+		std::cerr << "Warning: Could not set english locale." << std::endl;
+	}
 
 	Eigen::initParallel();
 	Eigen::setNbThreads(1);

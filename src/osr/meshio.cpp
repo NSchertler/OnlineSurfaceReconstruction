@@ -13,6 +13,7 @@
 */
 
 #include "osr/meshio.h"
+#include "osr/filehelper.h"
 #include <unordered_map>
 #include <fstream>
 #include <map>
@@ -20,8 +21,9 @@
 #include <libgen.h>
 #endif
 
-#include <boost/filesystem.hpp>
+#ifdef OSR_USE_MEMORY_MAPPED_FILE
 #include <boost/iostreams/device/mapped_file.hpp>
+#endif
 #include <boost/spirit/include/qi.hpp>
 #include <boost/lambda/lambda.hpp>
 
@@ -284,7 +286,7 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		texturePath[texturePath.length() - 2] = 'n';
 		texturePath[texturePath.length() - 1] = 'g';
 
-		if (boost::filesystem::exists(texturePath))
+		if (file_exists(texturePath))
 		{
 			std::cout << "loading texture .. ";			
 			C.resizeLike(V);
@@ -611,14 +613,28 @@ struct XYZGatherActionPositionsAndNormals
 
 void osr::load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N)
 {
+	const char* data_begin, *data_end;
+#ifdef OSR_USE_MEMORY_MAPPED_FILE
 	boost::iostreams::mapped_file mmap(filename, boost::iostreams::mapped_file::readonly);
-	auto f = mmap.const_data();
-	auto l = f + mmap.size();
+	data_begin = mmap.const_data();
+	data_end = data_begin + mmap.size();
+#else
+	std::ifstream file(filename, std::ios::binary | std::ios::ate);
+	size_t size = file.tellg();
+	file.seekg(0, std::ios::beg);
+	std::vector<char> buffer(size);
+	file.read(buffer.data(), size);
+	data_begin = buffer.data();
+	data_end = buffer.data() + size;
+#endif
 
 	namespace qi = boost::spirit::qi;	
 
+	const char* f = data_begin;
+	const char* l = data_end;
+
 	bool hasNormals = qi::phrase_parse(f, l, qi::float_ >> qi::float_ >> qi::float_ >> qi::float_ >> qi::float_ >> qi::float_, qi::blank);
-	f = mmap.const_data();
+	f = data_begin; //reset pointer to beginning
 
 	if (hasNormals)
 	{

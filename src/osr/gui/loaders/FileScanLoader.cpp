@@ -15,9 +15,7 @@
 
 #include <nanogui/button.h>
 #include "osr/meshio.h"
-
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
+#include "osr/filehelper.h"
 
 using namespace osr;
 using namespace gui;
@@ -59,21 +57,21 @@ void FileScanLoader::LoadDirectory()
 		{ "frames", "Aligned point cloud" }
 	}, false);
 
-	boost::filesystem::path p(filename);
-	p = p.parent_path();
-	for (auto& entry : boost::make_iterator_range(boost::filesystem::directory_iterator(p), {}))
+	std::string directory = osr::parent_path(filename);
+	std::vector<std::string> files;
+	osr::files_in_dir(directory, files);
+	for (auto& entry : files)
 	{
-		if (!boost::filesystem::is_directory(entry.path()))
+		if (!is_directory(entry))
 		{
-			if (entry.path().extension() == ".3d")
+			if (extension(entry) == ".3d")
 			{
-				auto framesPath = entry.path();
-				framesPath.replace_extension("frames");
-				if(boost::filesystem::exists(framesPath))
+				std::string framesPath = replace_extension(entry, "frames");
+				if(file_exists(framesPath))
 					continue; //don't load a 3d file if there is an according frames file.		
 			}
-			TimedBlock b("Trying to load file " + entry.path().string());
-			load_scan(entry.path().string(), *this, Eigen::Matrix4f::Identity(), true);
+			TimedBlock b("Trying to load file " + entry);
+			load_scan(entry, *this, Eigen::Matrix4f::Identity(), true);
 		}
 	}
 }
