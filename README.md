@@ -37,7 +37,7 @@ If your build environment does not support OpenMP (e.g. Clang on MacOS), the pro
 The following binaries are compiled from the latest commit with default options:
 * [Windows Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-windows/osr-windows.zip) (Visual Studio 2015)
 * [Linux Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-linux/osr-linux.zip) (GCC 6)
-* [macOS Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-osx/osr-macos.zip) (Clang)
+* [macOS Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-osx/osr-macos.zip) (Clang, without OpenMP support)
 
 ## Data sets
 A selection of data sets that we presented in our paper can be found here: https://wwwpub.zih.tu-dresden.de/~s0244354/OSRData/. This repository contains the original scan data, a project file for the OSR application, and the final reconstruction.
