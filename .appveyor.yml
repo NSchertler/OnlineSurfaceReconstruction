@@ -1,0 +1,36 @@
+version: 1.0.{build}
+image: Visual Studio 2015
+test: off
+clone_folder: C:\projects\OnlineSurfaceReconstruction
+branches:
+  only:
+    - master
+    
+environment:   
+  BOOST_ROOT: C:\Libraries\boost_1_63_0
+  access_token:
+    secure: tiZie8oQ9NaxNf87TpXYZ0cE+3qKwfyOhF2YC84efQ0PfrfDZskXI05mrGtEdwMu
+    
+install:
+  - git submodule update --init --recursive  
+build_script:
+  - echo Running cmake...
+  - cd c:\projects\OnlineSurfaceReconstruction
+  - cmake -G "Visual Studio 14 2015 Win64" -DBOOST_ROOT="%BOOST_ROOT%"
+  - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
+  - msbuild %MSBuildOptions% OnlineSurfaceReconstruction.sln
+  - cd Release
+  - 7z a ../osr-windows.zip "OnlineSurfaceReconstruction.exe"
+  - cd ..
+  - appveyor PushArtifact osr-windows.zip -FileName osr-windows.zip
+on_success:
+  - git config --global credential.helper store
+  - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+  - git config --global user.email "nico.schertler@tu-dresden.de"
+  - git config --global user.name "AppVeyor"
+  - git checkout --orphan deploy-windows
+  - git rm -r --cached .
+  - git add osr-windows.zip
+  - git commit -m "Windows Build"
+  - git push -f origin deploy-windows:deploy-windows

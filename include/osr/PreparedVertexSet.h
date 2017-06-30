@@ -45,8 +45,8 @@ namespace osr
 		PreparedVertexSetBase(Hierarchy* h)
 			: hierarchy(h) { }
 
-		template <Attribute A> typename AttributeTraits<A>::Type& attribute(VertexSetIndex i) { return hierarchy->attribute<A>(vertices[i.index].vertex); }
-		template <Attribute A> typename AttributeTraits<A>::Type& attribute(Index i) { return hierarchy->attribute<A>(i); }
+		template <Attribute A> typename AttributeTraits<A>::Type& attribute(VertexSetIndex i) { return hierarchy->template attribute<A>(vertices[i.index].vertex); }
+		template <Attribute A> typename AttributeTraits<A>::Type& attribute(Index i) { return hierarchy->template attribute<A>(i); }
 
 		Hierarchy* hierarchy;
 

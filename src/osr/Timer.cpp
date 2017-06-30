@@ -18,7 +18,10 @@
 
 using namespace osr;
 
-template class Timer<>;
+namespace osr
+{
+	template class Timer<>;
+}
 
 std::string osr::timeString(double time, bool precise)
 {

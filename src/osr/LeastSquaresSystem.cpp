@@ -66,11 +66,14 @@ void LinearSystemRow<SolutionColumns>::addToRHS(const Eigen::Matrix<float, Solut
 	rhs += value;
 }
 
-template class LinearSystemRow<1>;
-template class LeastSquaresSystem<1>;
-template class LinearSystemRow<2>;
-template class LeastSquaresSystem<2>;
-template class LinearSystemRow<3>;
-template class LeastSquaresSystem<3>;
-template class LinearSystemRow<4>;
-template class LeastSquaresSystem<4>;
+namespace osr
+{
+	template class LinearSystemRow<1>;
+	template class LeastSquaresSystem<1>;
+	template class LinearSystemRow<2>;
+	template class LeastSquaresSystem<2>;
+	template class LinearSystemRow<3>;
+	template class LeastSquaresSystem<3>;
+	template class LinearSystemRow<4>;
+	template class LeastSquaresSystem<4>;
+}

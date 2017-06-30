@@ -1,0 +1,46 @@
+language: cpp
+sudo: required
+matrix:
+  include:
+    - os: linux
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        target_branch: deploy-linux
+        local_dir: build
+      dist: trusty
+      install:
+        - sudo add-apt-repository ppa:kzemek/boost --yes
+        - sudo apt-get update
+        - sudo apt-get install libboost1.58-dev
+      script:
+        - cmake -DCMAKE_CXX_COMPILER=g++-6 -DCMAKE_C_COMPILER=gcc-6 -DNANOGUI_USE_GLAD=ON
+        - make
+        - mkdir build
+        - zip build/osr-linux.zip OnlineSurfaceReconstruction
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - kubuntu-backports
+          packages:
+            - gcc-6
+            - g++-6
+            - cmake
+            - xorg-dev
+            - libglu1-mesa-dev
+    - os: osx
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        target_branch: deploy-osx
+        local_dir: build
+      compiler: clang
+      script:
+        - cmake -DNANOGUI_USE_GLAD=ON
+        - make
+        - mkdir build
+        - cp OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction OnlineSurfaceReconstruction
+        - zip build/osr-macos.zip OnlineSurfaceReconstruction

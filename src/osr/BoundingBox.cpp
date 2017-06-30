@@ -13,6 +13,7 @@
 
 #include "osr/BoundingBox.h"
 
-using namespace osr;
-
-template struct BoundingBox<float, 3>;
+namespace osr
+{
+	template struct BoundingBox<float, 3>;
+}

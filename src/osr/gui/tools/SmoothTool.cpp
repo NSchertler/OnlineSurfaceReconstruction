@@ -348,7 +348,11 @@ void SmoothTool::updateNeighbors()
 	{
 		std::vector<THierarchy::VertexIndex> neighbors;
 		std::vector<int> pointsForCurrentThread;
-		pointsForCurrentThread.reserve((int)ceil((float)selectedPoints.size() / omp_get_num_procs()));		
+		int threads = 1;
+#ifdef OPENMP
+		threads = omp_get_num_procs();
+#endif
+		pointsForCurrentThread.reserve((int)ceil((float)selectedPoints.size() / threads));		
 
 		int neighborsPerPointGuess = 20;
 

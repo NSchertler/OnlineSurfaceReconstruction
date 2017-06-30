@@ -200,8 +200,8 @@ void GeometricLeastSquaresSystemBuilder::addLaplacianEntry(const LaplacianEntry 
 	auto& colorRow = colorRowWorkingSet[omp_get_thread_num()];
 	auto  offsetRows = &offsetRowWorkingSet[3 * omp_get_thread_num()];
 #else
-	auto& colorRow = rowWorkingSet[0];
-	auto  offsetRows = &offsetRowWorkingSet[3];
+	auto& colorRow = colorRowWorkingSet[0];
+	auto offsetRows = &offsetRowWorkingSet[3];
 #endif
 	colorRow.reset();
 	for (int i = 0; i < 3; ++i)
@@ -248,8 +248,8 @@ void GeometricLeastSquaresSystemBuilder::addInterpolationConstraint(const Extrac
 	auto& colorRow = colorRowWorkingSet[omp_get_thread_num()];
 	auto& offsetRow = offsetRowWorkingSet[3 * omp_get_thread_num()];
 #else
-	auto& colorRow = rowWorkingSet[0];
-	auto  offsetRows = &offsetRowWorkingSet[3];
+	auto& colorRow = colorRowWorkingSet[0];
+	auto& offsetRow = offsetRowWorkingSet[3];
 #endif
 	colorRow.reset();
 	offsetRow.reset();

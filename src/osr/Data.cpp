@@ -170,5 +170,8 @@ DataGL::DataGL()
 	: extractedMesh(meshSettings)
 { }
 
-template class DataBase<Data>;
-template class DataBase<DataGL>;
+namespace osr
+{
+	template class DataBase<Data>;
+	template class DataBase<DataGL>;
+}
