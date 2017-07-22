@@ -16,7 +16,7 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
-in TES_OUT
+in GEOM_IN
 {
 	vec4 pos;
 	vec4 color;	

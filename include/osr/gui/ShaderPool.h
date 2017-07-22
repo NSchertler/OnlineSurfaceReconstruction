@@ -26,6 +26,8 @@ namespace osr
 			static ShaderPool* _instance;
 			ShaderPool();
 
+			bool hasMeshColorSupport;
+
 		public:
 			static ShaderPool* Instance();
 			void CompileAll();
@@ -33,6 +35,7 @@ namespace osr
 			gui::GLShader ObjectShader;
 			gui::GLShader MeshColorsTriShader;
 			gui::GLShader MeshColorsQuadShader;
+			gui::GLShader FlatMeshShader;
 			gui::GLShader TessellatedEdgesShader;
 			gui::GLShader NormalShader;
 			gui::GLShader OrientationFieldShader;
@@ -40,6 +43,10 @@ namespace osr
 			gui::GLShader AdjacencyShader;
 			gui::GLShader SphereShader;
 			gui::GLShader PhantomShader;
+
+			// Returns if the current OpenGL context supports Shader Storage Buffer Objects and Tessellation Shaders.
+			// This function will return correct values only after CompileAll() has been called.
+			bool HasMeshColorSupport() const;
 		};
 	}
 }

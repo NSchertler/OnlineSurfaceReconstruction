@@ -50,6 +50,7 @@ struct QuadData
 ExtractedMeshGL::ExtractedMeshGL(const MeshSettings& meshSettings)
 	: ExtractedMesh(meshSettings), adjDirty(true), drawAdjacency(false), drawCollapsed(false), drawExtracted(true), drawModified(false), wireframe(false), coarseWireframe(false), highlightBoundary(true),
 	vertexBuffer(osr::gui::ShaderStorageBuffer), edgeBuffer(osr::gui::ShaderStorageBuffer), triBuffer(osr::gui::ShaderStorageBuffer), quadBuffer(osr::gui::ShaderStorageBuffer), colorBuffer(osr::gui::ShaderStorageBuffer), adjPositionBuffer(osr::gui::VertexBuffer), adjColorBuffer(osr::gui::VertexBuffer),
+	vertexBufferNoSSBO(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
 	collapsedPositionBuffer(osr::gui::VertexBuffer), collapsedColorBuffer(osr::gui::VertexBuffer),
 	edgesWireframeBuffer(osr::gui::VertexBuffer)
 {	
@@ -119,38 +120,56 @@ void ExtractedMeshGL::draw(const Eigen::Matrix4f & mv, const Eigen::Matrix4f & p
 		else
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+		//Calculate flashing boundary color
 		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 		unsigned short lightness = 49151 + 10000 * sin(ms.count() / 200.0);
 		unsigned short a = 53247;
 		unsigned short b = 45000;
-		Vector3f rgb = LabToRGB(Vector3us(lightness, a, b)).cast<float>() / 65535.0f;
-
-		auto& shader = ShaderPool::Instance()->MeshColorsTriShader;
-		shader.bind();
-		shader.setUniform("mv", mv);
-		shader.setUniform("mvp", mvp);
-		shader.setUniform("R", R);
-		shader.setUniform("boundaryColor", rgb);
-		shader.setUniform("highlightBoundary", highlightBoundary ? 1 : 0);
+		Vector3f rgb = LabToRGB(Vector3us(lightness, a, b)).cast<float>() / 65535.0f;		
+			
 		mesh.bind();
-		vertexBuffer.bindBufferBase(0);
-		edgeBuffer.bindBufferBase(1);
-		triBuffer.bindBufferBase(2);
-		colorBuffer.bindBufferBase(3);
-		glPatchParameteri(GL_PATCH_VERTICES, 3);
-		glDrawArrays(GL_PATCHES, 0, 3 * triangles.sizeNotDeleted());
 
-		auto& shader2 = ShaderPool::Instance()->MeshColorsQuadShader;
-		shader2.bind();
-		shader2.setUniform("mv", mv);
-		shader2.setUniform("mvp", mvp);
-		shader2.setUniform("R", R);
-		
-		shader2.setUniform("boundaryColor", rgb);
-		shader2.setUniform("highlightBoundary", highlightBoundary ? 1 : 0);
-		quadBuffer.bindBufferBase(2);
-		glPatchParameteri(GL_PATCH_VERTICES, 4);
-		glDrawArrays(GL_PATCHES, 0, 4 * quads.sizeNotDeleted());
+		if (ShaderPool::Instance()->HasMeshColorSupport())
+		{
+			auto& shader = ShaderPool::Instance()->MeshColorsTriShader;
+			shader.bind();
+			shader.setUniform("mv", mv);
+			shader.setUniform("mvp", mvp);
+
+			shader.setUniform("R", R);
+			shader.setUniform("boundaryColor", rgb);
+			shader.setUniform("highlightBoundary", highlightBoundary ? 1 : 0);
+
+			vertexBuffer.bindBufferBase(0);
+			edgeBuffer.bindBufferBase(1);
+			triBuffer.bindBufferBase(2);
+			colorBuffer.bindBufferBase(3);
+
+			glPatchParameteri(GL_PATCH_VERTICES, 3);
+			glDrawArrays(GL_PATCHES, 0, 3 * triangles.sizeNotDeleted());
+
+			auto& shader2 = ShaderPool::Instance()->MeshColorsQuadShader;
+			shader2.bind();
+			shader2.setUniform("mv", mv);
+			shader2.setUniform("mvp", mvp);
+			shader2.setUniform("R", R);
+
+			shader2.setUniform("boundaryColor", rgb);
+			shader2.setUniform("highlightBoundary", highlightBoundary ? 1 : 0);
+			quadBuffer.bindBufferBase(2);
+			glPatchParameteri(GL_PATCH_VERTICES, 4);
+			glDrawArrays(GL_PATCHES, 0, 4 * quads.sizeNotDeleted());
+		}
+		else
+		{
+			auto& shader = ShaderPool::Instance()->FlatMeshShader;
+			shader.bind();
+			shader.setUniform("mv", mv);
+			shader.setUniform("mvp", mvp);
+
+			glDrawElements(GL_TRIANGLES, 3 * triangles.sizeNotDeleted() + 6 * quads.sizeNotDeleted(), GL_UNSIGNED_INT, 0);
+		}
+
 		mesh.unbind();
 
 		glPolygonMode(GL_FRONT_AND_BACK, oldPolygonMode);
@@ -220,90 +239,135 @@ void ExtractedMeshGL::post_extract()
 
 	TimedBlock b("Uploading to GPU ..");
 
-	mesh.generate();
-	mesh.bind();
-
-	std::vector<Eigen::Vector4f> colors;
-	
-	std::vector<VertexData> vData(vertices.sizeWithGaps());
-	for (int i = 0; i < vertices.sizeWithGaps(); ++i)
+	if (ShaderPool::Instance()->HasMeshColorSupport())
 	{
-		Vertex& v = vertices[i];
-		vData[i].position = Eigen::Vector4f(v.position.x(), v.position.y(), v.position.z(), 1);
-		vData[i].normal = Eigen::Vector4f(v.normal.x(), v.normal.y(), v.normal.z(), 0);
-		vData[i].colorDisplacement = convertToRGB(v.colorDisplacement);
+		mesh.generate();
+		mesh.bind();
+
+		std::vector<Eigen::Vector4f> colors;
+
+		std::vector<VertexData> vData(vertices.sizeWithGaps());
+		for (int i = 0; i < vertices.sizeWithGaps(); ++i)
+		{
+			Vertex& v = vertices[i];
+			vData[i].position = Eigen::Vector4f(v.position.x(), v.position.y(), v.position.z(), 1);
+			vData[i].normal = Eigen::Vector4f(v.normal.x(), v.normal.y(), v.normal.z(), 0);
+			vData[i].colorDisplacement = convertToRGB(v.colorDisplacement);
+		}
+		vertexBuffer.uploadData(sizeof(VertexData) * vData.size(), vData.data());
+
+		std::vector<EdgeData> eData(edges.sizeWithGaps());
+		for (int i = 0; i < edges.sizeWithGaps(); ++i)
+		{
+			eData[i].v1 = edges[i].v.at(0);
+			eData[i].v2 = edges[i].v.at(1);
+			eData[i].cPtr = colors.size();
+			eData[i].isBoundary = (edges[i].incidentQuads.size() + edges[i].incidentTriangles.size() == 1 ? 1 : 0);
+
+			colors.resize(colors.size() + edges[i].colorDisplacement.size());
+#pragma omp parallel for
+			for (int j = 0; j < edges[i].colorDisplacement.size(); ++j)
+				colors[eData[i].cPtr + j] = convertToRGB(edges[i].colorDisplacement[j]);
+		}
+		edgeBuffer.uploadData(sizeof(EdgeData) * eData.size(), eData.data());
+
+		std::vector<TriData> triData(triangles.sizeNotDeleted());
+		Eigen::Vector3f p;
+		Eigen::Vector3f vx[4];
+		size_t nextTri = 0;
+		for (auto& tri : triangles)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				triData[nextTri].e[j] = tri.edges[j];
+				vx[j] = vertices[startVertex(tri.edges[j])].position;
+			}
+			triData[nextTri].cPtr = colors.size();
+			colors.resize(colors.size() + tri.colorDisplacement.size());
+#pragma omp parallel for
+			for (int j = 0; j < tri.colorDisplacement.size(); ++j)
+				colors[triData[nextTri].cPtr + j] = convertToRGB(tri.colorDisplacement[j]);
+			++nextTri;
+		}
+		triBuffer.uploadData(triData.size() * sizeof(TriData), triData.data());
+
+		std::vector<QuadData> quadData(quads.sizeNotDeleted());
+		size_t nextQuad = 0;
+		for (auto& quad : quads)
+		{
+			for (int j = 0; j < 4; ++j)
+			{
+				quadData[nextQuad].e[j] = quad.edges[j];
+				vx[j] = vertices[startVertex(quad.edges[j])].position;
+			}
+			quadData[nextQuad].cPtr = colors.size();
+			colors.resize(colors.size() + quad.colorDisplacement.size());
+#pragma omp parallel for
+			for (int j = 0; j < quad.colorDisplacement.size(); ++j)
+				colors[quadData[nextQuad].cPtr + j] = convertToRGB(quad.colorDisplacement[j]);
+			++nextQuad;
+		}
+		quadBuffer.uploadData(quadData.size() * sizeof(QuadData), quadData.data());
+
+		colorBuffer.uploadData(colors.size() * sizeof(Vector4f), colors.data());
+
+		mesh.unbind();
+
+		edgesWireframe.generate();
+		edgesWireframe.bind();
+
+		Eigen::Matrix < int32_t, 1, -1> edgeIds(1, edges.sizeNotDeleted());
+		int i = 0;
+		for (auto it = edges.begin(); it != edges.end(); ++it)
+			edgeIds(0, i++) = it.index();
+		ShaderPool::Instance()->TessellatedEdgesShader.bind();
+		edgesWireframeBuffer.uploadData(edgeIds).bindToAttribute("in_edgeID");
+		edgesWireframeSize = edgeIds.cols();
+
+		edgesWireframe.unbind();
+	}
+	else
+	{
+		//No Mesh Colors support
+		mesh.generate();
+		mesh.bind();
+
+		ShaderPool::Instance()->FlatMeshShader.bind();
+
+		Eigen::Matrix<float, 4, Eigen::Dynamic> positions(4, vertices.sizeWithGaps());
+#pragma omp parallel for
+		for (int i = 0; i < vertices.sizeWithGaps(); ++i)
+		{
+			Vertex& v = vertices[i];
+			positions.col(i) = Eigen::Vector4f(v.position.x(), v.position.y(), v.position.z(), 1);			
+		}
+		vertexBufferNoSSBO.uploadData(positions).bindToAttribute("position");
+
+		MatrixXu indices(3, triangles.sizeNotDeleted() + 2 * quads.sizeNotDeleted());
+		int i = 0;
+		for (auto& tri : triangles)
+		{
+			for (int j = 0; j < 3; ++j)
+				indices.coeffRef(j, i) = (startVertex(tri.edges[j]));
+			++i;
+		}
+		for (auto& quad : quads)
+		{
+			indices.coeffRef(0, i) = (startVertex(quad.edges[0]));
+			indices.coeffRef(1, i) = (startVertex(quad.edges[1]));
+			indices.coeffRef(2, i) = (startVertex(quad.edges[2]));
+			++i;
+
+			indices.coeffRef(0, i) = (startVertex(quad.edges[0]));
+			indices.coeffRef(1, i) = (startVertex(quad.edges[2]));
+			indices.coeffRef(2, i) = (startVertex(quad.edges[3]));
+			++i;
+		}
+
+		indexBuffer.uploadData(indices.size() * sizeof(unsigned int), indices.data());
+				
+		mesh.unbind();
 	}	
-	vertexBuffer.uploadData(sizeof(VertexData) * vData.size(), vData.data());
-
-	std::vector<EdgeData> eData(edges.sizeWithGaps());
-	for (int i = 0; i < edges.sizeWithGaps(); ++i)
-	{
-		eData[i].v1 = edges[i].v.at(0);
-		eData[i].v2 = edges[i].v.at(1);
-		eData[i].cPtr = colors.size();
-		eData[i].isBoundary = (edges[i].incidentQuads.size() + edges[i].incidentTriangles.size() == 1 ? 1 : 0);
-
-		colors.resize(colors.size() + edges[i].colorDisplacement.size());
-#pragma omp parallel for
-		for (int j = 0; j < edges[i].colorDisplacement.size(); ++j)
-			colors[eData[i].cPtr + j] = convertToRGB(edges[i].colorDisplacement[j]);
-	}
-	edgeBuffer.uploadData(sizeof(EdgeData) * eData.size(), eData.data());
-
-	std::vector<TriData> triData(triangles.sizeNotDeleted());
-	Eigen::Vector3f p;
-	Eigen::Vector3f vx[4];
-	size_t nextTri = 0;
-	for (auto& tri : triangles)
-	{
-		for (int j = 0; j < 3; ++j)
-		{
-			triData[nextTri].e[j] = tri.edges[j];
-			vx[j] = vertices[startVertex(tri.edges[j])].position;
-		}
-		triData[nextTri].cPtr = colors.size();
-		colors.resize(colors.size() + tri.colorDisplacement.size());
-#pragma omp parallel for
-		for (int j = 0; j < tri.colorDisplacement.size(); ++j)
-			colors[triData[nextTri].cPtr + j] = convertToRGB(tri.colorDisplacement[j]);
-		++nextTri;
-	}
-	triBuffer.uploadData(triData.size() * sizeof(TriData), triData.data());
-
-	std::vector<QuadData> quadData(quads.sizeNotDeleted());
-	size_t nextQuad = 0;
-	for (auto& quad : quads)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			quadData[nextQuad].e[j] = quad.edges[j];
-			vx[j] = vertices[startVertex(quad.edges[j])].position;
-		}
-		quadData[nextQuad].cPtr = colors.size();
-		colors.resize(colors.size() + quad.colorDisplacement.size());
-#pragma omp parallel for
-		for (int j = 0; j < quad.colorDisplacement.size(); ++j)
-			colors[quadData[nextQuad].cPtr + j] = convertToRGB(quad.colorDisplacement[j]);
-		++nextQuad;
-	}
-	quadBuffer.uploadData(quadData.size() * sizeof(QuadData), quadData.data());
-
-	colorBuffer.uploadData(colors.size() * sizeof(Vector4f), colors.data());
-
-	mesh.unbind();
-
-	edgesWireframe.generate();
-	edgesWireframe.bind();
-
-	Eigen::Matrix < int32_t, 1, -1> edgeIds(1, edges.sizeNotDeleted());
-	int i = 0;
-	for (auto it = edges.begin(); it != edges.end(); ++it)
-		edgeIds(0, i++) = it.index();
-	ShaderPool::Instance()->TessellatedEdgesShader.bind();
-	edgesWireframeBuffer.uploadData(edgeIds).bindToAttribute("in_edgeID");
-	edgesWireframeSize = edgeIds.cols();
-
-	edgesWireframe.unbind();
 }
 
 void ExtractedMeshGL::adjacencyData(std::vector<Vector3f>&& adj, std::vector<Vector3f>&& color)

@@ -21,7 +21,7 @@ in TCS_OUT
 	vec4 n;
 } vIn[];
 
-out TES_OUT
+out GEOM_IN
 {
 	vec4 pos;
 	vec4 color;	

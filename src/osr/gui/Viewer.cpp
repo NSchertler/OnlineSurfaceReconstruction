@@ -28,6 +28,7 @@
 #include <nanogui/toolbutton.h>
 #include <nanogui/entypo.h>
 #include <nanogui/popupbutton.h>
+#include <nanogui/messagedialog.h>
 
 #include <glad/glad.h>
 
@@ -107,6 +108,13 @@ Viewer::Viewer()
 	: mainWindow(nullptr), hierarchyRenderer(data.hierarchy)
 {
 	ShaderPool::Instance()->CompileAll();
+
+	if (!ShaderPool::Instance()->HasMeshColorSupport())
+	{
+		new nanogui::MessageDialog(this, nanogui::MessageDialog::Type::Information, "Feature Support",
+			"The current OpenGL context does not support shader storage buffer objects or tessellation shaders. The extraction will only be rendered as the coarse base mesh. Boundary highlight will not be available.");
+		
+	}
 
 	scanLoader.push_back(new loaders::FileScanLoader());
 	scanLoader.push_back(new loaders::ProceduralScanLoader());
@@ -335,6 +343,11 @@ void Viewer::SetupGUI()
 	positionChk->setChecked(hierarchyRenderer.showPositionField);
 	auto boundaryChk = new nanogui::CheckBox(advancedBtn->popup(), "Highlight Boundary", [this](bool checked) { data.extractedMesh.highlightBoundary = checked; });
 	boundaryChk->setChecked(data.extractedMesh.highlightBoundary);
+	if (!ShaderPool::Instance()->HasMeshColorSupport())
+	{
+		boundaryChk->setChecked(false);
+		boundaryChk->setEnabled(false);
+	}
 
 	auto saveCoarse = new nanogui::Button(advancedBtn->popup(), "Export Coarse Mesh");
 	saveCoarse->setCallback([this]()
@@ -392,6 +405,7 @@ void Viewer::SetupGUI()
 	showWireframeChk->setChecked(data.extractedMesh.wireframe);
 	auto showCoarseWireframeChk = new nanogui::CheckBox(mainWindow, "Coarse Wireframe Overlay", [this](bool checked) { data.extractedMesh.coarseWireframe = checked; });
 	showCoarseWireframeChk->setChecked(data.extractedMesh.coarseWireframe);
+	showCoarseWireframeChk->setEnabled(ShaderPool::Instance()->HasMeshColorSupport());
 
 #ifdef DEBUG_VISUALIZATION
 	auto showModified = new nanogui::CheckBox(advancedBtn->popup(), "Show Modified Data", [this](bool checked) { data.extractedMesh.drawModified = checked; });

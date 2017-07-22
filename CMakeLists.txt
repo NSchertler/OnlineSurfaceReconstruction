@@ -154,10 +154,12 @@ include_directories(
 )
 
 set(GLSL_FILES 	mesh.vert
+				mesh_flat.vert
 				blinnphong.frag
+				flat_shading.geom
 				void.vert
-				mesh_colors_tri.tcs mesh_colors_tri.geom mesh_colors_tri.tes
-				mesh_colors_quad.tcs mesh_colors_quad.geom mesh_colors_quad.tes
+				mesh_colors_tri.tcs mesh_colors_tri.tes
+				mesh_colors_quad.tcs mesh_colors_quad.tes
 				edges.vert edges.tcs edges.tes
 				orientation_field.frag orientation_field.geom orientation_field.vert
 				normal.frag normal.geom normal.vert

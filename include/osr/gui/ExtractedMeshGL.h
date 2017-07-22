@@ -48,7 +48,10 @@ namespace osr
 			void collapsedGraphData(std::vector<Vector3f>&& adj, std::vector<Vector3f>&& color);
 			void modifiedData(std::vector<Vector3f>& points);
 		private:
+			//These buffers are for SSBO-supported rendering
 			GLBuffer vertexBuffer, edgeBuffer, triBuffer, quadBuffer, colorBuffer;
+			//This is a plain buffer for SSBO-unsupported rendering
+			GLBuffer vertexBufferNoSSBO, indexBuffer;
 			GLVertexArray mesh;
 
 			GLBuffer edgesWireframeBuffer;
