@@ -90,3 +90,13 @@ Eigen::Matrix<unsigned short, 3, 1> osr::LabToRGB(const Eigen::Matrix<unsigned s
 
 	return rgbDbl.cast<unsigned short>();
 }
+
+Eigen::Matrix<unsigned char, 3, 1> osr::gammaCorrect(const Eigen::Vector3f& rgbColor)
+{
+	float gamma = 1.0f / 2.2f;
+
+	Eigen::Matrix<unsigned char, 3, 1> r;
+	for (int i = 0; i < 3; ++i)
+		r(i) = (unsigned char)(std::pow((float)rgbColor(i), gamma) * 255.0f);
+	return r;
+}

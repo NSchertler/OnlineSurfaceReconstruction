@@ -23,6 +23,29 @@ namespace osr
 {
 	namespace gui
 	{
+		//used by the fallback renderer to write the fine mesh into vertex / index buffers
+		class FineMeshToBufferVisitor : public MeshVisitor
+		{
+		public:
+			FineMeshToBufferVisitor(GLBuffer& positionBuffer, GLBuffer& colorBuffer, GLBuffer& indexBuffer);
+
+			void begin(unsigned int vertices, unsigned int faces);
+			void addVertex(const Eigen::Vector3f& position, const Eigen::Vector3f& color);
+			void addFace(unsigned int count, const uint32_t* indices);
+			void end();
+
+			unsigned int indexCount() const;
+
+		private:
+			Eigen::Matrix<float, 4, Eigen::Dynamic> positions;
+			Eigen::Matrix<float, 4, Eigen::Dynamic> colors;
+			unsigned int nextVertex;
+			MatrixXu indices;
+			unsigned int nextFace;
+
+			GLBuffer &positionBuffer, &colorBuffer, &indexBuffer;
+		};
+
 		//Adds rendering functionality to the extracted mesh
 		class ExtractedMeshGL : public ExtractedMesh
 		{
@@ -51,7 +74,8 @@ namespace osr
 			//These buffers are for SSBO-supported rendering
 			GLBuffer vertexBuffer, edgeBuffer, triBuffer, quadBuffer, colorBuffer;
 			//This is a plain buffer for SSBO-unsupported rendering
-			GLBuffer vertexBufferNoSSBO, indexBuffer;
+			GLBuffer vertexBufferNoSSBO, colorBufferNoSSBO, indexBuffer;
+			unsigned int indexCount;
 			GLVertexArray mesh;
 
 			GLBuffer edgesWireframeBuffer;

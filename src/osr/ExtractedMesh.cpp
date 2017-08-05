@@ -765,25 +765,19 @@ void ExtractedMesh::saveWireframeToPLY(const std::string& path)
 	ply.close();
 }
 
-Eigen::Matrix<unsigned char, 3, 1> gammaCorrect(const Vector4f& color)
+Eigen::Vector3f colorDisplacementToRGBColor(const Vector4f& color)
 {
-	float gamma = 1.0f / 2.2f;
-
-	Vector3f r;
-
 	Vector3us Lab(color.x(), color.y(), color.z());
 	auto rgb = LabToRGB(Lab);
 
+	Eigen::Vector3f r;
 	for (int i = 0; i < 3; ++i)
-		r(i) = std::min(1.0f, std::max(0.0f, std::pow((float)rgb(i) / 65535.0f, gamma)));
-
-	return (r * 255.0f).cast<unsigned char>();
+		r(i) = std::min(1.0f, std::max(0.0f, (float)rgb(i) / 65535.0f));
+	return r;
 }
 
-void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
+void ExtractedMesh::extractFineMesh(osr::MeshVisitor& visitor, bool triangulate)
 {
-	TimedBlock b("Exporting fine mesh to PLY");
-
 	//set up indices in texel vector
 	uint32_t nextIndex = 0;
 	int faces = 0;
@@ -810,32 +804,14 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 			faces += R * R;
 	}
 	int totalTexels = nextIndex;
-	
-	std::ofstream ply(path, std::ios::binary);
 
-	ply << "ply" << std::endl;
-	ply << "format binary_little_endian 1.0" << std::endl;
-	ply << "element vertex " << totalTexels << std::endl;
-	ply << "property float32 x" << std::endl;
-	ply << "property float32 y" << std::endl;
-	ply << "property float32 z" << std::endl;
-	ply << "property uchar red" << std::endl;
-	ply << "property uchar green" << std::endl;
-	ply << "property uchar blue" << std::endl;
-	ply << "element face " << faces << std::endl;
-	ply << "property list uint8 int32 vertex_index" << std::endl;
-	ply << "end_header" << std::endl;
+	visitor.begin(totalTexels, faces);
 
 	//vertex data
-
 	for (auto& v : vertices)
 	{
 		Vector3f p = v.position + v.colorDisplacement.w() * v.normal;
-
-		ply.write(reinterpret_cast<const char*>(p.data()), 3 * sizeof(float));		
-
-		auto color = gammaCorrect(v.colorDisplacement);
-		ply.write(reinterpret_cast<const char*>(color.data()), 3 * sizeof(unsigned char));
+		visitor.addVertex(p, colorDisplacementToRGBColor(v.colorDisplacement));
 	}
 	for (auto& e : edges)
 	{
@@ -843,14 +819,11 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 		auto& v1 = vertices[e.v[1]];
 		for (int i = 1; i < R; ++i)
 		{
-			float t = (float)i / R ;
+			float t = (float)i / R;
 			auto& cd = e.colorDisplacement[i - 1];
-			Vector3f n = (1 - t) * v0.normal +t * v1.normal;
+			Vector3f n = (1 - t) * v0.normal + t * v1.normal;
 			Vector3f p = (1 - t) * v0.position + t * v1.position + cd.w() * n;
-			ply.write(reinterpret_cast<const char*>(p.data()), 3 * sizeof(float));
-
-			auto color = gammaCorrect(cd);
-			ply.write(reinterpret_cast<const char*>(color.data()), 3 * sizeof(unsigned char));
+			visitor.addVertex(p, colorDisplacementToRGBColor(cd));
 		}
 	}
 	for (auto& tri : triangles)
@@ -858,7 +831,7 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 		auto& v0 = vertices[startVertex(tri.edges[0])];
 		auto& v1 = vertices[startVertex(tri.edges[1])];
 		auto& v2 = vertices[startVertex(tri.edges[2])];
-		for(int v = 1; v < R - 1; ++v)
+		for (int v = 1; v < R - 1; ++v)
 			for (int u = 1; u + v < R; ++u)
 			{
 				FaceInterpolationInfo interpolInfo[4];
@@ -871,10 +844,7 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 
 				Vector3f n = barycentric(v0.normal, v1.normal, v2.normal, Vector2f((float)u / R, (float)v / R));
 				Vector3f p = barycentric(v0.position, v1.position, v2.position, Vector2f((float)u / R, (float)v / R)) + cd.w() * n;
-				ply.write(reinterpret_cast<const char*>(p.data()), 3 * sizeof(float));
-
-				auto color = gammaCorrect(cd);
-				ply.write(reinterpret_cast<const char*>(color.data()), 3 * sizeof(unsigned char));
+				visitor.addVertex(p, colorDisplacementToRGBColor(cd));
 			}
 	}
 
@@ -890,11 +860,8 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 				auto& cd = q.colorDisplacement[(u - 1) + (R - 1) * (v - 1)];
 				Vector3f n = bilinear(v0.normal, v1.normal, v2.normal, v3.normal, Vector2f((float)u / R, (float)v / R));
 				Vector3f p = bilinear(v0.position, v1.position, v2.position, v3.position, Vector2f((float)u / R, (float)v / R)) + cd.w() * n;
-				ply.write(reinterpret_cast<const char*>(p.data()), 3 * sizeof(float));
-				
-				auto color = gammaCorrect(cd);
-				ply.write(reinterpret_cast<const char*>(color.data()), 3 * sizeof(unsigned char));
-			}			
+				visitor.addVertex(p, colorDisplacementToRGBColor(cd));
+			}
 	}
 
 	//face data
@@ -902,7 +869,7 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 	for (auto& tri : triangles)
 	{
 		uint8_t count = 3;
-		int32_t data[3];
+		uint32_t data[3];
 		for (int v = 0; v < R; ++v)
 			for (int u = 0; u + v < R; ++u)
 			{
@@ -918,18 +885,16 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 				getEntityTexelBarycentric(tri, Vector2i(u, v + 1), e, i);
 				data[2] = e->indexInTexelVector + i;
 
-				ply.write(reinterpret_cast<const char*>(&count), 1);
-				ply.write(reinterpret_cast<const char*>(data), 4 * 3);
+				visitor.addFace(count, data);				
 
 				if (u < R - v - 1)
 				{
-					data[0] = data[2];					
+					data[0] = data[2];
 
 					getEntityTexelBarycentric(tri, Vector2i(u + 1, v + 1), e, i);
 					data[2] = e->indexInTexelVector + i;
 
-					ply.write(reinterpret_cast<const char*>(&count), 1);
-					ply.write(reinterpret_cast<const char*>(data), 4 * 3);
+					visitor.addFace(count, data);					
 				}
 			}
 	}
@@ -937,14 +902,14 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 	for (auto& q : quads)
 	{
 		uint8_t count = triangulate ? 3 : 4;
-		int32_t data[4];
+		uint32_t data[4];
 
 		const Entity* e[4];
 		int i[4];
 
-		for(int u = 0; u < R; ++u)
+		for (int u = 0; u < R; ++u)
 			for (int v = 0; v < R; ++v)
-			{								
+			{
 				getEntityTexel(q, Vector2i(u, v), e[0], i[0]);
 				getEntityTexel(q, Vector2i(u + 1, v), e[1], i[1]);
 				getEntityTexel(q, Vector2i(u + 1, v + 1), e[2], i[2]);
@@ -956,30 +921,35 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 					data[1] = e[1]->indexInTexelVector + i[1];
 					data[2] = e[2]->indexInTexelVector + i[2];
 
-					ply.write(reinterpret_cast<const char*>(&count), 1);
-					ply.write(reinterpret_cast<const char*>(data), 3 * 4);
+					visitor.addFace(count, data);					
 
 					data[0] = e[0]->indexInTexelVector + i[0];
 					data[1] = e[2]->indexInTexelVector + i[2];
 					data[2] = e[3]->indexInTexelVector + i[3];
 
-					ply.write(reinterpret_cast<const char*>(&count), 1);
-					ply.write(reinterpret_cast<const char*>(data), 3 * 4);
+					visitor.addFace(count, data);
 				}
 				else
 				{
-					
-					data[0] = e[0]->indexInTexelVector + i[0];					
-					data[1] = e[1]->indexInTexelVector + i[1];					
+
+					data[0] = e[0]->indexInTexelVector + i[0];
+					data[1] = e[1]->indexInTexelVector + i[1];
 					data[2] = e[2]->indexInTexelVector + i[2];
 					data[3] = e[3]->indexInTexelVector + i[3];
-					
-					ply.write(reinterpret_cast<const char*>(&count), 1);
-					ply.write(reinterpret_cast<const char*>(data), 4 * 4);
+
+					visitor.addFace(count, data);
 				}
-			}		
+			}
 	}
-	ply.close();
+	visitor.end();
+}
+
+void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
+{
+	TimedBlock b("Exporting fine mesh to PLY");
+	
+	WritePLYMeshVisitor visitor(path);
+	extractFineMesh(visitor, triangulate);
 }
 
 void ExtractedMesh::saveToFile(FILE * f) const

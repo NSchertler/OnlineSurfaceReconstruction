@@ -17,6 +17,7 @@ uniform mat4 mv;
 uniform mat4 mvp;
 
 in vec4 position;
+in vec4 color;
 
 out GEOM_IN
 {
@@ -28,5 +29,5 @@ void main()
 {	
 	vOut.pos = mv * position;
 	gl_Position = mvp * position;
-	vOut.color = vec4(1, 1, 1, 1);
+	vOut.color = color;
 }

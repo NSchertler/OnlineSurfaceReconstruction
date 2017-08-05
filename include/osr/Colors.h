@@ -19,4 +19,6 @@ namespace osr
 {
 	extern Eigen::Matrix<unsigned short, 3, 1> RGBToLab(const Eigen::Matrix<unsigned short, 3, 1>& rgb);
 	extern Eigen::Matrix<unsigned short, 3, 1> LabToRGB(const Eigen::Matrix<unsigned short, 3, 1>& Lab);
+
+	Eigen::Matrix<unsigned char, 3, 1> gammaCorrect(const Eigen::Vector3f& rgbColor);
 }

@@ -24,6 +24,7 @@
 #include "osr/Colors.h"
 #include "osr/ExtractionUtils.h"
 #include "osr/ExtractionAttributeMapping.h"
+#include "osr/MeshVisitor.h"
 
 #include <set>
 #include <array>
@@ -80,6 +81,9 @@ namespace osr
 		//Saves the tessellated mesh to a PLY file. If triangulate is set to true,
 		//all quads are triangulated in the output.
 		void saveFineToPLY(const std::string& path, bool triangulate = false);
+
+		//Visits the fine mesh with the given visitor.
+		void extractFineMesh(osr::MeshVisitor& visitor, bool triangulate);
 
 		//Saves the state of the mesh to file.
 		void saveToFile(FILE* f) const;

@@ -47,10 +47,57 @@ struct QuadData
 	uint32_t pad[3];
 };
 
+#include "osr/MeshVisitor.h"
+
+using namespace osr;
+
+FineMeshToBufferVisitor::FineMeshToBufferVisitor(GLBuffer& positionBuffer, GLBuffer& colorBuffer, GLBuffer& indexBuffer)
+	: positionBuffer(positionBuffer), colorBuffer(colorBuffer), indexBuffer(indexBuffer)
+{ }
+
+void FineMeshToBufferVisitor::begin(unsigned int vertices, unsigned int faces)
+{
+	positions.resize(4, vertices);
+	colors.resize(4, vertices);
+	indices.resize(3, faces);
+	nextVertex = 0;	
+	nextFace = 0;
+}
+
+void FineMeshToBufferVisitor::addVertex(const Eigen::Vector3f& pos, const Eigen::Vector3f& color)
+{
+	positions.col(nextVertex) = Eigen::Vector4f(pos.x(), pos.y(), pos.z(), 1.0f);
+	colors.col(nextVertex) = Eigen::Vector4f(color.x(), color.y(), color.z(), 1.0f);	
+	nextVertex++;
+}
+
+void FineMeshToBufferVisitor::addFace(unsigned int count, const uint32_t* indices)
+{
+#if _DEBUG
+	if (count != 3)
+		std::err << "Warning: The FineMeshToBufferVisitor can only handle triangles. You passed a face with " << count << " vertices." << std::endl;
+#endif
+	for (int i = 0; i < 3; ++i)
+		this->indices.coeffRef(i, nextFace) = indices[i];	
+	nextFace++;
+}
+
+void FineMeshToBufferVisitor::end()
+{
+	positionBuffer.uploadData(positions).bindToAttribute("position");
+	colorBuffer.uploadData(colors).bindToAttribute("color");
+	indexBuffer.uploadData(indices.size() * sizeof(unsigned int), indices.data());
+}
+
+unsigned int FineMeshToBufferVisitor::indexCount() const
+{
+	return indices.size();
+}
+
 ExtractedMeshGL::ExtractedMeshGL(const MeshSettings& meshSettings)
 	: ExtractedMesh(meshSettings), adjDirty(true), drawAdjacency(false), drawCollapsed(false), drawExtracted(true), drawModified(false), wireframe(false), coarseWireframe(false), highlightBoundary(true),
 	vertexBuffer(osr::gui::ShaderStorageBuffer), edgeBuffer(osr::gui::ShaderStorageBuffer), triBuffer(osr::gui::ShaderStorageBuffer), quadBuffer(osr::gui::ShaderStorageBuffer), colorBuffer(osr::gui::ShaderStorageBuffer), adjPositionBuffer(osr::gui::VertexBuffer), adjColorBuffer(osr::gui::VertexBuffer),
-	vertexBufferNoSSBO(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
+	vertexBufferNoSSBO(osr::gui::VertexBuffer), colorBufferNoSSBO(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
 	collapsedPositionBuffer(osr::gui::VertexBuffer), collapsedColorBuffer(osr::gui::VertexBuffer),
 	edgesWireframeBuffer(osr::gui::VertexBuffer)
 {	
@@ -167,7 +214,7 @@ void ExtractedMeshGL::draw(const Eigen::Matrix4f & mv, const Eigen::Matrix4f & p
 			shader.setUniform("mv", mv);
 			shader.setUniform("mvp", mvp);
 
-			glDrawElements(GL_TRIANGLES, 3 * triangles.sizeNotDeleted() + 6 * quads.sizeNotDeleted(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 		}
 
 		mesh.unbind();
@@ -334,37 +381,9 @@ void ExtractedMeshGL::post_extract()
 
 		ShaderPool::Instance()->FlatMeshShader.bind();
 
-		Eigen::Matrix<float, 4, Eigen::Dynamic> positions(4, vertices.sizeWithGaps());
-#pragma omp parallel for
-		for (int i = 0; i < vertices.sizeWithGaps(); ++i)
-		{
-			Vertex& v = vertices[i];
-			positions.col(i) = Eigen::Vector4f(v.position.x(), v.position.y(), v.position.z(), 1);			
-		}
-		vertexBufferNoSSBO.uploadData(positions).bindToAttribute("position");
-
-		MatrixXu indices(3, triangles.sizeNotDeleted() + 2 * quads.sizeNotDeleted());
-		int i = 0;
-		for (auto& tri : triangles)
-		{
-			for (int j = 0; j < 3; ++j)
-				indices.coeffRef(j, i) = (startVertex(tri.edges[j]));
-			++i;
-		}
-		for (auto& quad : quads)
-		{
-			indices.coeffRef(0, i) = (startVertex(quad.edges[0]));
-			indices.coeffRef(1, i) = (startVertex(quad.edges[1]));
-			indices.coeffRef(2, i) = (startVertex(quad.edges[2]));
-			++i;
-
-			indices.coeffRef(0, i) = (startVertex(quad.edges[0]));
-			indices.coeffRef(1, i) = (startVertex(quad.edges[2]));
-			indices.coeffRef(2, i) = (startVertex(quad.edges[3]));
-			++i;
-		}
-
-		indexBuffer.uploadData(indices.size() * sizeof(unsigned int), indices.data());
+		FineMeshToBufferVisitor visitor(vertexBufferNoSSBO, colorBufferNoSSBO, indexBuffer);
+		extractFineMesh(visitor, true);
+		indexCount = visitor.indexCount();
 				
 		mesh.unbind();
 	}	

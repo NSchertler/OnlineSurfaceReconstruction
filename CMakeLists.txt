@@ -283,6 +283,7 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	src/osr/Optimizer.cpp include/osr/Optimizer.h
 	src/osr/Scan.cpp include/osr/Scan.h
 	src/osr/ExtractedMesh.cpp include/osr/ExtractedMesh.h
+	src/osr/MeshVisitor.cpp include/osr/MeshVisitor.h
 	include/osr/ExtractionUtils.h
 	src/osr/ExtractionAttributeMapping.cpp include/osr/ExtractionAttributeMapping.h		
 	src/osr/BatchSession.cpp include/osr/BatchSession.h

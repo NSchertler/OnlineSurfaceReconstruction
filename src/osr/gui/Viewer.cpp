@@ -112,7 +112,7 @@ Viewer::Viewer()
 	if (!ShaderPool::Instance()->HasMeshColorSupport())
 	{
 		new nanogui::MessageDialog(this, nanogui::MessageDialog::Type::Information, "Feature Support",
-			"The current OpenGL context does not support shader storage buffer objects or tessellation shaders. The extraction will only be rendered as the coarse base mesh. Boundary highlight will not be available.");
+			"The current OpenGL context does not support shader storage buffer objects or tessellation shaders. A fallback renderer will be used. Some features will not be available.");
 		
 	}
 
