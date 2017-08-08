@@ -1,4 +1,4 @@
-#version 330 compatibility
+#version 330
 
 /*
 	This file is part of the implementation for the technical paper

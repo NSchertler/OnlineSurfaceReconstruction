@@ -1,4 +1,4 @@
-#version 430 compatibility
+#version 430
 
 /*
 	This file is part of the implementation for the technical paper
