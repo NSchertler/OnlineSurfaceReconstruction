@@ -101,17 +101,18 @@ namespace osr
 		void addRowAtomic(const LinearSystemRow<SolutionColumns>& row, float weight = 1);
 
 		template <typename EigenSolver>
-		Eigen::Matrix<float, Eigen::Dynamic, 4> solve(EigenSolver& solver, const Eigen::Matrix<float, Eigen::Dynamic, 4>& initialGuess)
+		Eigen::Matrix<float, Eigen::Dynamic, SolutionColumns> solve(EigenSolver& solver, const Eigen::Matrix<float, Eigen::Dynamic, SolutionColumns>& initialGuess)
 		{
 			solver.compute(lhs);
 
-			Eigen::Matrix<float, Eigen::Dynamic, 4> solution(initialGuess.rows(), 4);
+			Eigen::Matrix<float, Eigen::Dynamic, SolutionColumns> solution(initialGuess.rows(), SolutionColumns);
 			solver.solveWithGuess(rhs, initialGuess, solution);
 			return solution;
 		}
 
-		template <typename EigenSolver>
-		void solve(EigenSolver& solver, const Eigen::Matrix<float, Eigen::Dynamic, 4>& initialGuess, Eigen::Matrix<float, Eigen::Dynamic, 4>& solution)
+		// This overload can be used when you want to solve only a subset of available columns of the solution.
+		template <int TotalColumnsOfGuessAndSolution, typename EigenSolver>
+		void solve(EigenSolver& solver, const Eigen::Matrix<float, Eigen::Dynamic, TotalColumnsOfGuessAndSolution>& initialGuess, Eigen::Matrix<float, Eigen::Dynamic, TotalColumnsOfGuessAndSolution>& solution)
 		{
 			solver.compute(lhs);
 

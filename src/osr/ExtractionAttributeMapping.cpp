@@ -304,11 +304,11 @@ Eigen::Matrix<float, Eigen::Dynamic, 4> GeometricLeastSquaresSystemBuilder::solv
 	Eigen::Matrix<float, Eigen::Dynamic, 4> solution(initialGuess.rows(), 4);
 
 	solver.solveColUpperExclusive = 3;
-	colorSystem.solve(solver, initialGuess, solution);
+	colorSystem.solve<4>(solver, initialGuess, solution);
 	
 	solver.solveColLowerInclusive = 3;
 	solver.solveColUpperExclusive = 4;
-	offsetSystem.solve(solver, initialGuess, solution);
+	offsetSystem.solve<4>(solver, initialGuess, solution);
 
 	return solution;
 }
