@@ -93,6 +93,8 @@ set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
 include_directories(ext/tbb/include)
 set(LIBS ${LIBS} tbb_static)
 SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
+SET(NSE_SSBO_SUPPORT ON CACHE BOOL " " FORCE)
+SET(NSE_TESSELLATION_SUPPORT ON CACHE BOOL " " FORCE)
 
 # Build NSEssentials
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nsessentials ext_build/nsessentials)
@@ -262,7 +264,6 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	include/osr/HierarchyDef.h
 	include/osr/Hierarchy.h
 	include/osr/PreparedVertexSet.h
-	src/osr/filehelper.cpp include/osr/filehelper.h
 	src/osr/HierarchyOptimizationHelper.cpp include/osr/HierarchyOptimizationHelper.h	
 	#src/HierarchyUnstructured.cpp include/HierarchyUnstructured.h
 	#src/HierarchyRegularSubdiv.cpp include/HierarchyRegularSubdiv.h

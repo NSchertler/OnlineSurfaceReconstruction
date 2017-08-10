@@ -15,7 +15,7 @@
 
 #include <nanogui/button.h>
 #include "osr/meshio.h"
-#include "osr/filehelper.h"
+#include <nsessentials/data/FileHelper.h>
 
 using namespace osr;
 using namespace gui;
@@ -57,17 +57,17 @@ void FileScanLoader::LoadDirectory()
 		{ "frames", "Aligned point cloud" }
 	}, false);
 
-	std::string directory = osr::parent_path(filename);
+	std::string directory = nse::data::parent_path(filename);
 	std::vector<std::string> files;
-	osr::files_in_dir(directory, files);
+	nse::data::files_in_dir(directory, files);
 	for (auto& entry : files)
 	{
-		if (!is_directory(entry))
+		if (!nse::data::is_directory(entry))
 		{
-			if (extension(entry) == ".3d")
+			if (nse::data::extension(entry) == ".3d")
 			{
-				std::string framesPath = replace_extension(entry, "frames");
-				if(file_exists(framesPath))
+				std::string framesPath = nse::data::replace_extension(entry, "frames");
+				if(nse::data::file_exists(framesPath))
 					continue; //don't load a 3d file if there is an according frames file.		
 			}
 			nse::util::TimedBlock b("Trying to load file " + entry);

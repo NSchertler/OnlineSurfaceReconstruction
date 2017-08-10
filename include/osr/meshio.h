@@ -17,7 +17,7 @@
 #include "osr/common.h"
 #include "osr/Scan.h"
 #include <nsessentials/util/IndentationLog.h>
-#include "osr/filehelper.h"
+#include <nsessentials/data/FileHelper.h>
 
 #include <fstream>
 
@@ -75,7 +75,7 @@ namespace osr
 	template <typename DataSink>
 	void load_scan(const std::string &filename, DataSink& dataSink, const Eigen::Matrix4f& transform, bool ignoreUnknownFile)
 	{
-		std::string ext = extension(filename);
+		std::string ext = nse::data::extension(filename);
 
 		if (ext == ".aln")
 			load_aln(filename, dataSink);
@@ -90,7 +90,7 @@ namespace osr
 			Scan* scan;
 			std::string cachePath = filename + ".cache";
 
-			if (file_exists(cachePath))
+			if (nse::data::file_exists(cachePath))
 			{
 				//load from cache
 
@@ -112,7 +112,7 @@ namespace osr
 				fread(F.data(), sizeof(uint32_t), F.size(), f);
 				fclose(f);
 
-				scan = new Scan(V, N, C, F, filename_without_extension_and_directory(filename), Eigen::Affine3f(transform));
+				scan = new Scan(V, N, C, F, nse::data::filename_without_extension_and_directory(filename), Eigen::Affine3f(transform));
 			}
 			else
 			{
@@ -130,7 +130,7 @@ namespace osr
 						throw std::runtime_error("load_mesh_or_pointcloud: Unknown file extension.");
 				}
 
-				scan = new Scan(V, N, C, F, filename_without_extension_and_directory(filename), Eigen::Affine3f(transform));
+				scan = new Scan(V, N, C, F, nse::data::filename_without_extension_and_directory(filename), Eigen::Affine3f(transform));
 				scan->calculateNormals();
 
 				FILE* f = fopen(cachePath.c_str(), "wb");

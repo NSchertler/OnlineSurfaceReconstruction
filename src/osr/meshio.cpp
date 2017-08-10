@@ -13,7 +13,7 @@
 */
 
 #include "osr/meshio.h"
-#include "osr/filehelper.h"
+#include <nsessentials/data/FileHelper.h>
 #include <unordered_map>
 #include <fstream>
 #include <map>
@@ -83,7 +83,7 @@ void osr::write_mesh(const std::string &filename, const MatrixXu &F,
 {
     std::string extension;
     if (filename.size() > 4)
-        extension = str_tolower(filename.substr(filename.size()-4));
+        extension = nse::data::str_tolower(filename.substr(filename.size()-4));
 
     if (extension == ".ply")
         write_ply(filename, F, V, N, Nf, UV, C);
@@ -286,7 +286,7 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		texturePath[texturePath.length() - 2] = 'n';
 		texturePath[texturePath.length() - 1] = 'g';
 
-		if (file_exists(texturePath))
+		if (nse::data::file_exists(texturePath))
 		{
 			std::cout << "loading texture .. ";			
 			C.resizeLike(V);
