@@ -17,7 +17,7 @@ using namespace osr;
 using namespace osr::gui;
 using namespace osr::gui::tools;
 
-RemoveTool::RemoveTool(AbstractViewer* viewer, DataGL & data, float & selectionRadius)
+RemoveTool::RemoveTool(nse::gui::AbstractViewer* viewer, DataGL & data, float & selectionRadius)
 	: viewer(viewer), data(data), selectionRadius(selectionRadius)
 { }
 

@@ -16,7 +16,7 @@
 
 #include "osr/Attributes.h"
 #include "osr/AttributeConsistency.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 #include <random>
 #include <fstream>
@@ -25,6 +25,7 @@
 
 using namespace osr;
 using namespace HierarchyMortonMultiPass;
+using namespace nse::math;
 
 //#define MEASURE_REOPTIMIZATION
 
@@ -135,7 +136,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const M
 		gridSize = bbox.diagonal().maxCoeff() / pow(meshSettings().scanSubsample * V.cols(), 0.33f) * 0.8f; //heuristic to find an appropriate grid size
 
 		//check if this is a good number...
-		TimedBlock b("Optimizing grid size ..");
+		nse::util::TimedBlock b("Optimizing grid size ..");
 		std::set<MortonCode64> allCells;
 #pragma omp parallel
 		{
@@ -234,7 +235,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const M
 	std::vector<MortonContainer<NodeState>> levelStates(mLevels.size());
 	std::vector<MeshVertexType> removedMeshVertices;
 	{
-		TimedBlock gridConstruction("Updating grid ..", true);
+		nse::util::TimedBlock gridConstruction("Updating grid ..", true);
 
 		//Added vertices are new vertices and modified vertices whose Morton index changed
 		std::vector<ShiftedRepresentation> addedVertices(V.cols());
@@ -391,7 +392,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const M
 	}
 
 	{
-		TimedBlock b("Updating hierarchy ..", true);
+		nse::util::TimedBlock b("Updating hierarchy ..", true);
 
 		ApplyChangesToHierarchy<Position, Normal>(levelStates, true);
 		levelStates[0] = levelStates[1];
@@ -414,7 +415,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const M
 
 	// --- STEP 2a: Clean normals
 	{
-		TimedBlock b("Cleaning normals ..");
+		nse::util::TimedBlock b("Cleaning normals ..");
 
 		for (int i = 0; i < cleanNormalsIterations; ++i)
 		{
@@ -588,7 +589,7 @@ PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::OptimizePart(std::ve
 	const float orientationThresholdSq = 0.01f; //the squared threshold above which an orientation is considered to have changed significantly
 	const float positionThreshold = 0.1f; //the squared threshold above which a position is considered to have changed significantly
 
-	TimedBlock b("Optimizing part ..", true);
+	nse::util::TimedBlock b("Optimizing part ..", true);
 
 	std::vector<size_t> optVertices;
 #ifdef MEASURE_REOPTIMIZATION
@@ -620,7 +621,7 @@ PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::OptimizePart(std::ve
 
 		if (checkForChildChange)
 		{
-			TimedBlock b("Checking how much fields changed ..");
+			nse::util::TimedBlock b("Checking how much fields changed ..");
 			if (i == 1)
 			{
 				levelStates[0].reserve(levelStates[1].size());
@@ -762,7 +763,7 @@ PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::OptimizePart(std::ve
 template<Attribute ... Attributes>
 PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::Optimize()
 {
-	TimedBlock b("Optimizing full..");
+	nse::util::TimedBlock b("Optimizing full..");
 
 	for (int level = mLevels.size() - 2; level > 0; --level)
 	{
@@ -938,51 +939,53 @@ MortonCode64 Hierarchy::mortonCode(const Vector3f& p, int level) const
 		return parent(code, 0, level);
 }
 
-namespace osr
-{
-	template<>
-	void saveToFile(const LevelInfo& level, FILE* f)
+namespace nse {
+	namespace data
 	{
-		for (int i = 0; i < SHIFTS; ++i)
-			level.shiftedSequences[i].saveToFile(f);
-		level.originalData.saveToFile(f);
-		osr::saveToFile(level.toLocalOffset, f);
-	}
+		template<>
+		void saveToFile(const LevelInfo& level, FILE* f)
+		{
+			for (int i = 0; i < SHIFTS; ++i)
+				level.shiftedSequences[i].saveToFile(f);
+			level.originalData.saveToFile(f);
+			nse::data::saveToFile(level.toLocalOffset, f);
+		}
 
-	template<>
-	void loadFromFile(LevelInfo& level, FILE* f)
-	{
-		for (int i = 0; i < SHIFTS; ++i)
-			level.shiftedSequences[i].loadFromFile(f);
-		level.originalData.loadFromFile(f);
-		osr::loadFromFile(level.toLocalOffset, f);
+		template<>
+		void loadFromFile(LevelInfo& level, FILE* f)
+		{
+			for (int i = 0; i < SHIFTS; ++i)
+				level.shiftedSequences[i].loadFromFile(f);
+			level.originalData.loadFromFile(f);
+			nse::data::loadFromFile(level.toLocalOffset, f);
+		}
 	}
 }
 
 void Hierarchy::saveToFile(FILE* f) const
 {
-	::saveToFile(bbox, f);
-	::saveToFile(maxNeighborRadius, f);
-	::saveToFile(origin, f);
-	::saveToFile(gridMin, f);
-	::saveToFile(gridMax, f);
-	::saveToFile(gridSize, f);
-	::saveToFile(mLevels, f);
-	::saveToFile(mVertexCount, f);
-	::saveToFile(pointSpacing, f);
+	nse::data::saveToFile(bbox, f);
+	nse::data::saveToFile(maxNeighborRadius, f);
+	nse::data::saveToFile(origin, f);
+	nse::data::saveToFile(gridMin, f);
+	nse::data::saveToFile(gridMax, f);
+	nse::data::saveToFile(gridSize, f);
+	nse::data::saveToFile(mLevels, f);
+	nse::data::saveToFile(mVertexCount, f);
+	nse::data::saveToFile(pointSpacing, f);
 }
 
 void Hierarchy::loadFromFile(FILE* f)
 {
-	::loadFromFile(bbox, f);
-	::loadFromFile(maxNeighborRadius, f);
-	::loadFromFile(origin, f);
-	::loadFromFile(gridMin, f);
-	::loadFromFile(gridMax, f);
-	::loadFromFile(gridSize, f);
-	::loadFromFile(mLevels, f);
-	::loadFromFile(mVertexCount, f);
-	::loadFromFile(pointSpacing, f);
+	nse::data::loadFromFile(bbox, f);
+	nse::data::loadFromFile(maxNeighborRadius, f);
+	nse::data::loadFromFile(origin, f);
+	nse::data::loadFromFile(gridMin, f);
+	nse::data::loadFromFile(gridMax, f);
+	nse::data::loadFromFile(gridSize, f);
+	nse::data::loadFromFile(mLevels, f);
+	nse::data::loadFromFile(mVertexCount, f);
+	nse::data::loadFromFile(pointSpacing, f);
 }
 
 // -------------  VertexIterator  ---------------

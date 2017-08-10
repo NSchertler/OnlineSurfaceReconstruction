@@ -20,7 +20,7 @@ using namespace osr::gui;
 using namespace osr::gui::tools;
 
 Selection::Selection()
-	: positionsBuffer(VertexBuffer)
+	: positionsBuffer(nse::gui::VertexBuffer)
 { }
 
 void Selection::init()
@@ -84,7 +84,7 @@ void Selection::addSphere(const Vector4f & positionRadius)
 	uploadData();
 }
 
-void Selection::setFirstToScreenPos(const Eigen::Vector2i & p, float radius, AbstractViewer* viewer)
+void Selection::setFirstToScreenPos(const Eigen::Vector2i & p, float radius, nse::gui::AbstractViewer* viewer)
 {
 	Vector4f pos;
 	float depth = viewer->get3DPosition(p, pos);	

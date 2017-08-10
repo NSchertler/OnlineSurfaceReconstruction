@@ -18,14 +18,13 @@ ENDFUNCTION()
 option(OSR_USE_DAVIDVIVE "[Under Construction] Use the DAVID/Vive scan loader")
 option(OSR_ACCURATE_TIMING "Display all timings in ms")
 option(OSR_DEBUG_VISUALIZATION "Generate debug visualizations")
-option(OSR_REDUCED_TIMINGS "Measure time only for high-priority TimedBlocks")
+option(OSR_REDUCED_TIMINGS "Measure time only for high-priority nse::util::TimedBlocks")
 option(OSR_GEOMETRIC_LAPLACIAN "Use the more time-consuming but higher-quality geometric formulation of the Laplacian for displacement map calculation")
 option(OSR_USE_MEMORY_MAPPED_FILE "Use the boost memory-mapped file for XYZ input. This requires the boost iostreams library.")
 
 set(NANOGUI_USE_GLAD ON)
 
 set(ADDITIONAL_SRC)
-set(ADDITIONAL_INCLUDE)
 set(LIBS)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -76,10 +75,12 @@ set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
 set_property(TARGET nanogui glfw glfw_objects PROPERTY FOLDER "dependencies")
-set(ADDITIONAL_INCLUDE 	${ADDITIONAL_INCLUDE}
-						${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/include
-						${NANOGUI_EXTRA_INCS}  )
+include_directories(ext/nanogui/include
+					${NANOGUI_EXTRA_INCS})
 set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
+add_definitions(${NANOGUI_EXTRA_DEFS})
+add_definitions(/DHAVE_NANOGUI)
+add_definitions(/DHAVE_EIGEN)
 
 # Build TBB
 set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
@@ -89,9 +90,15 @@ set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/tbb ext_build/tbb)
 set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
-set(ADDITIONAL_INCLUDE 	${ADDITIONAL_INCLUDE}
-						${CMAKE_CURRENT_SOURCE_DIR}/ext/tbb/include  )
+include_directories(ext/tbb/include)
 set(LIBS ${LIBS} tbb_static)
+add_definitions(/DHAVE_TBB)
+
+# Build NSEssentials
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nsessentials ext_build/nsessentials)
+set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
+include_directories(ext/nsessentials/include)
+set(LIBS ${LIBS} nsessentials)
 
 set(BOOST_COMPONENTS)
 if(OSR_USE_MEMORY_MAPPED_FILE)
@@ -104,8 +111,7 @@ find_package(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 if(MSVC AND (MSVC_VERSION LESS 1600))
 	add_definitions(-DBOOST_STDINT)
 endif(MSVC AND (MSVC_VERSION LESS 1600))
-set(ADDITIONAL_INCLUDE 	${ADDITIONAL_INCLUDE}
-						${Boost_INCLUDE_DIRS} )
+include_directories(${Boost_INCLUDE_DIRS})
 if(NOT "${BOOST_COMPONENTS}" STREQUAL "")
 	message("We have some boost components")
 	link_directories(${Boost_LIBRARY_DIRS})
@@ -137,21 +143,6 @@ endif(OSR_REDUCED_TIMINGS)
 if(OSR_GEOMETRIC_LAPLACIAN)
 	add_definitions (/DGEOMETRIC_LAPLACIAN)
 endif(OSR_GEOMETRIC_LAPLACIAN)
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${ADDITIONAL_INCLUDE}
-  # Resource file
-  ${CMAKE_CURRENT_BINARY_DIR}
-  # RPLY mesh I/O library
-  ${CMAKE_CURRENT_SOURCE_DIR}/ext/rply
-  # Disjoint set data structure
-  ${CMAKE_CURRENT_SOURCE_DIR}/ext/dset
-  # nanoflann
-  ${CMAKE_CURRENT_SOURCE_DIR}/ext/nanoflann
-  # glad
-  ${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui/ext/glad/include
-)
 
 set(GLSL_FILES 	mesh.vert
 				mesh_flat.vert
@@ -190,13 +181,8 @@ SET(THIRD_PARTY 	ext/rply/rply.c
 					include/3rd/ICP.h)
 source_group(third_party FILES ${THIRD_PARTY})
 
-SET(GUI_FILES	src/osr/gui/AbstractViewer.cpp include/osr/gui/AbstractViewer.h
-				src/osr/gui/Camera.cpp include/osr/gui/Camera.h
-				src/osr/gui/Viewer.cpp include/osr/gui/Viewer.h				
-				include/osr/gui/GUIObject.h				
-				src/osr/gui/GLBuffer.cpp include/osr/gui/GLBuffer.h
-				src/osr/gui/GLShader.cpp include/osr/gui/GLShader.h
-				src/osr/gui/GLVertexArray.cpp include/osr/gui/GLVertexArray.h
+SET(GUI_FILES	src/osr/gui/Viewer.cpp include/osr/gui/Viewer.h				
+				include/osr/gui/GUIObject.h								
 				src/osr/gui/HierarchyRenderer.cpp include/osr/gui/HierarchyRenderer.h
 				src/osr/gui/ExtractedMeshGL.cpp include/osr/gui/ExtractedMeshGL.h
 				src/osr/gui/ShaderPool.cpp include/osr/gui/ShaderPool.h)
@@ -224,7 +210,7 @@ if(OSR_USE_DAVIDVIVE)
 
 	add_definitions (/DUSE_DAVIDVIVE)
 	find_package(OpenVR REQUIRED)
-	set(ADDITIONAL_INCLUDE ${ADDITIONAL_INCLUDE} ${OPENVR_INCLUDE_DIRS})
+	include_directories(${OPENVR_INCLUDE_DIRS})
 	set(LIBS ${LIBS} ${OPENVR_LIB})
 
 	set(DAVIDVIVE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/TakeDavidScan.au3" "${CMAKE_CURRENT_SOURCE_DIR}/DavidVive/viveController.ply")
@@ -248,20 +234,27 @@ endif(OSR_USE_DAVIDVIVE)
 
 source_group(gui\\loaders FILES ${GUI_LOADERS_FILES})				
 
+include_directories(
+  include  
+  # Resource file
+  ${CMAKE_CURRENT_BINARY_DIR}
+  # RPLY mesh I/O library
+  ext/rply
+  # Disjoint set data structure
+  ext/dset
+  # nanoflann
+  ext/nanoflann
+)
+
 add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	glsl.cpp
 	src/main.cpp
 	include/osr/Attributes.h
 	include/osr/AttributeConsistency.h
 	src/osr/common.cpp include/osr/common.h
-	src/osr/Timer.cpp include/osr/Timer.h
-	src/osr/BoundingBox.cpp include/osr/BoundingBox.h
-	include/osr/ParallelCG.h
-	src/osr/Parallelization.cpp include/osr/Parallelization.h
 	src/osr/Data.cpp include/osr/Data.h
 	include/osr/MeshSettings.h
 	src/osr/field.cpp include/osr/field.h
-	src/osr/LeastSquaresSystem.cpp include/osr/LeastSquaresSystem.h
 	include/osr/Indexing.h
 	include/osr/HierarchyOptions.h
 	include/osr/HierarchyDecl.h
@@ -275,9 +268,6 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	#src/HierarchyOctree.cpp include/HierarchyOctree.h
 	src/osr/HierarchyMortonMultiPass.cpp include/osr/HierarchyMortonMultiPass.h
 	include/osr/HierarchyCapabilities.h
-	src/osr/IndentationLog.cpp include/osr/IndentationLog.h
-	include/osr/PersistentIndexContainer.h
-	src/osr/Morton.cpp include/osr/Morton.h
 	include/osr/INeighborQueryable.h
 	src/osr/meshio.cpp include/osr/meshio.h
 	src/osr/Optimizer.cpp include/osr/Optimizer.h
@@ -288,7 +278,6 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	src/osr/ExtractionAttributeMapping.cpp include/osr/ExtractionAttributeMapping.h		
 	src/osr/BatchSession.cpp include/osr/BatchSession.h
 	src/osr/Colors.cpp include/osr/Colors.h
-	include/osr/Serialization.h
 	${GUI_FILES}
 	${GUI_TOOL_FILES}
 	${GUI_LOADERS_FILES}
@@ -296,5 +285,4 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	${GLSL_FILES}
 	${THIRD_PARTY})
 
-add_definitions(${NANOGUI_EXTRA_DEFS})
 target_link_libraries(OnlineSurfaceReconstruction ${LIBS})

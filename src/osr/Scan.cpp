@@ -25,7 +25,7 @@
 using namespace osr;
 
 Scan::Scan(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C, const MatrixXu& F, const std::string& name, const Eigen::Affine3f& transform)
-	: positionBuffer(osr::gui::VertexBuffer), normalBuffer(osr::gui::VertexBuffer), colorBuffer(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
+	: positionBuffer(nse::gui::VertexBuffer), normalBuffer(nse::gui::VertexBuffer), colorBuffer(nse::gui::VertexBuffer), indexBuffer(nse::gui::IndexBuffer),
 	showInput(true), showNormals(false), mTransform(transform)
 {
 	mV = V;
@@ -108,7 +108,7 @@ void Scan::calculateNormalsFromFaces()
 
 void Scan::calculateNormalsPCA()
 {
-	TimedBlock b("Calculating normals with PCA ..");
+	nse::util::TimedBlock b("Calculating normals with PCA ..");
 	
 	bool hasTree = kdTree == nullptr;
 	buildTree();
@@ -210,7 +210,7 @@ Vector3f Scan::n(size_t idx) const
 	return mTransform.linear() * mN.col(idx);
 }
 
-BoundingBox<float, 3> Scan::getTransformedBoundingBox() const
+nse::math::BoundingBox<float, 3> Scan::getTransformedBoundingBox() const
 {
 	return bbox.transform(mTransform);
 }

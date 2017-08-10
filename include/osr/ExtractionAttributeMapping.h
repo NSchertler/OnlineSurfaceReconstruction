@@ -14,7 +14,7 @@
 #pragma once
 
 #include "osr/ExtractionUtils.h"
-#include "osr/LeastSquaresSystem.h"
+#include <nsessentials/math/LeastSquaresSystem.h>
 
 namespace osr
 {
@@ -75,9 +75,9 @@ namespace osr
 		Eigen::SparseMatrix<float>::InnerIterator rowIterator(size_t row);
 
 	private:
-		LeastSquaresSystem<4> system;
+		nse::math::LeastSquaresSystem<4> system;
 
-		std::vector<LinearSystemRow<4>> rowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
+		std::vector<nse::math::LinearSystemRow<4>> rowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
 	};
 
 	class GeometricLeastSquaresSystemBuilder : public LeastSquaresSystemBuilder
@@ -99,10 +99,10 @@ namespace osr
 		Eigen::SparseMatrix<float>::InnerIterator rowIterator(size_t row);
 
 	private:
-		LeastSquaresSystem<3> colorSystem;
-		LeastSquaresSystem<1> offsetSystem;
+		nse::math::LeastSquaresSystem<3> colorSystem;
+		nse::math::LeastSquaresSystem<1> offsetSystem;
 
-		std::vector<LinearSystemRow<1>> offsetRowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
-		std::vector<LinearSystemRow<3>> colorRowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
+		std::vector<nse::math::LinearSystemRow<1>> offsetRowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
+		std::vector<nse::math::LinearSystemRow<3>> colorRowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
 	};
 }

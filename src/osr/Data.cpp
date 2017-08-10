@@ -126,7 +126,7 @@ void DataBase<Derived>::Reset()
 template <typename Derived>
 void DataBase<Derived>::IntegrateScan(Scan * scan)
 {
-	TimedBlock b("Integrating points ..", true);
+	nse::util::TimedBlock b("Integrating points ..", true);
 	hierarchy.addPoints(scan->transform() * scan->V(), scan->transform().linear() * scan->N(), scan->C());
 
 	std::cout << "Size of hierarchy: " << hierarchy.vertexCount() << " points, " << memString(hierarchy.sizeInBytes()) << std::endl;

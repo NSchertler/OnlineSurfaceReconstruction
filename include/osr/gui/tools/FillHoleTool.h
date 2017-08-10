@@ -18,12 +18,13 @@
 
 #include "osr/Data.h"
 #include "osr/common.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
-#include "osr/gui/Camera.h"
-#include "osr/gui/AbstractViewer.h"
 #include "osr/gui/tools/Tool.h"
 #include "osr/gui/tools/Selection.h"
+
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
+#include <nsessentials/gui/Camera.h>
+#include <nsessentials/gui/AbstractViewer.h>
 
 namespace osr {
 	namespace gui {
@@ -34,7 +35,7 @@ namespace osr {
 			class FillHoleTool : public Tool
 			{
 			public:
-				FillHoleTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
+				FillHoleTool(nse::gui::AbstractViewer* viewer, DataGL& data, float& selectionRadius);
 
 				void enterTool();
 				void exitTool();
@@ -71,14 +72,14 @@ namespace osr {
 
 				void resetSupport();
 
-				AbstractViewer* viewer;
+				nse::gui::AbstractViewer* viewer;
 				nanogui::Window* window;
 				nanogui::Label* lblStatus;
 
 				Selection support;
 
-				GLBuffer planePositionsBuffer;
-				GLVertexArray planeVAO;
+				nse::gui::GLBuffer planePositionsBuffer;
+				nse::gui::GLVertexArray planeVAO;
 
 				float& selectionRadius;
 

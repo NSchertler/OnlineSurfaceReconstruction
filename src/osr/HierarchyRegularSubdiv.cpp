@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "osr/AttributeConsistency.h"
 #include "osr/Optimizer.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 #include "osr/HierarchyOptimizationHelper.h"
 #include <fstream>
@@ -106,7 +106,7 @@ void Hierarchy::initialize(const Matrix3Xf & V, const Matrix3Xf & N)
 
 	//construct grid cells and fill them with data
 	{
-		TimedBlock gridConstruction("Constructing grid ..");
+		nse::util::TimedBlock gridConstruction("Constructing grid ..");
 		for (int i = 0; i < V.cols(); ++i)
 		{
 			if (std::isnan(N.col(i).x()) || std::isnan(N.col(i).y()) || std::isnan(N.col(i).z()))
@@ -141,7 +141,7 @@ void Hierarchy::initialize(const Matrix3Xf & V, const Matrix3Xf & N)
 		}
 	}
 	{
-		TimedBlock hierarchyConstruction("Constructing hierarchy ..");
+		nse::util::TimedBlock hierarchyConstruction("Constructing hierarchy ..");
 		//filter up to coarser levels
 		for (int nodeLevel = 0; nodeLevel < innerLevels.size() - 1; ++nodeLevel)
 		{
@@ -277,7 +277,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf& V, const Matrix3Xf N)
 	std::unordered_map<Int3Index, NodeAddition> parentLevelChange;
 	std::vector<std::unordered_map<Int3Index, OldNodeState>> oldNodeStates(innerLevels.size()); //saves the contents of the nodes before re-optimization
 	{
-		TimedBlock gridUpdate("Updating grid..");
+		nse::util::TimedBlock gridUpdate("Updating grid..");
 		int ignored = 0;
 		for (int i = 0; i < V.cols(); ++i)
 		{
@@ -311,7 +311,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf& V, const Matrix3Xf N)
 
 	//filter up the hierarchy
 	{
-		TimedBlock hierarchyUpdate("Updating hierarchy ..");
+		nse::util::TimedBlock hierarchyUpdate("Updating hierarchy ..");
 		std::unordered_map<Int3Index, NodeAddition> currentLevelChange;
 		for (int i = 0; i < innerLevels.size(); ++i)
 		{
@@ -359,7 +359,7 @@ void Hierarchy::updateHierarchy(const Matrix3Xf& V, const Matrix3Xf N)
 	// ---  STEP 3: Re-optimize where necessary  ---
 
 	{
-		TimedBlock reopt("Re-optimizing ..");
+		nse::util::TimedBlock reopt("Re-optimizing ..");
 		const float orientationThresholdSq = 0.01f; //the squared threshold above which an orientation is considered to have changed significantly
 		const float positionThresholdSq = 0.01f; //the squared threshold above which a position is considered to have changed significantly
 #ifdef MEASURE_REOPTIMIZATION
@@ -493,7 +493,7 @@ void Hierarchy::addPoints(const Matrix3Xf & V, const Matrix3Xf & N)
 
 void Hierarchy::optimizeFull()
 {
-	TimedBlock b("Optimizing full ..");
+	nse::util::TimedBlock b("Optimizing full ..");
 	//the root level is a single node and won't change in optimization
 	copyToFinerLevel<DirField>(innerLevels.size());
 	copyToFinerLevel<PosField>(innerLevels.size());

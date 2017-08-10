@@ -51,7 +51,7 @@ struct QuadData
 
 using namespace osr;
 
-FineMeshToBufferVisitor::FineMeshToBufferVisitor(GLBuffer& positionBuffer, GLBuffer& colorBuffer, GLBuffer& indexBuffer)
+FineMeshToBufferVisitor::FineMeshToBufferVisitor(nse::gui::GLBuffer& positionBuffer, nse::gui::GLBuffer& colorBuffer, nse::gui::GLBuffer& indexBuffer)
 	: positionBuffer(positionBuffer), colorBuffer(colorBuffer), indexBuffer(indexBuffer)
 { }
 
@@ -96,10 +96,10 @@ unsigned int FineMeshToBufferVisitor::indexCount() const
 
 ExtractedMeshGL::ExtractedMeshGL(const MeshSettings& meshSettings)
 	: ExtractedMesh(meshSettings), adjDirty(true), drawAdjacency(false), drawCollapsed(false), drawExtracted(true), drawModified(false), wireframe(false), coarseWireframe(false), highlightBoundary(true),
-	vertexBuffer(osr::gui::ShaderStorageBuffer), edgeBuffer(osr::gui::ShaderStorageBuffer), triBuffer(osr::gui::ShaderStorageBuffer), quadBuffer(osr::gui::ShaderStorageBuffer), colorBuffer(osr::gui::ShaderStorageBuffer), adjPositionBuffer(osr::gui::VertexBuffer), adjColorBuffer(osr::gui::VertexBuffer),
-	vertexBufferNoSSBO(osr::gui::VertexBuffer), colorBufferNoSSBO(osr::gui::VertexBuffer), indexBuffer(osr::gui::IndexBuffer),
-	collapsedPositionBuffer(osr::gui::VertexBuffer), collapsedColorBuffer(osr::gui::VertexBuffer),
-	edgesWireframeBuffer(osr::gui::VertexBuffer)
+	vertexBuffer(nse::gui::ShaderStorageBuffer), edgeBuffer(nse::gui::ShaderStorageBuffer), triBuffer(nse::gui::ShaderStorageBuffer), quadBuffer(nse::gui::ShaderStorageBuffer), colorBuffer(nse::gui::ShaderStorageBuffer), adjPositionBuffer(nse::gui::VertexBuffer), adjColorBuffer(nse::gui::VertexBuffer),
+	vertexBufferNoSSBO(nse::gui::VertexBuffer), colorBufferNoSSBO(nse::gui::VertexBuffer), indexBuffer(nse::gui::IndexBuffer),
+	collapsedPositionBuffer(nse::gui::VertexBuffer), collapsedColorBuffer(nse::gui::VertexBuffer),
+	edgesWireframeBuffer(nse::gui::VertexBuffer)
 {	
 }
 
@@ -284,7 +284,7 @@ void ExtractedMeshGL::post_extract()
 {
 	//upload to GPU for rendering
 
-	TimedBlock b("Uploading to GPU ..");
+	nse::util::TimedBlock b("Uploading to GPU ..");
 
 	if (ShaderPool::Instance()->HasMeshColorSupport())
 	{

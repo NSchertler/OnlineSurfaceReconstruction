@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "osr/INeighborQueryable.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 #include "osr/common.h"
 
 /// Compute the rigid motion for point-to-point and point-to-plane distances
@@ -243,7 +243,7 @@ namespace SICP {
 			if (par.print_icpn) std::cout << "Iteration #" << icp << "/" << par.max_icp << std::endl;
 			/// Find closest point
 			{
-				osr::TimedBlock b("Finding correspondences ..");
+				osr::nse::util::TimedBlock b("Finding correspondences ..");
 #pragma omp parallel for
 				for (int i = 0; i < X.cols(); ++i)
 				{
@@ -328,7 +328,7 @@ namespace SICP {
 
             /// Find closest point
 			{
-				osr::TimedBlock b("Finding correspondences ..");
+				nse::util::TimedBlock b("Finding correspondences ..");
 				float sumWeight = 0;
 #pragma omp parallel for reduction(+ : sumWeight)
 				for (int i = 0; i < X.cols(); ++i)

@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "osr/gui/GLShader.h"
+#include <nsessentials/gui/GLShader.h>
 
 namespace osr
 {
@@ -32,17 +32,17 @@ namespace osr
 			static ShaderPool* Instance();
 			void CompileAll();
 
-			gui::GLShader ObjectShader;
-			gui::GLShader MeshColorsTriShader;
-			gui::GLShader MeshColorsQuadShader;
-			gui::GLShader FlatMeshShader;
-			gui::GLShader TessellatedEdgesShader;
-			gui::GLShader NormalShader;
-			gui::GLShader OrientationFieldShader;
-			gui::GLShader PositionFieldShader;
-			gui::GLShader AdjacencyShader;
-			gui::GLShader SphereShader;
-			gui::GLShader PhantomShader;
+			nse::gui::GLShader ObjectShader;
+			nse::gui::GLShader MeshColorsTriShader;
+			nse::gui::GLShader MeshColorsQuadShader;
+			nse::gui::GLShader FlatMeshShader;
+			nse::gui::GLShader TessellatedEdgesShader;
+			nse::gui::GLShader NormalShader;
+			nse::gui::GLShader OrientationFieldShader;
+			nse::gui::GLShader PositionFieldShader;
+			nse::gui::GLShader AdjacencyShader;
+			nse::gui::GLShader SphereShader;
+			nse::gui::GLShader PhantomShader;
 
 			// Returns if the current OpenGL context supports Shader Storage Buffer Objects and Tessellation Shaders.
 			// This function will return correct values only after CompileAll() has been called.

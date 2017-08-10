@@ -18,11 +18,11 @@
 #include "osr/Optimizer.h"
 #include "osr/HierarchyCapabilities.h"
 
-#include "osr/gui/AbstractViewer.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
-#include "osr/gui/HierarchyRenderer.h"
+#include <nsessentials/gui/AbstractViewer.h>
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
 
+#include "osr/gui/HierarchyRenderer.h"
 #include "osr/gui/loaders/ScanLoader.h"
 
 #include "osr/gui/tools/Tool.h"
@@ -42,7 +42,7 @@ namespace osr {
 	{
 
 		//Main class for the GUI
-		class Viewer : public AbstractViewer
+		class Viewer : public nse::gui::AbstractViewer
 		{
 		public:
 			Viewer();

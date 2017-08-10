@@ -16,8 +16,8 @@
 #include "osr/HierarchyDef.h"
 #include "osr/HierarchyCapabilities.h"
 
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
 
 
 namespace osr {
@@ -25,11 +25,11 @@ namespace osr {
 	{
 		struct GLBufferState
 		{
-			GLBufferState(GLBufferType type)
+			GLBufferState(nse::gui::GLBufferType type)
 				: buffer(type), dirty(true)
 			{}
 
-			GLBuffer buffer;
+			nse::gui::GLBuffer buffer;
 			bool dirty;
 		};
 
@@ -57,7 +57,7 @@ namespace osr {
 			size_t adjacencyEdges;
 
 			GLBufferState positionBuffer, normalBuffer, orientationFieldBuffer, positionFieldBuffer, indexBuffer, adjBuffer, adjColorBuffer, colorBuffer;
-			GLVertexArray inputData, orientationField, positionField, adjacency;
+			nse::gui::GLVertexArray inputData, orientationField, positionField, adjacency;
 
 			template <typename Hierarchy, bool HierarchySupportsLevelAccess = HierarchyCapabilities<Hierarchy>::AllowAccessToAllLevels>
 			struct HierarchySpecific

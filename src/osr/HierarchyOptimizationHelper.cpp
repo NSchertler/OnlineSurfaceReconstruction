@@ -17,7 +17,7 @@
 #include <tbb/tbb.h>
 #include <random>
 
-#include "osr/Parallelization.h"
+#include <nsessentials/data/Parallelization.h>
 
 using namespace osr;
 
@@ -27,7 +27,7 @@ ColorData osr::generateGraphColoring(int vertexCount, const std::vector<std::vec
 
 	const uint8_t INVALID_COLOR = 0xFF;
 
-	Timer<> timer;
+	nse::util::Timer<> timer;
 	std::cout << "Coloring " << vertexCount << " vertices .. ";
 
 	/* Generate a permutation */
@@ -36,7 +36,7 @@ ColorData osr::generateGraphColoring(int vertexCount, const std::vector<std::vec
 #pragma omp parallel for
 	for (int i = 0; i < vertexCount; ++i)
 		perm[i] = i;
-	parallel_shuffle(perm, mutex);
+	nse::data::parallel_shuffle(perm, mutex);
 
 	std::fill(color.begin(), color.end(), INVALID_COLOR);
 	color.resize(vertexCount, INVALID_COLOR);
@@ -139,7 +139,7 @@ ColorData osr::generateGraphColoring(int vertexCount, const std::vector<std::vec
 	}
 	);
 
-	std::cout << "done (took " << (int)colorData.nColors << " colors and " << timeString(timer.value()) << ")." << std::endl;
+	std::cout << "done (took " << (int)colorData.nColors << " colors and " << nse::util::timeString(timer.value()) << ")." << std::endl;
 
 	return colorData;
 }

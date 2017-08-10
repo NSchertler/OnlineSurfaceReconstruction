@@ -15,16 +15,17 @@
 
 #include "osr/common.h"
 #include "osr/INeighborQueryable.h"
-#include "osr/BoundingBox.h"
-#include "osr/IndentationLog.h"
 #include "osr/HierarchyDecl.h"
-#include "osr/Morton.h"
 
 #include "osr/gui/ShaderPool.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
 
 #include "3rd/ICP.h"
+
+#include <nsessentials/math/Morton.h>
+#include <nsessentials/math/BoundingBox.h>
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
+#include <nsessentials/util/IndentationLog.h>
 
 #include <random>
 #include <iostream>
@@ -58,8 +59,8 @@ namespace osr
 
 		const std::string& getName() { return name; }
 
-		const BoundingBox<float, 3> boundingBox() const { return bbox; }
-		BoundingBox<float, 3> getTransformedBoundingBox() const;
+		const nse::math::BoundingBox<float, 3> boundingBox() const { return bbox; }
+		nse::math::BoundingBox<float, 3> getTransformedBoundingBox() const;
 
 
 		const Matrix3Xf& V() const { return mV; }
@@ -145,8 +146,8 @@ namespace osr
 		void calculateNormalsFromFaces();
 		void calculateNormalsPCA();
 
-		gui::GLBuffer positionBuffer, normalBuffer, colorBuffer, indexBuffer;
-		gui::GLVertexArray inputMesh;
+		nse::gui::GLBuffer positionBuffer, normalBuffer, colorBuffer, indexBuffer;
+		nse::gui::GLVertexArray inputMesh;
 
 		int indexCount;
 
@@ -157,7 +158,7 @@ namespace osr
 
 		std::string name;
 
-		BoundingBox<float, 3> bbox;
+		nse::math::BoundingBox<float, 3> bbox;
 
 		Eigen::Affine3f mTransform;
 	};
@@ -165,7 +166,7 @@ namespace osr
 	template <typename Index>
 	void Scan::alignTo(const IPointQueryable<Index>& other, int iterations, double subsample)
 	{
-		TimedBlock b("Registering scan ..");
+		nse::util::TimedBlock b("Registering scan ..");
 
 		std::vector<Index> correspondences(mV.cols());
 		//For each point, find the corresponding point in the other point cloud.
@@ -178,13 +179,13 @@ namespace osr
 		}
 
 		//Distribute the points with a correspondence into normal buckets.
-		std::map<MortonCode64, std::vector<size_t>> normalBucketsMap;
+		std::map<nse::math::MortonCode64, std::vector<size_t>> normalBucketsMap;
 		for (int i = 0; i < mV.cols(); ++i)
 		{
 			if (!std::isnan(mV.col(i).x()) && other.isIndexValid(correspondences[i]))
 			{
 				Vector3i discrete = (mN.col(i) * 10).cast<int>();
-				MortonCode64 code(discrete.x(), discrete.y(), discrete.z());
+				nse::math::MortonCode64 code(discrete.x(), discrete.y(), discrete.z());
 				normalBucketsMap[code].push_back(i);
 			}
 		}

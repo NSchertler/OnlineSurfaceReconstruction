@@ -7,3 +7,6 @@
 [submodule "ext/nanogui"]
 	path = ext/nanogui
 	url = https://github.com/NSchertler/nanogui.git
+[submodule "ext/nsessentials"]
+	path = ext/nsessentials
+	url = https://github.com/NSchertler/NSEssentials

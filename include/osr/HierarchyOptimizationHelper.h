@@ -21,7 +21,7 @@
 
 #include "osr/common.h"
 #include "osr/Attributes.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 #include "osr/PreparedVertexSet.h"
 
@@ -94,7 +94,7 @@ namespace osr
 			std::vector<std::vector<Index>> additionalNeighbors(verticesIncluded); //neighbors that are not in vertices
 
 			{
-				TimedBlock neighborBlock("Calculating neighbors ..");
+				nse::util::TimedBlock neighborBlock("Calculating neighbors ..");
 #pragma omp parallel for
 				for (int i = 0; i < verticesIncluded; ++i)
 				{
@@ -184,7 +184,7 @@ namespace osr
 			std::vector<std::vector<size_t>> neighbors(verticesIncluded); //reference to vertices
 
 			{
-				TimedBlock neighborBlock("Calculating neighbors ..");
+				nse::util::TimedBlock neighborBlock("Calculating neighbors ..");
 				std::vector<std::vector<Index>> additionalNeighbors(verticesIncluded);
 #pragma omp parallel for
 				for (int i = 0; i < verticesIncluded; ++i)
@@ -303,7 +303,7 @@ namespace osr
 			std::vector<std::vector<size_t>> phases;
 			std::vector<size_t> phaseNeighbors;
 			{
-				TimedBlock neighborsBlock("Calculating neighbors ..");
+				nse::util::TimedBlock neighborsBlock("Calculating neighbors ..");
 				std::mutex mutex;
 #pragma omp parallel for
 				for (int i = 0; i < verticesIncluded; ++i)

@@ -18,7 +18,7 @@
 #include <string>
 #include "osr/common.h"
 #include "osr/Attributes.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 #include "osr/Optimizer.h"
 
 // This file contains structures that represent a set of vertex that have been prepared for optimization
@@ -156,7 +156,7 @@ namespace osr
 	{
 		ForEachHelper<PhasesIterator> phasesHelper(PhasesIterator(phaseStarts.begin(), *static_cast<Derived*>(this)), PhasesIterator(phaseStarts.end(), *static_cast<Derived*>(this)));
 
-		TimedBlock b("Optimizing " + std::to_string(this->includedVertices) + " vertices ..");
+		nse::util::TimedBlock b("Optimizing " + std::to_string(this->includedVertices) + " vertices ..");
 
 		int dummy[] = { 0, (VertexSetOptimizeHelper<WithDirFieldConstraints, Attributes, Hierarchy, Index, Derived, StoredVertexType>::optimize(*static_cast<Derived*>(this), o, phasesHelper), 0)... };
 		(void)dummy; //suppress compiler warnings for unused dummy
@@ -221,7 +221,7 @@ namespace osr
 
 		void expandBy(float radius)
 		{
-			TimedBlock b("Expanding vertex set ..");
+			nse::util::TimedBlock b("Expanding vertex set ..");
 
 			//Add more vertices as needed
 
@@ -233,7 +233,7 @@ namespace osr
 
 			std::vector<std::vector<Index>> additionalVertices(num_procs);
 			{
-				TimedBlock b("Radius queries ..");
+				nse::util::TimedBlock b("Radius queries ..");
 #ifdef OPENMP
 				additionalVertices[omp_get_thread_num()].reserve(this->includedVertices / 10 / omp_get_num_procs());
 #else
@@ -262,7 +262,7 @@ namespace osr
 			}
 
 			{
-				TimedBlock b("Updating vertices ..");
+				nse::util::TimedBlock b("Updating vertices ..");
 				for (int i = 0; i < additionalVertices.size(); ++i)
 					for (auto& n : additionalVertices[i])
 					{
@@ -277,7 +277,7 @@ namespace osr
 			//Find neighbors for new vertices
 			std::vector<std::vector<size_t>> localNeighbors(this->vertices.size() - this->includedVertices);
 			{
-				TimedBlock b("Neighbor queries for new vertices ..");
+				nse::util::TimedBlock b("Neighbor queries for new vertices ..");
 #pragma omp parallel for
 				for (int i = this->includedVertices; i < this->vertices.size(); ++i)
 				{
@@ -291,7 +291,7 @@ namespace osr
 			}
 
 			{
-				TimedBlock b("Updating neighbors ..");
+				nse::util::TimedBlock b("Updating neighbors ..");
 				for (int i = this->includedVertices; i < this->vertices.size(); ++i)
 				{
 					auto& myNeighbors = localNeighbors[i - this->includedVertices];

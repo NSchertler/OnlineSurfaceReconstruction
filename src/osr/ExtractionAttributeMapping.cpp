@@ -12,7 +12,7 @@
 */
 
 #include "osr/ExtractionAttributeMapping.h"
-#include "osr/ParallelCG.h"
+#include <nsessentials/math/ParallelCG.h>
 #include <iostream>
 
 #ifdef OPENMP
@@ -166,7 +166,7 @@ void HeightFieldLeastSquaresSystemBuilder::reserve(const Eigen::VectorXi& entrie
 
 Eigen::Matrix<float, Eigen::Dynamic, 4> HeightFieldLeastSquaresSystemBuilder::solve()
 {
-	ParallelCG<LeastSquaresSystem<4>::MatrixType> solver;
+	nse::math::ParallelCG<nse::math::LeastSquaresSystem<4>::MatrixType> solver;
 	solver.setTolerance(1e-4);
 
 	auto solution = system.solve(solver, initialGuess);
@@ -298,7 +298,7 @@ void GeometricLeastSquaresSystemBuilder::reserve(const Eigen::VectorXi & entries
 
 Eigen::Matrix<float, Eigen::Dynamic, 4> GeometricLeastSquaresSystemBuilder::solve()
 {
-	ParallelCG<LeastSquaresSystem<4>::MatrixType> solver;
+	nse::math::ParallelCG<nse::math::LeastSquaresSystem<4>::MatrixType> solver;
 	solver.setTolerance(1e-4);	
 
 	Eigen::Matrix<float, Eigen::Dynamic, 4> solution(initialGuess.rows(), 4);

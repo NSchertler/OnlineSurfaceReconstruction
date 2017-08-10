@@ -15,8 +15,8 @@
 
 #include "osr/ExtractedMesh.h"
 #include "osr/common.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
 #include "osr/gui/tools/Selection.h"
 
 namespace osr
@@ -27,7 +27,7 @@ namespace osr
 		class FineMeshToBufferVisitor : public MeshVisitor
 		{
 		public:
-			FineMeshToBufferVisitor(GLBuffer& positionBuffer, GLBuffer& colorBuffer, GLBuffer& indexBuffer);
+			FineMeshToBufferVisitor(nse::gui::GLBuffer& positionBuffer, nse::gui::GLBuffer& colorBuffer, nse::gui::GLBuffer& indexBuffer);
 
 			void begin(unsigned int vertices, unsigned int faces);
 			void addVertex(const Eigen::Vector3f& position, const Eigen::Vector3f& color);
@@ -43,7 +43,7 @@ namespace osr
 			MatrixXu indices;
 			unsigned int nextFace;
 
-			GLBuffer &positionBuffer, &colorBuffer, &indexBuffer;
+			nse::gui::GLBuffer &positionBuffer, &colorBuffer, &indexBuffer;
 		};
 
 		//Adds rendering functionality to the extracted mesh
@@ -72,27 +72,27 @@ namespace osr
 			void modifiedData(std::vector<Vector3f>& points);
 		private:
 			//These buffers are for SSBO-supported rendering
-			GLBuffer vertexBuffer, edgeBuffer, triBuffer, quadBuffer, colorBuffer;
+			nse::gui::GLBuffer vertexBuffer, edgeBuffer, triBuffer, quadBuffer, colorBuffer;
 			//This is a plain buffer for SSBO-unsupported rendering
-			GLBuffer vertexBufferNoSSBO, colorBufferNoSSBO, indexBuffer;
+			nse::gui::GLBuffer vertexBufferNoSSBO, colorBufferNoSSBO, indexBuffer;
 			unsigned int indexCount;
-			GLVertexArray mesh;
+			nse::gui::GLVertexArray mesh;
 
-			GLBuffer edgesWireframeBuffer;
-			GLVertexArray edgesWireframe;
+			nse::gui::GLBuffer edgesWireframeBuffer;
+			nse::gui::GLVertexArray edgesWireframe;
 			int edgesWireframeSize;
 
-			GLVertexArray adjacency;
+			nse::gui::GLVertexArray adjacency;
 
 			std::vector<Vector3f> adjacencyVis;
 			std::vector<Vector3f> adjacencyVisColor;
-			GLBuffer adjColorBuffer, adjPositionBuffer;
+			nse::gui::GLBuffer adjColorBuffer, adjPositionBuffer;
 			bool adjDirty, modifiedDirty;
 
-			GLVertexArray collapsed;
+			nse::gui::GLVertexArray collapsed;
 			std::vector<Vector3f> collapsedVis;
 			std::vector<Vector3f> collapsedVisColor;
-			GLBuffer collapsedColorBuffer, collapsedPositionBuffer;
+			nse::gui::GLBuffer collapsedColorBuffer, collapsedPositionBuffer;
 			bool collapsedDirty;
 
 			tools::Selection modifiedSet;

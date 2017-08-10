@@ -416,7 +416,7 @@ void DavidViveScanLoader::track()
 
 void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 {	
-	TimedBlock b("Scanning ..");
+	nse::util::TimedBlock b("Scanning ..");
 
 	if (currentScan)
 		delete currentScan;	

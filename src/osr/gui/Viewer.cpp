@@ -30,7 +30,7 @@
 #include <nanogui/popupbutton.h>
 #include <nanogui/messagedialog.h>
 
-#include <glad/glad.h>
+#include <nanogui/opengl.h>
 
 #include <tbb/tbb.h>
 
@@ -38,7 +38,7 @@
 #include "3rd/stb_image_write.h"
 
 #include "osr/gui/ShaderPool.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 #include "osr/gui/loaders/FileScanLoader.h"
 #include "osr/gui/loaders/ProceduralScanLoader.h"
@@ -105,7 +105,7 @@ namespace osr
 }
 
 Viewer::Viewer()
-	: mainWindow(nullptr), hierarchyRenderer(data.hierarchy)
+	: nse::gui::AbstractViewer("Online Surface Reconstruction"), mainWindow(nullptr), hierarchyRenderer(data.hierarchy)
 {
 	ShaderPool::Instance()->CompileAll();
 
@@ -421,7 +421,7 @@ void Viewer::SetupGUI()
 	auto integrateAllBtn = new nanogui::Button(mainWindow, "Integrate All");
 	integrateAllBtn->setCallback([this]()
 	{
-		TimedBlock b("Integrating all scans ..");
+		nse::util::TimedBlock b("Integrating all scans ..");
 		std::ofstream stats("integrationStats.csv");
 		stats << "new points,optimized points,time (ms)" << std::endl;
 		while(data.scans.size() > 0)
@@ -435,7 +435,7 @@ void Viewer::SetupGUI()
 			}
 
 			size_t totalNewPoints = data.scans[0]->V().cols();
-			Timer<> timer;			
+			nse::util::Timer<> timer;			
 			data.IntegrateScan(data.scans[0]);
 			size_t optimizedPoints = data.hierarchy.optimizedPoints;
 			

@@ -16,7 +16,7 @@
 #include <nanogui/button.h>
 
 #include "osr/gui/ShaderPool.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 #include <set>
 
@@ -26,9 +26,9 @@ using namespace osr::gui::tools;
 
 int FillHoleTool::scanNr(0);
 
-FillHoleTool::FillHoleTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius)
+FillHoleTool::FillHoleTool(nse::gui::AbstractViewer* viewer, DataGL& data, float& selectionRadius)
 	: viewer(viewer), data(data), selectionRadius(selectionRadius),
-	planePositionsBuffer(VertexBuffer)
+	planePositionsBuffer(nse::gui::VertexBuffer)
 { }
 
 void FillHoleTool::enterTool()

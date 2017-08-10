@@ -14,9 +14,9 @@
 #pragma once
 
 #include "osr/common.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
-#include "osr/gui/AbstractViewer.h"
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
+#include <nsessentials/gui/AbstractViewer.h>
 
 namespace osr {
 	namespace gui {
@@ -39,14 +39,14 @@ namespace osr {
 
 				Matrix4Xf positions;
 
-				void setFirstToScreenPos(const Eigen::Vector2i& p, float radius, AbstractViewer* viewer);
+				void setFirstToScreenPos(const Eigen::Vector2i& p, float radius, nse::gui::AbstractViewer* viewer);
 
 				void uploadData();
 
 			private:
 
-				GLBuffer positionsBuffer;
-				GLVertexArray vao;
+				nse::gui::GLBuffer positionsBuffer;
+				nse::gui::GLVertexArray vao;
 			};
 
 		}

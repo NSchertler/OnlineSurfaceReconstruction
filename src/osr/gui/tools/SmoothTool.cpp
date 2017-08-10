@@ -22,8 +22,8 @@ using namespace osr;
 using namespace osr::gui;
 using namespace osr::gui::tools;
 
-SmoothTool::SmoothTool(AbstractViewer * viewer, DataGL & data, float & selectionRadius)
-	: viewer(viewer), data(data), selectionRadius(selectionRadius), tempScan(nullptr), dirPositionBuffer(VertexBuffer), dirColorBuffer(VertexBuffer)
+SmoothTool::SmoothTool(nse::gui::AbstractViewer * viewer, DataGL & data, float & selectionRadius)
+	: viewer(viewer), data(data), selectionRadius(selectionRadius), tempScan(nullptr), dirPositionBuffer(nse::gui::VertexBuffer), dirColorBuffer(nse::gui::VertexBuffer)
 {
 }
 

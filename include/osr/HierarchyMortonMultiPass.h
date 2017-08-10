@@ -18,14 +18,14 @@
 #include "osr/AttributeConsistency.h"
 #include "osr/INeighborQueryable.h"
 #include "osr/Indexing.h"
-#include "osr/Morton.h"
 
 #include "osr/common.h"
 #include "osr/Hierarchy.h"
 #include "osr/Optimizer.h"
 #include "osr/HierarchyCapabilities.h"
-#include "osr/PersistentIndexContainer.h"
-#include "osr/Serialization.h"
+#include <nsessentials/data/PersistentIndexContainer.h>
+#include <nsessentials/data/Serialization.h>
+#include <nsessentials/math/Morton.h>
 
 #include <algorithm>
 #include <set>
@@ -48,7 +48,7 @@ namespace osr
 
 		//the offset used for shifted sorting
 		const unsigned int mortonShift = 5;
-		const MortonCode64 offsetMorton = MortonCode64(5, 5, 5);
+		const nse::math::MortonCode64 offsetMorton(5, 5, 5);
 
 		//type of nodes that are stored in the hierarchy
 		struct Node
@@ -111,7 +111,7 @@ namespace osr
 				dirField(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN())
 			{ }
 
-			NodeState(MortonCode64 morton)
+			NodeState(nse::math::MortonCode64 morton)
 				: mortonIdx(morton),
 				avgPositionAdded(Vector3f::Zero()), avgNormalAdded(Vector3f::Zero()), weightAdded(0),
 				avgPositionRemoved(Vector3f::Zero()), avgNormalRemoved(Vector3f::Zero()), weightRemoved(0),
@@ -119,7 +119,7 @@ namespace osr
 				dirField(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN())
 			{ }
 
-			MortonCode64 mortonIdx;
+			nse::math::MortonCode64 mortonIdx;
 			bool operator<(const NodeState& rhs) const
 			{
 				return mortonIdx < rhs.mortonIdx;
@@ -251,15 +251,15 @@ namespace osr
 		{
 			ShiftedRepresentation() { }
 
-			ShiftedRepresentation(MortonCode64 mortonIdx)
+			ShiftedRepresentation(nse::math::MortonCode64 mortonIdx)
 				: mortonIdx(mortonIdx), vRef(-1)
 			{ }
 
-			ShiftedRepresentation(MortonCode64 mortonIdx, size_t vRef)
+			ShiftedRepresentation(nse::math::MortonCode64 mortonIdx, size_t vRef)
 				: mortonIdx(mortonIdx), vRef(vRef)
 			{ }
 
-			MortonCode64 mortonIdx;
+			nse::math::MortonCode64 mortonIdx;
 			size_t vRef;
 
 			bool operator==(const ShiftedRepresentation& rhs) const { return vRef == rhs.vRef; }
@@ -347,7 +347,7 @@ namespace osr
 					return end();
 			}
 
-			typename std::vector<T>::const_iterator find(MortonCode64 i) const
+			typename std::vector<T>::const_iterator find(nse::math::MortonCode64 i) const
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(i));
 				if (it->mortonIdx == i)
@@ -356,7 +356,7 @@ namespace osr
 					return end();
 			}
 
-			typename std::vector<T>::iterator find(MortonCode64 i)
+			typename std::vector<T>::iterator find(nse::math::MortonCode64 i)
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(i));
 				if (it->mortonIdx == i)
@@ -365,7 +365,7 @@ namespace osr
 					return end();
 			}
 
-			T& findOrCreate(MortonCode64 i, bool& existedBefore)
+			T& findOrCreate(nse::math::MortonCode64 i, bool& existedBefore)
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(i));
 				if (it == data.end() || it->mortonIdx != i)
@@ -439,7 +439,7 @@ namespace osr
 			}
 
 			//Searches for a node with the given index. If it does not exist, it creates a new one
-			T& operator[](MortonCode64 i)
+			T& operator[](nse::math::MortonCode64 i)
 			{
 				bool e;
 				return findOrCreate(i, e);
@@ -454,7 +454,7 @@ namespace osr
 			//Calls the callback for every element within the specified range.
 			//callback: void(const T&)
 			template <typename Function>
-			void forEachInRange(MortonCode64 lowerInclusive, MortonCode64 upperExclusive, const Function& callback) const
+			void forEachInRange(nse::math::MortonCode64 lowerInclusive, nse::math::MortonCode64 upperExclusive, const Function& callback) const
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(lowerInclusive));
 				while (it != data.end() && it->mortonIdx < upperExclusive)
@@ -476,13 +476,13 @@ namespace osr
 			//Saves the current state of this collection to file
 			void saveToFile(FILE* f) const
 			{
-				osr::saveToFile(data, f);
+				nse::data::saveToFile(data, f);
 			}
 
 			//Restores the state of this collection from file
 			void loadFromFile(FILE* f)
 			{
-				osr::loadFromFile(data, f);
+				nse::data::loadFromFile(data, f);
 			}
 
 		private:
@@ -493,7 +493,7 @@ namespace osr
 		struct LevelInfo
 		{
 			//alignment improves performance by a tiny bit
-			typedef PersistentIndexContainer<Node, boost::alignment::aligned_allocator<Node, 64>> DataContainer;
+			typedef nse::data::PersistentIndexContainer<Node, boost::alignment::aligned_allocator<Node, 64>> DataContainer;
 
 			//Set of nodes within this level
 			DataContainer originalData;
@@ -501,10 +501,10 @@ namespace osr
 			MortonContainer<ShiftedRepresentation> shiftedSequences[SHIFTS];
 
 			//specifies the offset to add to a global index in order to transform it to a tree-local index (all positive)
-			MortonCode64 toLocalOffset;
+			nse::math::MortonCode64 toLocalOffset;
 
 			LevelInfo()
-				: toLocalOffset(MortonCode64::Zero)
+				: toLocalOffset(nse::math::MortonCode64::Zero)
 			{ }
 
 			size_t sizeInBytes() const
@@ -517,9 +517,9 @@ namespace osr
 				return s;
 			}
 
-			Node& node(const MortonCode64 i) { return originalData[shiftedSequences[0].find(i)->vRef]; }
+			Node& node(const nse::math::MortonCode64 i) { return originalData[shiftedSequences[0].find(i)->vRef]; }
 
-			void erase(size_t i, MortonCode64 code)
+			void erase(size_t i, nse::math::MortonCode64 code)
 			{
 				for (int s = 0; s < SHIFTS; ++s)
 				{
@@ -530,7 +530,7 @@ namespace osr
 			}
 
 			//Sets the vertex reference of the specified node to INVALID.
-			void prepareForErasure(size_t i, MortonCode64 code)
+			void prepareForErasure(size_t i, nse::math::MortonCode64 code)
 			{
 				for (int s = 0; s < SHIFTS; ++s)
 				{
@@ -682,11 +682,11 @@ namespace osr
 			template <typename Iterator>
 			VertexIteratorAdaptor<Iterator> adaptToVertexIterator(Iterator it, int level) const;
 
-			MortonCode64 mortonCode(const Vector3f& p, int level = 0) const;
+			nse::math::MortonCode64 mortonCode(const Vector3f& p, int level = 0) const;
 
 		private:
-			MortonCode64 parent(MortonCode64 idx, int childNodeLevel, int levelsUp = 1) const;
-			void children(const MortonCode64 idx, int parentNodeLevel, MortonCode64& childLowerInclusive, MortonCode64& childUpperExclusive) const;
+			nse::math::MortonCode64 parent(nse::math::MortonCode64 idx, int childNodeLevel, int levelsUp = 1) const;
+			void children(const nse::math::MortonCode64 idx, int parentNodeLevel, nse::math::MortonCode64& childLowerInclusive, nse::math::MortonCode64& childUpperExclusive) const;
 
 			void init();
 			void updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const Matrix3Xus& C, const std::vector<VertexIndex>& originalIndices, std::vector<Index>& removedVertices);
@@ -826,23 +826,23 @@ namespace osr
 			}
 			Int3Index searchExtent = searchMaxIdx - searchMinIdx;
 
-			std::vector<MortonCode64> inspectedCells;
+			std::vector<nse::math::MortonCode64> inspectedCells;
 			inspectedCells.reserve(20);
-			MortonCode64 currentZ(searchMinIdx.x(), searchMinIdx.y(), searchMinIdx.z());
+			nse::math::MortonCode64 currentZ(searchMinIdx.x(), searchMinIdx.y(), searchMinIdx.z());
 			for (int z = 0; z <= searchExtent.z(); ++z)
 			{
-				MortonCode64 currentY = currentZ;
+				nse::math::MortonCode64 currentY = currentZ;
 				for (int y = 0; y <= searchExtent.y(); ++y)
 				{
-					MortonCode64 currentX = currentY;
+					nse::math::MortonCode64 currentX = currentY;
 					for (int x = 0; x <= searchExtent.x(); ++x)
 					{
 						inspectedCells.push_back(currentX);
-						currentX += MortonCode64::UnitX;
+						currentX += nse::math::MortonCode64::UnitX;
 					}
-					currentY += MortonCode64::UnitY;
+					currentY += nse::math::MortonCode64::UnitY;
 				}
-				currentZ += MortonCode64::UnitZ;
+				currentZ += nse::math::MortonCode64::UnitZ;
 			}
 			std::sort(inspectedCells.begin(), inspectedCells.end());
 
@@ -851,7 +851,7 @@ namespace osr
 			auto regionEnd = regionBegin;
 			while (regionBegin != inspectedCells.end())
 			{
-				std::vector<MortonCode64>::iterator next;
+				std::vector<nse::math::MortonCode64>::iterator next;
 				//extend the current region as much as possible
 				while (true)
 				{

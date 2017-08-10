@@ -20,7 +20,7 @@
 #include <tuple>
 #include <fstream>
 
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 
 using namespace osr;
 using namespace ExtractionHelper;
@@ -42,7 +42,7 @@ void ExtractedMesh::reset()
 }
 
 template <typename FaceType, typename IncidentFacesCallback>
-void ExtractedMesh::removeIncidentArtefacts(uint32_t eid, PersistentIndexContainer<FaceType>& faces, std::set<uint32_t>& removedEdges, std::set<uint32_t>& removedFaces, const IncidentFacesCallback& getIncidentFaces)
+void ExtractedMesh::removeIncidentArtefacts(uint32_t eid, nse::data::PersistentIndexContainer<FaceType>& faces, std::set<uint32_t>& removedEdges, std::set<uint32_t>& removedFaces, const IncidentFacesCallback& getIncidentFaces)
 {
 	for (auto faceIt = getIncidentFaces(edges[eid]).begin(); faceIt != getIncidentFaces(edges[eid]).end(); )
 	{
@@ -110,7 +110,7 @@ void ExtractedMesh::extract_faces(std::vector<std::vector<TaggedLink>>& adj, std
 	std::vector<std::pair<uint32_t, uint32_t>> result;
 	uint32_t nFaces = 0, nHoles = 0;
 	{		
-		TimedBlock b("Step 7: Extracting faces ..");				
+		nse::util::TimedBlock b("Step 7: Extracting faces ..");				
 		for (uint32_t _deg = 3; _deg <= maxFaceDegree; _deg++)
 		{
 			uint32_t deg = _deg;
@@ -133,7 +133,7 @@ void ExtractedMesh::extract_faces(std::vector<std::vector<TaggedLink>>& adj, std
 
 	if (fill_holes) 
 	{
-		TimedBlock b("Step 8: Filling holes ..");
+		nse::util::TimedBlock b("Step 8: Filling holes ..");
 		for (uint32_t i = 0; i < adj.size(); ++i) 
 		{
 			for (uint32_t j = 0; j<adj[i].size(); ++j) 
@@ -232,7 +232,7 @@ void ExtractedMesh::extract_faces(std::vector<std::vector<TaggedLink>>& adj, std
 #if REMOVE_NONMANIFOLD
 	std::cout << "Step 11: Removing nonmanifold elements.. ";
 	remove_nonmanifold(F, mV_extracted, Nf);
-	std::cout << "done. (took " << timeString(timer.reset()) << ")" << std::endl;
+	std::cout << "done. (took " << timeString(nse::util::Timer.reset()) << ")" << std::endl;
 #endif
 }
 
@@ -665,7 +665,7 @@ void ExtractedMesh::fill_face(std::vector<std::pair<uint32_t, uint32_t>> &verts,
 
 void ExtractedMesh::saveCoarseToPLY(const std::string& path)
 {
-	TimedBlock b("Exporting coarse mesh to PLY");
+	nse::util::TimedBlock b("Exporting coarse mesh to PLY");
 	std::ofstream ply(path, std::ios::binary);
 
 	ply << "ply" << std::endl;
@@ -746,7 +746,7 @@ void ExtractedMesh::saveWireframeToPLY(const std::string& path)
 		}
 	}
 
-	TimedBlock b("Exporting coarse mesh to PLY");
+	nse::util::TimedBlock b("Exporting coarse mesh to PLY");
 	std::ofstream ply(path, std::ios::binary);
 
 	ply << "ply" << std::endl;
@@ -946,7 +946,7 @@ void ExtractedMesh::extractFineMesh(osr::MeshVisitor& visitor, bool triangulate)
 
 void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 {
-	TimedBlock b("Exporting fine mesh to PLY");
+	nse::util::TimedBlock b("Exporting fine mesh to PLY");
 	
 	WritePLYMeshVisitor visitor(path);
 	extractFineMesh(visitor, triangulate);
@@ -1417,7 +1417,7 @@ Vector4f osr::repairSolution(const Vector4f& sol)
 
 void ExtractedMesh::calculateCollapsedGraphVisualization(const std::vector<size_t>& newVertices, const std::vector<bool>& partOfCore, const std::vector<bool>& vertexReachableFromCore, std::vector<std::vector<TaggedLink>>& adj)
 {
-	TimedBlock b("Calculating visualization for extraction graph ..");
+	nse::util::TimedBlock b("Calculating visualization for extraction graph ..");
 	std::vector<Vector3f> visPos, visCol;
 
 	auto colorFun = [&](uint32_t i)
@@ -1474,7 +1474,7 @@ void osr::checkSymmetry(std::vector<std::vector<TaggedLink>>& adj)
 }
 
 template<>
-void osr::saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
+void nse::data::saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.edges, f);
@@ -1482,7 +1482,7 @@ void osr::saveToFile(const ExtractionHelper::Triangle & object, FILE * f)
 }
 
 template<>
-void osr::loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
+void nse::data::loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.edges, f);
@@ -1490,7 +1490,7 @@ void osr::loadFromFile(ExtractionHelper::Triangle & object, FILE * f)
 }
 
 template<>
-void osr::saveToFile(const ExtractionHelper::Quad & object, FILE * f)
+void nse::data::saveToFile(const ExtractionHelper::Quad & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.edges, f);
@@ -1498,7 +1498,7 @@ void osr::saveToFile(const ExtractionHelper::Quad & object, FILE * f)
 }
 
 template<>
-void osr::loadFromFile(ExtractionHelper::Quad & object, FILE * f)
+void nse::data::loadFromFile(ExtractionHelper::Quad & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.edges, f);
@@ -1506,7 +1506,7 @@ void osr::loadFromFile(ExtractionHelper::Quad & object, FILE * f)
 }
 
 template<>
-void osr::saveToFile(const ExtractionHelper::Edge & object, FILE * f)
+void nse::data::saveToFile(const ExtractionHelper::Edge & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.v, f);
@@ -1516,7 +1516,7 @@ void osr::saveToFile(const ExtractionHelper::Edge & object, FILE * f)
 }
 
 template<>
-void osr::loadFromFile(ExtractionHelper::Edge & object, FILE * f)
+void nse::data::loadFromFile(ExtractionHelper::Edge & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.v, f);
@@ -1526,7 +1526,7 @@ void osr::loadFromFile(ExtractionHelper::Edge & object, FILE * f)
 }
 
 template<>
-void osr::saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
+void nse::data::saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
 {
 	saveToFile(object.generation, f);
 	saveToFile(object.position, f);
@@ -1536,7 +1536,7 @@ void osr::saveToFile(const ExtractionHelper::Vertex & object, FILE * f)
 }
 
 template<>
-void osr::loadFromFile(ExtractionHelper::Vertex & object, FILE * f)
+void nse::data::loadFromFile(ExtractionHelper::Vertex & object, FILE * f)
 {
 	loadFromFile(object.generation, f);
 	loadFromFile(object.position, f);

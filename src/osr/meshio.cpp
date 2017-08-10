@@ -29,7 +29,7 @@
 
 #include <stb_image.h>
 
-#include "osr/Timer.h"
+#include <nsessentials/util/Timer.h>
 #include "osr/Colors.h"
 
 extern "C" {
@@ -98,7 +98,7 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 {
     auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
 
-    Timer<> timer;
+    nse::util::Timer<> timer;
     std::cout << "Loading \"" << filename << "\" .. ";
     std::cout.flush();
 
@@ -329,7 +329,7 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
     std::cout << "done. (V=" << vertexCount;
     if (faceCount > 0)
 		std::cout << ", F=" << faceCount;
-	std::cout << ", took " << timeString(timer.value()) << ")" << std::endl;
+	std::cout << ", took " << nse::util::timeString(timer.value()) << ")" << std::endl;
 }
 
 void osr::write_ply(const std::string &filename, const MatrixXu &F,
@@ -338,7 +338,7 @@ void osr::write_ply(const std::string &filename, const MatrixXu &F,
 {
     auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
 
-    Timer<> timer;
+    nse::util::Timer<> timer;
 	std::cout << "Writing \"" << filename << "\" (V=" << V.cols()
          << ", F=" << F.cols() << ") .. ";
 	std::cout.flush();
@@ -453,7 +453,7 @@ void osr::write_ply(const std::string &filename, const MatrixXu &F,
 	std::cout << "done. (";
     if (irregular.size() > 0)
 		std::cout << irregular.size() << " irregular faces, ";
-	std::cout << "took " << timeString(timer.value()) << ")" << std::endl;
+	std::cout << "took " << nse::util::timeString(timer.value()) << ")" << std::endl;
 }
 
 void osr::load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V)
@@ -505,7 +505,7 @@ void osr::load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V)
         throw std::runtime_error("Unable to open OBJ file \"" + filename + "\"!");
     std::cout << "Loading \"" << filename << "\" .. ";
 	std::cout.flush();
-    Timer<> timer;
+    nse::util::Timer<> timer;
 
     std::vector<Vector3f>   positions;
     //std::vector<Vector2f>   texcoords;
@@ -577,7 +577,7 @@ void osr::load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V)
         V.col(i) = positions.at(vertices[i].p-1);
 
 	std::cout << "done. (V=" << V.cols() << ", F=" << F.cols() << ", took "
-         << timeString(timer.value()) << ")" << std::endl;
+         << nse::util::timeString(timer.value()) << ")" << std::endl;
 }
 
 
@@ -663,7 +663,7 @@ void osr::write_obj(const std::string &filename, const MatrixXu &F,
                 const Matrix3Xf &V, const Matrix3Xf &N, const Matrix3Xf &Nf,
                 const Matrix3Xf &UV, const Matrix3Xf &C)
 {
-    Timer<> timer;
+    nse::util::Timer<> timer;
 	std::cout << "Writing \"" << filename << "\" (V=" << V.cols()
          << ", F=" << F.cols() << ") .. ";
 	std::cout.flush();
@@ -732,5 +732,5 @@ void osr::write_obj(const std::string &filename, const MatrixXu &F,
 	std::cout << "done. (";
     if (irregular.size() > 0)
 		std::cout << irregular.size() << " irregular faces, ";
-	std::cout << "took " << timeString(timer.value()) << ")" << std::endl;
+	std::cout << "took " << nse::util::timeString(timer.value()) << ")" << std::endl;
 }

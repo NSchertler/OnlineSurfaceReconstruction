@@ -14,11 +14,12 @@
 #pragma once
 
 #include "osr/Data.h"
-#include "osr/gui/AbstractViewer.h"
-#include "osr/gui/GLBuffer.h"
-#include "osr/gui/GLVertexArray.h"
 #include "osr/gui/tools/Tool.h"
 #include "osr/gui/tools/Selection.h"
+
+#include <nsessentials/gui/AbstractViewer.h>
+#include <nsessentials/gui/GLBuffer.h>
+#include <nsessentials/gui/GLVertexArray.h>
 
 #include <nanogui/slider.h>
 #include <nanogui/window.h>
@@ -34,7 +35,7 @@ namespace osr {
 			class SmoothTool : public Tool
 			{
 			public:
-				SmoothTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
+				SmoothTool(nse::gui::AbstractViewer* viewer, DataGL& data, float& selectionRadius);
 
 				void enterTool();
 				void exitTool();
@@ -50,7 +51,7 @@ namespace osr {
 
 				DataGL& data;
 
-				AbstractViewer* viewer;
+				nse::gui::AbstractViewer* viewer;
 
 				enum State
 				{
@@ -62,9 +63,9 @@ namespace osr {
 
 				Selection selection;
 
-				GLBuffer dirPositionBuffer;
-				GLBuffer dirColorBuffer;
-				GLVertexArray dirVAO;
+				nse::gui::GLBuffer dirPositionBuffer;
+				nse::gui::GLBuffer dirColorBuffer;
+				nse::gui::GLVertexArray dirVAO;
 
 				Scan* tempScan;
 				std::unordered_map<THierarchy::VertexIndex, int> hierarchyIndexToInt;

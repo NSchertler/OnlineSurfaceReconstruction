@@ -17,8 +17,9 @@
 #include <nanogui/label.h>
 
 #include "osr/Data.h"
-#include "osr/gui/AbstractViewer.h"
 #include "osr/gui/tools/Tool.h"
+
+#include <nsessentials/gui/AbstractViewer.h>
 
 #include <boost/signals2.hpp>
 
@@ -31,7 +32,7 @@ namespace osr {
 			class ManualCoarseRegistrationTool : public Tool
 			{
 			public:
-				ManualCoarseRegistrationTool(AbstractViewer* viewer, DataGL& data);
+				ManualCoarseRegistrationTool(nse::gui::AbstractViewer* viewer, DataGL& data);
 
 				//Sets the scan that should be registered.
 				void setAffectedScan(Scan* s);
@@ -55,7 +56,7 @@ namespace osr {
 
 				State state;
 
-				AbstractViewer* viewer;
+				nse::gui::AbstractViewer* viewer;
 				nanogui::Window* window;
 				nanogui::Label* lblStatus;
 

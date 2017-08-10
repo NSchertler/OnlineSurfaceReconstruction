@@ -16,7 +16,8 @@
 #include <boost/signals2.hpp>
 #include "osr/common.h"
 #include "osr/ExtractedMesh.h"
-#include "osr/BoundingBox.h"
+
+#include <nsessentials/math/BoundingBox.h>
 
 namespace osr
 {
@@ -80,7 +81,7 @@ namespace osr
 		//if HierarchyCapabilities<>::AllowAccessToAllLevels, then vertexCount() must support the parameter int level
 		virtual size_t vertexCount() const = 0;
 
-		const BoundingBox<Float, 3>& boundingBox() const { return bbox; }
+		const nse::math::BoundingBox<Float, 3>& boundingBox() const { return bbox; }
 
 		void setMaxNeighborRadius(Float r) { maxNeighborRadius = r; }
 
@@ -96,7 +97,7 @@ namespace osr
 	protected:
 		virtual void init();
 
-		BoundingBox<Float, 3> bbox;
+		nse::math::BoundingBox<Float, 3> bbox;
 
 		const Optimizer& optimizer;
 

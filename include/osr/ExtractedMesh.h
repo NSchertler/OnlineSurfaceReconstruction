@@ -18,9 +18,9 @@
 
 #include "osr/MeshSettings.h"
 #include "osr/PreparedVertexSet.h"
-#include "osr/PersistentIndexContainer.h"
-#include "osr/Parallelization.h"
-#include "osr/Serialization.h"
+#include <nsessentials/data/PersistentIndexContainer.h>
+#include <nsessentials/data/Parallelization.h>
+#include <nsessentials/data/Serialization.h>
 #include "osr/Colors.h"
 #include "osr/ExtractionUtils.h"
 #include "osr/ExtractionAttributeMapping.h"
@@ -30,6 +30,22 @@
 #include <array>
 #include <map>
 #include <unordered_map>
+
+namespace nse
+{
+	namespace data
+	{
+		//Helper methods for project serialization
+		template<> void saveToFile(const osr::ExtractionHelper::Triangle& object, FILE* f);
+		template<> void saveToFile(const osr::ExtractionHelper::Quad& object, FILE* f);
+		template<> void saveToFile(const osr::ExtractionHelper::Edge& object, FILE* f);
+		template<> void saveToFile(const osr::ExtractionHelper::Vertex& object, FILE* f);
+		template<> void loadFromFile(osr::ExtractionHelper::Triangle& object, FILE* f);
+		template<> void loadFromFile(osr::ExtractionHelper::Quad& object, FILE* f);
+		template<> void loadFromFile(osr::ExtractionHelper::Edge& object, FILE* f);
+		template<> void loadFromFile(osr::ExtractionHelper::Vertex& object, FILE* f);
+	}
+}
 
 namespace osr
 {
@@ -41,17 +57,6 @@ namespace osr
 		bool used() const { return flag & 1; }
 		void markUsed() { flag |= 1; }
 	};
-
-	//Helper methods for project serialization
-
-	template<> void saveToFile(const ExtractionHelper::Triangle& object, FILE* f);
-	template<> void saveToFile(const ExtractionHelper::Quad& object, FILE* f);
-	template<> void saveToFile(const ExtractionHelper::Edge& object, FILE* f);
-	template<> void saveToFile(const ExtractionHelper::Vertex& object, FILE* f);
-	template<> void loadFromFile(ExtractionHelper::Triangle& object, FILE* f);
-	template<> void loadFromFile(ExtractionHelper::Quad& object, FILE* f);
-	template<> void loadFromFile(ExtractionHelper::Edge& object, FILE* f);
-	template<> void loadFromFile(ExtractionHelper::Vertex& object, FILE* f);
 
 	//Represents the final output of the extraction process. This class is also responsible
 	//for performing the actual extraction.
@@ -104,10 +109,10 @@ namespace osr
 		const int texelsPerTri = (R % 2 == 0 ? (3 * R - 6) * R / 4 + 1 : 3 * (R - 1) * (R - 1) / 4 );
 		const int texelsPerQuad = (R - 1) * (R - 1);	
 
-		PersistentIndexContainer<ExtractionHelper::Triangle> triangles;
-		PersistentIndexContainer<ExtractionHelper::Quad> quads;
-		PersistentIndexContainer<ExtractionHelper::Edge> edges;
-		PersistentIndexContainer<ExtractionHelper::Vertex> vertices;
+		nse::data::PersistentIndexContainer<ExtractionHelper::Triangle> triangles;
+		nse::data::PersistentIndexContainer<ExtractionHelper::Quad> quads;
+		nse::data::PersistentIndexContainer<ExtractionHelper::Edge> edges;
+		nse::data::PersistentIndexContainer<ExtractionHelper::Vertex> vertices;
 
 		std::map<std::pair<uint32_t, uint32_t>, int32_t> vertexPairToEdge;
 		std::map<uint32_t, std::vector<uint32_t>> vertexToDependentEdges; //non-incident edges of higher-order polygons
@@ -204,7 +209,7 @@ namespace osr
 
 		//Removes faces in order to produce manifoldness.
 		template <typename FaceType, typename IncidentFacesCallback>
-		void removeIncidentArtefacts(uint32_t eid, PersistentIndexContainer<FaceType>& faces, std::set<uint32_t>& removedEdges, std::set<uint32_t>& removedFaces, const IncidentFacesCallback& getIncidentFaces);
+		void removeIncidentArtefacts(uint32_t eid, nse::data::PersistentIndexContainer<FaceType>& faces, std::set<uint32_t>& removedEdges, std::set<uint32_t>& removedFaces, const IncidentFacesCallback& getIncidentFaces);
 
 		void calculateCollapsedGraphVisualization(const std::vector<size_t>& newVertices, const std::vector<bool>& partOfCore, const std::vector<bool>& vertexReachableFromCore, std::vector<std::vector<TaggedLink>>& adj);
 
@@ -218,7 +223,7 @@ namespace osr
 
 		//Checks if the stored information of the mesh are consistent.
 		template <typename FaceType, typename IncidentFacesCallback>
-		void checkIncidenceConsistency(PersistentIndexContainer<ExtractionHelper::Edge>& edges, PersistentIndexContainer<FaceType>& faces, const IncidentFacesCallback& getIncidentFaces);
+		void checkIncidenceConsistency(nse::data::PersistentIndexContainer<ExtractionHelper::Edge>& edges, nse::data::PersistentIndexContainer<FaceType>& faces, const IncidentFacesCallback& getIncidentFaces);
 	};
 
 	//Checks if the graph is symmetric.
@@ -227,7 +232,7 @@ namespace osr
 	template <typename Hierarchy, typename Index>
 	void ExtractedMesh::extract(PreparedVertexSet<Hierarchy, Index, true, false>& modifiedVertices, bool deleteAndExpand, const std::vector<MeshVertexType>& removeVertices)
 	{
-		TimedBlock b("Extracting mesh ..", true);
+		nse::util::TimedBlock b("Extracting mesh ..", true);
 
 		++currentGeneration;
 
@@ -235,7 +240,7 @@ namespace osr
 		saveCoarseToPLY("BeforeDeletion.ply");
 
 		{
-			TimedBlock b("Generating modified visualization ..");
+			nse::util::TimedBlock b("Generating modified visualization ..");
 			std::vector<Vector3f> modifiedPoints(modifiedVertices.includedVertices);
 	#pragma omp parallel for
 			for (int i = 0; i < modifiedVertices.includedVertices; ++i)
@@ -255,7 +260,7 @@ namespace osr
 			auto oldVertexCountWithNeighbors = modifiedVertices.vertices.size();
 
 			{
-				TimedBlock b("Preparing adjacency visualization ..");
+				nse::util::TimedBlock b("Preparing adjacency visualization ..");
 				for (int i = 0; i < modifiedVertices.includedVertices; ++i)
 				{
 					VertexSetIndex current(i);
@@ -277,7 +282,7 @@ namespace osr
 
 	#ifdef DEBUG_VISUALIZATION
 			{
-				TimedBlock b("Calculating adjacency visualization ..");
+				nse::util::TimedBlock b("Calculating adjacency visualization ..");
 				for (int i = 0; i < modifiedVertices.includedVertices; ++i)
 				{
 					VertexSetIndex current(i);
@@ -353,7 +358,7 @@ namespace osr
 	template <typename Hierarchy, typename Index>
 	void ExtractedMesh::deleteModifiedGeometry(PreparedVertexSet<Hierarchy, Index, true, false>& modifiedVertices, const std::vector<MeshVertexType>& removeVertices)
 	{
-		TimedBlock b("Deleting geometry that changed ..");
+		nse::util::TimedBlock b("Deleting geometry that changed ..");
 		std::set<uint32_t> deletedVertices, deletedEdges, deletedDependentEdges;
 		//fill the set of vertices that need to be deleted
 		for (auto& v : removeVertices)
@@ -671,7 +676,7 @@ namespace osr
 			};
 
 			{
-				TimedBlock classify("Step 1: Classifying .. ");
+				nse::util::TimedBlock classify("Step 1: Classifying .. ");
 				tbb::blocked_range<uint32_t> range1(0u, (uint32_t)modifiedVertices.includedVertices);
 				if (!deterministic)
 					tbb::parallel_for(range1, classify_edges);
@@ -699,7 +704,7 @@ namespace osr
 			//checkSymmetry(adj_new);
 
 			{
-				TimedBlock coll("Step 2: Collapsing " + std::to_string(collapse_edge_vec.size()) + " edges ..");
+				nse::util::TimedBlock coll("Step 2: Collapsing " + std::to_string(collapse_edge_vec.size()) + " edges ..");
 
 				struct WeightedEdgeComparator
 				{
@@ -724,7 +729,7 @@ namespace osr
 
 			Float avg_collapses = 0;
 			{
-				TimedBlock assign("Step 3: Assigning vertices ..");
+				nse::util::TimedBlock assign("Step 3: Assigning vertices ..");
 				//at this step, the collapsed points (those that survived) are moved to the front of the vertex set
 				for (uint32_t i = 0; i < adj_new.size(); ++i) 
 				{
@@ -792,7 +797,7 @@ namespace osr
 			//checkSymmetry(adj_new);
 			if (remove_spurious_vertices)
 			{
-				TimedBlock remov("Step 3a: Removing spurious vertices ..");
+				nse::util::TimedBlock remov("Step 3a: Removing spurious vertices ..");
 				std::cout.flush();
 				uint32_t removed = 0;
 				uint16_t spurious_threshold = std::min<uint16_t>(20u, avg_collapses / 10);
@@ -815,7 +820,7 @@ namespace osr
 			}
 
 			{
-				TimedBlock b("Step 4: Assigning positions to vertices ..");
+				nse::util::TimedBlock b("Step 4: Assigning positions to vertices ..");
 
 				{
 					Eigen::VectorXf cluster_weight(newVertices.size());
@@ -839,10 +844,10 @@ namespace osr
 							auto& v = vertices[newVertices[j]];
 							for (uint32_t k = 0; k < 3; ++k) 
 							{
-								atomicAdd(&v.position.coeffRef(k), modifiedVertices.template attribute<PosField>(current)(k)*weight);
-								atomicAdd(&v.normal.coeffRef(k), modifiedVertices.template attribute<Normal>(current)(k)*weight);
+								nse::data::atomicAdd(&v.position.coeffRef(k), modifiedVertices.template attribute<PosField>(current)(k)*weight);
+								nse::data::atomicAdd(&v.normal.coeffRef(k), modifiedVertices.template attribute<Normal>(current)(k)*weight);
 							}
-							atomicAdd(&cluster_weight[j], weight);
+							nse::data::atomicAdd(&cluster_weight[j], weight);
 						}
 					};
 
@@ -868,7 +873,7 @@ namespace osr
 		}
 
 		{
-			TimedBlock b("Step 4a: Updating mesh vertex indices ..");
+			nse::util::TimedBlock b("Step 4a: Updating mesh vertex indices ..");
 			//update to the real vertex index
 	#pragma omp parallel for
 			for (int i = 0; i < modifiedVertices.includedVertices; ++i)
@@ -882,7 +887,7 @@ namespace osr
 
 		if (remove_unnecessary_edges)
 		{
-			TimedBlock b("Step 5: Snapping and removing unnecessary edges ..");
+			nse::util::TimedBlock b("Step 5: Snapping and removing unnecessary edges ..");
 			bool changed;
 			uint32_t nRemoved = 0, nSnapped = 0;
 			do
@@ -1080,7 +1085,7 @@ namespace osr
 		}
 
 		{
-			TimedBlock b("Removing degenerate vertices ..");
+			nse::util::TimedBlock b("Removing degenerate vertices ..");
 			//with exactly one adjacent vertex
 
 			//vertices that need to be re-checked because one of its neighbors has been removed
@@ -1114,7 +1119,7 @@ namespace osr
 		}
 
 		{
-			TimedBlock b("Step 6: Orienting edges ..");
+			nse::util::TimedBlock b("Step 6: Orienting edges ..");
 
 			tbb::parallel_for(
 				tbb::blocked_range<uint32_t>(0u, (uint32_t)newVertices.size(), GRAIN_SIZE),
@@ -1139,7 +1144,7 @@ namespace osr
 		if (potentialDuplicateVerticesAboveIndex < newVertices.size())
 		{
 			{
-				TimedBlock b("Finding duplicate vertices ..");
+				nse::util::TimedBlock b("Finding duplicate vertices ..");
 				std::map<uint32_t, uint32_t> duplicateMeshVertexToNewVertexIndex;
 				std::map<uint32_t, uint32_t> oldVertexIdToNewVertexId;
 				for (uint32_t i = potentialDuplicateVerticesAboveIndex; i < newVertices.size(); ++i)
@@ -1207,7 +1212,7 @@ namespace osr
 				}
 			}
 			{
-				TimedBlock b("Removing unmatched duplicates ..");
+				nse::util::TimedBlock b("Removing unmatched duplicates ..");
 				//perform BFS from the unexpanded point set and stop at matched duplicates
 				while (!reachableFromCoreBFS.empty())
 				{
@@ -1306,7 +1311,7 @@ namespace osr
 	{
 		assert(R >= 2); //there must be at least one texel on an edge
 
-		TimedBlock b("Mapping attributes onto surface ..", true);
+		nse::util::TimedBlock b("Mapping attributes onto surface ..", true);
 
 		//set up indices in texel vector
 		uint32_t nextIndex = 0;	
@@ -1439,12 +1444,12 @@ namespace osr
 		systemBuilder.reserve(entriesPerRow);
 		
 		{
-			TimedBlock b("Constructing Least-Squares System ..");		
+			nse::util::TimedBlock b("Constructing Least-Squares System ..");		
 
 			prepareLaplacian(newVertices, newEdges, newTris, newQuads, meshSettings.smoothness, systemBuilder);		
 		
 			{
-				TimedBlock b("Adding interpolation constraints ..");
+				nse::util::TimedBlock b("Adding interpolation constraints ..");
 
 				//Add interpolation constraints for every modified point
 	#pragma omp parallel for
@@ -1546,10 +1551,10 @@ namespace osr
 					systemBuilder.addInterpolationConstraint(interpol, 4, value, 1 - meshSettings.smoothness, currentGeneration);
 
 				} //omp parallel for each point
-			} // TimedBlock		
+			} // nse::util::TimedBlock		
 
 			{
-				TimedBlock b{ "Repairing initial guess .." };
+				nse::util::TimedBlock b{ "Repairing initial guess .." };
 			
 				systemBuilder.closeGapsInGuess();
 			}		  
@@ -1559,13 +1564,13 @@ namespace osr
 
 		Eigen::Matrix<float, -1, 4> solution;
 		{
-			TimedBlock b("Solving ..");
+			nse::util::TimedBlock b("Solving ..");
 		
 			solution = systemBuilder.solve();
 		}
 
 		{
-			TimedBlock("Extracting solution ..");
+			nse::util::TimedBlock("Extracting solution ..");
 
 			for (int i = 0; i < newVertices.size(); ++i)
 			{
@@ -1610,7 +1615,7 @@ namespace osr
 	template <typename Builder>
 	void ExtractedMesh::prepareLaplacian(const std::vector<size_t>& newVertices, const std::vector<size_t>& newEdges, const std::vector<size_t>& newTris, const std::vector<size_t>& newQuads, float weight, Builder& systemBuilder)
 	{
-		TimedBlock b("Preparing Laplacian ..");
+		nse::util::TimedBlock b("Preparing Laplacian ..");
 
 		// The number of rows of the linear system that are cached before adding them to the system.
 		// Should be close to a multiple of the number of texels per quad and texels per triangle
@@ -1902,7 +1907,7 @@ namespace osr
 	}
 
 	template <typename FaceType, typename IncidentFacesCallback>
-	void ExtractedMesh::checkIncidenceConsistency(PersistentIndexContainer<ExtractionHelper::Edge>& edges, PersistentIndexContainer<FaceType>& faces, const IncidentFacesCallback& getIncidentFaces)
+	void ExtractedMesh::checkIncidenceConsistency(nse::data::PersistentIndexContainer<ExtractionHelper::Edge>& edges, nse::data::PersistentIndexContainer<FaceType>& faces, const IncidentFacesCallback& getIncidentFaces)
 	{
 		for (auto edgeIt = edges.begin(); edgeIt != edges.end(); ++edgeIt)
 		{

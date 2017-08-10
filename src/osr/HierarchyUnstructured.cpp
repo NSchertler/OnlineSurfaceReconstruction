@@ -40,7 +40,7 @@ AdjacencyMatrix HierarchyUnstructured::downsample_graph(const AdjacencyMatrix ad
 
 	uint32_t nLinks = adj[V.size()] - adj[0];
 	Entry *entries = new Entry[nLinks];
-	Timer<> timer;
+	nse::util::Timer<> nse::util::Timer;
 	std::cout << "  Collapsing .. ";
 	std::cout.flush();
 
@@ -208,7 +208,7 @@ AdjacencyMatrix HierarchyUnstructured::downsample_graph(const AdjacencyMatrix ad
 	}
 	);
 	std::cout << "done. (" << V.size() << " -> " << V_p.size() << " vertices, took "
-		<< timeString(timer.value()) << ")" << std::endl;
+		<< timeString(nse::util::Timer.value()) << ")" << std::endl;
 	return adj_p;
 }
 
@@ -245,7 +245,7 @@ void Hierarchy::build()
 	const bool deterministic = false;
 	
 	std::cout << "Building multiresolution hierarchy .." << std::endl;
-	Timer<> timer;
+	nse::util::Timer<> nse::util::Timer;
 	for (int i = 0; i < MAX_DEPTH; ++i) 
 	{
 		std::vector<Vector3f> N_p, V_p;
@@ -266,7 +266,7 @@ void Hierarchy::build()
 		if (mV[mV.size() - 1].size() == 1)
 			break;
 	}
-	std::cout << "Hierarchy construction took " << timeString(timer.value()) << "." << std::endl;
+	std::cout << "Hierarchy construction took " << timeString(nse::util::Timer.value()) << "." << std::endl;
 }
 
 ForEachHelper<Hierarchy::VertexIterator> Hierarchy::vertices(int level) const
@@ -387,7 +387,7 @@ void Hierarchy::resetSolution()
 {
 	std::cout << "Setting to random solution .. ";
 	std::cout.flush();
-	Timer<> timer;
+	nse::util::Timer<> nse::util::Timer;
 	if (mDirField.size() != mV.size()) {
 		mDirField.resize(mV.size());
 		mPosField.resize(mV.size());
@@ -400,7 +400,7 @@ void Hierarchy::resetSolution()
 	init_random_tangent(mN[coarsestLevel], mDirField[coarsestLevel]);
 	init_random_position(mV[coarsestLevel], mN[coarsestLevel], mPosField[coarsestLevel], optimizer.meshSettings().scale);
 	//mFrozenO = mFrozenQ = false;
-	std::cout << "done. (took " << timeString(timer.value()) << ")" << std::endl;
+	std::cout << "done. (took " << timeString(nse::util::Timer.value()) << ")" << std::endl;
 }
 
 class SpecificAttributeAccess

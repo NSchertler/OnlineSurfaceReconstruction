@@ -188,8 +188,8 @@ namespace osr
 }
 
 HierarchyRenderer::HierarchyRenderer(THierarchy & hierarchy)
-	: hierarchy(hierarchy), positionBuffer(VertexBuffer), normalBuffer(VertexBuffer), indexBuffer(IndexBuffer),
-	orientationFieldBuffer(VertexBuffer), positionFieldBuffer(VertexBuffer), adjBuffer(VertexBuffer), adjColorBuffer(VertexBuffer), colorBuffer(VertexBuffer),
+	: hierarchy(hierarchy), positionBuffer(nse::gui::VertexBuffer), normalBuffer(nse::gui::VertexBuffer), indexBuffer(nse::gui::IndexBuffer),
+	orientationFieldBuffer(nse::gui::VertexBuffer), positionFieldBuffer(nse::gui::VertexBuffer), adjBuffer(nse::gui::VertexBuffer), adjColorBuffer(nse::gui::VertexBuffer), colorBuffer(nse::gui::VertexBuffer),
 	showInput(false), showNormals(false), showOrientationField(false), showPositionField(false), showAdjacency(false), adjacencyEdges(0), level(0)
 {
 	hierarchy.PositionsChanged.connect([this]() -> void { positionBuffer.dirty = true; });

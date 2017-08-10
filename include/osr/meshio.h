@@ -16,7 +16,7 @@
 
 #include "osr/common.h"
 #include "osr/Scan.h"
-#include "osr/IndentationLog.h"
+#include <nsessentials/util/IndentationLog.h>
 #include "osr/filehelper.h"
 
 #include <fstream>
@@ -160,7 +160,7 @@ namespace osr
 		if (is.fail())
 			throw std::runtime_error("Unable to open ALN file \"" + filename + "\"!");
 
-		Timer<> timer;
+		nse::util::Timer<> timer;
 		std::istringstream line;
 
 		auto fetch_line = [&]() {
@@ -230,7 +230,7 @@ namespace osr
 			load_scan(dir + "/" + filename_sub, dataSink, M);
 		}
 
-		std::cout << "ALN loading finished. (took " << timeString(timer.value()) << ")" << std::endl;
+		std::cout << "ALN loading finished. (took " << nse::util::timeString(timer.value()) << ")" << std::endl;
 	}
 
 	template <typename DataSink>

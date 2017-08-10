@@ -70,7 +70,7 @@ void FileScanLoader::LoadDirectory()
 				if(file_exists(framesPath))
 					continue; //don't load a 3d file if there is an according frames file.		
 			}
-			TimedBlock b("Trying to load file " + entry);
+			nse::util::TimedBlock b("Trying to load file " + entry);
 			load_scan(entry, *this, Eigen::Matrix4f::Identity(), true);
 		}
 	}

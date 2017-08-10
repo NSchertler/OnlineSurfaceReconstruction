@@ -19,7 +19,7 @@ using namespace osr;
 using namespace osr::gui;
 using namespace osr::gui::tools;
 
-ManualCoarseRegistrationTool::ManualCoarseRegistrationTool(AbstractViewer * viewer, DataGL & data)
+ManualCoarseRegistrationTool::ManualCoarseRegistrationTool(nse::gui::AbstractViewer * viewer, DataGL & data)
 	: viewer(viewer), data(data)
 {
 }

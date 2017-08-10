@@ -14,9 +14,10 @@
 #pragma once
 
 #include "osr/Data.h"
-#include "osr/gui/AbstractViewer.h"
 #include "osr/gui/tools/Tool.h"
 #include "osr/gui/tools/Selection.h"
+
+#include <nsessentials/gui/AbstractViewer.h>
 
 namespace osr {
 	namespace gui {
@@ -27,7 +28,7 @@ namespace osr {
 			class RemoveTool : public Tool
 			{
 			public:
-				RemoveTool(AbstractViewer* viewer, DataGL& data, float& selectionRadius);
+				RemoveTool(nse::gui::AbstractViewer* viewer, DataGL& data, float& selectionRadius);
 
 				void enterTool();
 				void exitTool();
@@ -47,7 +48,7 @@ namespace osr {
 
 				int pixelsMoved;
 
-				AbstractViewer* viewer;
+				nse::gui::AbstractViewer* viewer;
 			};
 		}
 	}
