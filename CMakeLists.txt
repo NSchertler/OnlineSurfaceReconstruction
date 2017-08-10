@@ -79,8 +79,8 @@ include_directories(ext/nanogui/include
 					${NANOGUI_EXTRA_INCS})
 set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
 add_definitions(${NANOGUI_EXTRA_DEFS})
-add_definitions(/DHAVE_NANOGUI)
-add_definitions(/DHAVE_EIGEN)
+SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
+SET(NSE_WITH_EIGEN ON CACHE BOOL " " FORCE)
 
 # Build TBB
 set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
@@ -92,13 +92,14 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/tbb ext_build/tbb)
 set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
 include_directories(ext/tbb/include)
 set(LIBS ${LIBS} tbb_static)
-add_definitions(/DHAVE_TBB)
+SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
 
 # Build NSEssentials
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nsessentials ext_build/nsessentials)
 set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
 include_directories(ext/nsessentials/include)
 set(LIBS ${LIBS} nsessentials)
+add_definitions(${NSE_EXTRA_DEFS})
 
 set(BOOST_COMPONENTS)
 if(OSR_USE_MEMORY_MAPPED_FILE)
