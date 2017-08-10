@@ -243,7 +243,7 @@ namespace SICP {
 			if (par.print_icpn) std::cout << "Iteration #" << icp << "/" << par.max_icp << std::endl;
 			/// Find closest point
 			{
-				osr::nse::util::TimedBlock b("Finding correspondences ..");
+				nse::util::TimedBlock b("Finding correspondences ..");
 #pragma omp parallel for
 				for (int i = 0; i < X.cols(); ++i)
 				{
