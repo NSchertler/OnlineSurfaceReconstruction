@@ -98,7 +98,7 @@ SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nsessentials ext_build/nsessentials)
 set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
 include_directories(ext/nsessentials/include)
-set(LIBS ${LIBS} nsessentials)
+set(LIBS nsessentials ${LIBS})
 add_definitions(${NSE_EXTRA_DEFS})
 
 set(BOOST_COMPONENTS)
