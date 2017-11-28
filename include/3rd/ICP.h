@@ -52,11 +52,9 @@ namespace RigidMotionEstimator {
         Eigen::Affine3d transformation = initialTransform.cast<double>();
 		transformation.pretranslate(-X_mean.cast<double>());
 		Eigen::Matrix3d sigma; sigma.setConstant(0.0);
-		double error = 0;
 		for (int i = 0; i < X.cols(); ++i)
 		{
 			sigma += (initialTransform.template cast<double>() * X.col(i).template cast<double>() - X_mean) * (double)w_normalized.coeff(i) * (Y.col(i).template cast<double>() - Y_mean).transpose();
-			error += (initialTransform * X.col(i) - Y.col(i)).squaredNorm() * w_normalized.coeff(i);
 		}
         Eigen::JacobiSVD<Eigen::Matrix3d> svd(sigma, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
@@ -71,12 +69,6 @@ namespace RigidMotionEstimator {
 
 		transformation = rotation * transformation;
 		transformation.pretranslate(Y_mean);
-
-		error = 0;
-		for (int i = 0; i < X.cols(); ++i)
-		{
-			error += (transformation.cast<float>() * X.col(i) - Y.col(i)).squaredNorm() * w_normalized.coeff(i);
-		}
 
         /// Return transform
         return transformation.cast<float>();
@@ -184,7 +176,6 @@ namespace SICP {
         int max_outer = 100;      /// max outer iteration
         int max_inner = 1;        /// max inner iteration. If max_inner=1 then ADMM else ALM
         float stop = 1e-5f;       /// stopping criteria
-		const Eigen::Affine3f* initialTransform = nullptr;
         bool print_icpn = false;  /// (debug) print ICP iteration
     };
     /// Shrinkage operator (Automatic loop unrolling using template)
@@ -254,10 +245,7 @@ namespace SICP {
 						dirField.col(i) = Y.neighborP(idx);
 						auto d = dirField.col(i) - px;
 						auto ld = d.squaredNorm();
-						if (ld == 0)
-							w(i) = 1;
-						else
-							w(i) = 1; //std::abs((d / sqrt(ld)).dot(Y.n(idx)));// exp(-(dirField.col(i) - px).squaredNorm() / 10.0f);//1.0f / ((dirField.col(i) - X.V().col(i)).squaredNorm() + 0.001f);
+						w(i) = 1;
 					}
 					else
 					{
@@ -339,8 +327,7 @@ namespace SICP {
 					{
 						Qp.col(i) = Y.neighborP(idx);
 						Qn.col(i) = Y.neighborN(idx);
-						w(i) = 1;// exp(-(dirField.col(i) - px).squaredNorm() / 10.0f);//1.0f / ((dirField.col(i) - X.V().col(i)).squaredNorm() + 0.001f);
-																				  //std::cout << w(i) << std::endl;
+						w(i) = 1;
 						sumWeight += w(i);
 					}
 					else
@@ -359,9 +346,8 @@ namespace SICP {
                 float dual = 0.0;
                 for(int inner=0; inner<par.max_inner; ++inner) {
                     /// Z update (shrinkage)
-					Eigen::Matrix3Xf transformedQn = transform.linear() * Qn;
 					Eigen::Matrix3Xf transformedX = transform * X;
-                    Z = (transformedQn.array()*(transformedX - Qp).array()).colwise().sum().transpose()+C.array()/mu;
+                    Z = (Qn.array()*(transformedX - Qp).array()).colwise().sum().transpose()+C.array()/mu;
                     shrink<3>(Z, mu, par.p);
                     /// Rotation and translation update
                     Eigen::VectorXf U = Z-C/mu;

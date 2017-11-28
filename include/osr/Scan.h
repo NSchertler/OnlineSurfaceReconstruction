@@ -255,7 +255,6 @@ namespace osr
 		params.max_icp = iterations;
 		params.max_outer = 10;
 		params.max_inner = 1;
-		params.initialTransform = &mTransform;
 		Eigen::setNbThreads(0);
 		mTransform = SICP::point_to_plane(X, N, other, params) * mTransform;
 		Eigen::setNbThreads(1);
