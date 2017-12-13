@@ -351,10 +351,10 @@ bool FillHoleTool::mouseMotionEvent(const Eigen::Vector2i & p, const Eigen::Vect
 
 		Vector4f mouse(2.0f * (float)p.x() / viewer->width() - 1, -2.0f * p.y() / viewer->height() + 1, 0, 1);
 
-		Eigen::Matrix4f model, view, proj;
-		viewer->camera().ComputeCameraMatrices(model, view, proj);
+		Eigen::Matrix4f view, proj;
+		viewer->camera().ComputeCameraMatrices(view, proj);
 
-		Matrix4f mvpInv = (proj * view * model).inverse();
+		Matrix4f mvpInv = (proj * view).inverse();
 
 		Vector4f mouseNear4 = mvpInv * mouse;
 		Vector3f mouseNear = mouseNear4.block<3, 1>(0, 0) / mouseNear4.w();

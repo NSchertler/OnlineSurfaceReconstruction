@@ -256,11 +256,9 @@ void Viewer::SetupGUI()
 
 		glViewport(0, 0, screenshotWidth, screenshotHeight);
 		Eigen::Matrix4f model, view, proj;
-		_camera.ComputeCameraMatrices(model, view, proj, (float)screenshotWidth / screenshotHeight);
+		_camera.ComputeCameraMatrices(view, proj, (float)screenshotWidth / screenshotHeight);
 
-		Eigen::Matrix4f mv = view * model;
-
-		render(mv, proj);
+		render(view, proj);
 
 		std::vector<unsigned char> pixels(screenshotWidth * screenshotHeight * 4);
 		glReadPixels(0, 0, screenshotWidth, screenshotHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
@@ -607,12 +605,10 @@ void Viewer::drawContents()
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	
-	Eigen::Matrix4f model, view, proj;
-	_camera.ComputeCameraMatrices(model, view, proj);
+	Eigen::Matrix4f view, proj;
+	_camera.ComputeCameraMatrices(view, proj);
 
-	Eigen::Matrix4f mv = view * model;
-
-	render(mv, proj);
+	render(view, proj);
 
 	//process all scans in the queue, nothing renderin-related
 	Scan* scan;
