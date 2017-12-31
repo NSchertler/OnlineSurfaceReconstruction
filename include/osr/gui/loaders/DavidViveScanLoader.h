@@ -14,9 +14,10 @@
 #pragma once
 
 #include "osr/gui/loaders/ScanLoader.h"
-#include "osr/gui/AbstractViewer.h"
+#include "nsessentials/gui/AbstractViewer.h"
 #include "osr/gui/loaders/DavidTurntableConnection.h"
 #include <fstream>
+#include <boost/filesystem.hpp>
 
 #include <thread>
 
@@ -30,7 +31,7 @@ namespace osr {
 			class DavidViveScanLoader : public ScanLoader
 			{
 			public:	
-				DavidViveScanLoader(AbstractViewer* viewer);
+				DavidViveScanLoader(nse::gui::AbstractViewer* viewer);
 				~DavidViveScanLoader();
 
 				void setup(nanogui::Window*);
@@ -69,9 +70,9 @@ namespace osr {
 				Scan* viveController = nullptr;
 				Scan* currentScan = nullptr;
 
-				AbstractViewer* viewer;
+				nse::gui::AbstractViewer* viewer;
 
-				Camera::CamParams controllerCamParams, scanCamParams;
+				nse::gui::Camera::CamParams controllerCamParams, scanCamParams;
 				
 				std::vector<Vector3f> correspondencesSecondaryController, correspondencesDavidSystem;
 				Eigen::Affine3f scannerControllerMatrix;
