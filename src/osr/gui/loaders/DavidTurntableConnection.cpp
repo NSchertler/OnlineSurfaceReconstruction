@@ -28,7 +28,7 @@ bool DavidTurntableConnection::openConnection()
 	boost::system::error_code ec;
 
 	turntablePort = new boost::asio::serial_port(io);
-	turntablePort->open("COM3", ec); //TODO: Generalize
+	turntablePort->open("COM4", ec); //TODO: Generalize
 
 	if (ec)
 	{

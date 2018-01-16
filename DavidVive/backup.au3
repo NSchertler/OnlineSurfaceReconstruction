@@ -20,6 +20,7 @@ $davidWindowPos = WinGetPos("[ACTIVE]")
 $addToListX = $davidWindowPos[0] + 177
 $addToListMonoY = $davidWindowPos[1] + 528;
 $addToListStereoY = $davidWindowPos[1] + 740
+MsgBox(0,"hello", "DavidVive4")
 
 ; Scan
 Send("{F5}")

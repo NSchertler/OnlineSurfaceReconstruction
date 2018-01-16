@@ -18,7 +18,7 @@ using namespace osr::gui::loaders;
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 
-DavidViveScanLoader::DavidViveScanLoader(AbstractViewer* viewer)
+DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
 { }
 
@@ -155,6 +155,7 @@ bool DavidViveScanLoader::mouseButtonEvent(const Eigen::Vector2i & p, int button
 	if (state == Normal)
 		return false;
 
+	//std::cout << "mouseButtonEvent:" << button << "\t" << modifiers << "\n";
 	if (down && button == GLFW_MOUSE_BUTTON_1 && modifiers == GLFW_MOD_CONTROL)
 	{
 		float depth;
@@ -167,10 +168,10 @@ bool DavidViveScanLoader::mouseButtonEvent(const Eigen::Vector2i & p, int button
 			float x = 2 * ((float)p.x() / viewer->width() - 0.5f);
 			float y = 2 * ((float)-p.y() / viewer->height() + 0.5f);
 
-			Eigen::Matrix4f model, view, proj;
-			viewer->camera().ComputeCameraMatrices(model, view, proj);
+			Eigen::Matrix4f view, proj;
+			viewer->camera().ComputeCameraMatrices(view, proj);
 
-			Eigen::Matrix4f mvp = proj * view * model;
+			Eigen::Matrix4f mvp = proj * view;
 			Eigen::Matrix4f invMvp = mvp.inverse();
 
 			Vector4f pos = invMvp * Vector4f(x, y, ndcDepth, 1);
@@ -260,7 +261,7 @@ bool DavidViveScanLoader::waitUntilStill(vr::TrackedDevicePose_t* poses, vr::Tra
 	while (stillFrames < 10)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
 
 		if (!poses[device].bPoseIsValid || poses[device].eTrackingResult != vr::ETrackingResult::TrackingResult_Running_OK)
 		{
@@ -303,7 +304,15 @@ void DavidViveScanLoader::track()
 		{
 			if (e.eventType == vr::VREvent_ButtonUnpress && (e.data.controller.button == vr::k_EButton_SteamVR_Trigger || e.data.controller.button == vr::k_EButton_ApplicationMenu))
 			{
-				vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+				try
+				{
+					vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
+				}
+				catch (std::exception& e)
+				{
+					std::cerr << "crashed in GetDeviceToAbsoluteTrackingPose:" << e.what() << "\n";
+				}
+				
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
@@ -429,12 +438,14 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 
 	while (!boost::filesystem::exists(scanPath))
 	{
+		std::cout << "in while loop, waiting for scan in " << scanPath << "\n";
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
 	MatrixXu F;
 	Matrix3Xf V, N;
 	Matrix3Xus C;
+	std::cout << "out of while loop, loading ply file " << scanPath << "\n";
 	load_ply(scanPath, F, V, N, C, true);
 
 	if (state == Scanning)
@@ -453,6 +464,15 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 			saveFilename = (fmtPLY % i).str();
 			savePathPLY = sessionPath / boost::filesystem::path(saveFilename);
 		} while (boost::filesystem::exists(savePathPLY));
+
+		// zhenyi: transfer ply to obj for unity usage
+		boost::format cmd("\"\"D:\\Program Files\\VCG\\MeshLab\\meshlabserver.exe\" -o %1% -i %2%\"");
+		boost::format outputObj = boost::format("\"D:\\Projects\\ScanAR\\VuforiaUnity2017.3\\Assets\\zhenyi\\scans\\realtime_%04d.obj\"");
+		std::string outputObjFile = (outputObj % i).str();
+		std::string strcmd = (cmd % outputObjFile % scanPath).str();
+		std::cout << "zhenyi cmd: " << strcmd << "\n";
+		system(strcmd.c_str());
+		// end of zhenyi
 
 		std::rename(scanPath.c_str(), savePathPLY.string().c_str());
 
@@ -589,7 +609,7 @@ void DavidViveScanLoader::CalibrateTurntable(vr::TrackedDeviceIndex_t device)
 	for (int i = 0; i < steps; ++i)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
 		Eigen::Affine3f t;
 		if (ToEigenMatrix(poses[device], t))
 			orientations.push_back(std::make_pair(currentAngle, t));

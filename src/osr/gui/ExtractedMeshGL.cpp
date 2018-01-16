@@ -75,7 +75,7 @@ void FineMeshToBufferVisitor::addFace(unsigned int count, const uint32_t* indice
 {
 #if _DEBUG
 	if (count != 3)
-		std::err << "Warning: The FineMeshToBufferVisitor can only handle triangles. You passed a face with " << count << " vertices." << std::endl;
+		std::cerr << "Warning: The FineMeshToBufferVisitor can only handle triangles. You passed a face with " << count << " vertices." << std::endl;
 #endif
 	for (int i = 0; i < 3; ++i)
 		this->indices.coeffRef(i, nextFace) = indices[i];	
