@@ -466,12 +466,12 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 		} while (boost::filesystem::exists(savePathPLY));
 
 		// zhenyi: transfer ply to obj for unity usage
-		boost::format cmd("\"\"D:\\Program Files\\VCG\\MeshLab\\meshlabserver.exe\" -o %1% -i %2%\"");
-		boost::format outputObj = boost::format("\"D:\\Projects\\ScanAR\\VuforiaUnity2017.3\\Assets\\zhenyi\\scans\\realtime_%04d.obj\"");
-		std::string outputObjFile = (outputObj % i).str();
-		std::string strcmd = (cmd % outputObjFile % scanPath).str();
-		std::cout << "zhenyi cmd: " << strcmd << "\n";
-		system(strcmd.c_str());
+// 		boost::format cmd("\"\"D:\\Program Files\\VCG\\MeshLab\\meshlabserver.exe\" -o %1% -i %2%\"");
+// 		boost::format outputObj = boost::format("\"D:\\Projects\\ScanAR\\VuforiaUnity2017.3\\Assets\\zhenyi\\scans\\realtime_%04d.obj\"");
+// 		std::string outputObjFile = (outputObj % i).str();
+// 		std::string strcmd = (cmd % outputObjFile % scanPath).str();
+// 		std::cout << "zhenyi cmd: " << strcmd << "\n";
+// 		system(strcmd.c_str());
 		// end of zhenyi
 
 		std::rename(scanPath.c_str(), savePathPLY.string().c_str());
