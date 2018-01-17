@@ -7,6 +7,8 @@
 /*#include <osr/common.h>*/
 #include "common.h"
 #include <iostream>
+#include <filesystem>
+#include <Windows.h>
 
 using namespace osr;
 
@@ -18,7 +20,7 @@ extern "C" {
 		std::sort(a, a + length);
 	}
 
-	void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
+	void load_ply(std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		Matrix3Xf &N, Matrix3Xus &C, bool pointcloud)
 	{
 		auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
@@ -28,8 +30,11 @@ extern "C" {
 		std::cout.flush();
 
 		p_ply ply = ply_open(filename.c_str(), message_cb, 0, nullptr);
-		if (!ply)
-			throw std::runtime_error("Unable to open PLY file \"" + filename + "\"!");
+		if (!ply) {
+			std::cerr << "Unable to open PLY file \"" << filename <<"\"!";
+			return;
+		}
+			//throw std::runtime_error("Unable to open PLY file \"" + filename + "\"!");
 
 		if (!ply_read_header(ply)) {
 			ply_close(ply);
@@ -279,6 +284,62 @@ extern "C" {
 		meshSize[0] = F.cols() * F.rows();
 		meshSize[1] = V.cols() * V.rows();
 		meshSize[2] = N.cols() * N.rows();
+	}
+
+	void LoadPLY2(unsigned char * charF, unsigned char * charV, unsigned char * charN, int meshSize[])
+	{
+		MatrixXu F;
+		Matrix3Xf V, N;
+		Matrix3Xus C;
+		scanPath = "D:\\Library\\rply-1.1.4\\etc\\input.ply";
+		load_ply(scanPath, F, V, N, C, true);
+
+		int nF = F.cols() * F.rows();
+		int nN = N.cols() * N.rows();
+		std::cout << "\nnF:" << nF << " nV:" << nN << "\n";
+		//unsigned char * charF, *charV, *charN;
+		charF = (unsigned char *)F.data();
+		charV = (unsigned char *)V.data();
+		charN = (unsigned char *)N.data();
+
+		meshSize[0] = F.cols() * F.rows();
+		meshSize[1] = V.cols() * V.rows();
+		meshSize[2] = N.cols() * N.rows();
+	}
+
+	void LoadPLY3(const char* path, unsigned int ** pF, float ** pV, int meshSize[])
+	{
+		MatrixXu F;
+		Matrix3Xf V, N;
+		Matrix3Xus C;
+		scanPath = "D:\\Library\\rply-1.1.4\\etc\\input.ply";
+		scanPath = "D:\\Projects\\OnlineSurfaceReconstruction\\DavidVive\\viveController.ply";
+		//char * cpath = new char(pathLen[0]);
+		//strncpy(cpath, path, pathLen[0]);
+		std::string spath = std::string(path);
+// 		if (!std::experimental::filesystem::exists(spath))
+// 			return;
+
+		load_ply(spath, F, V, N, C, true);
+
+// 		int nF = F.cols() * F.rows();
+// 		int nN = N.cols() * N.rows();
+		//std::cout << "\nnF:" << nF << " nV:" << nN << "\n";
+		//OutputDebugString(std::to_string(nF).c_str());
+		//unsigned char * charF, *charV, *charN;
+		//pointers[0] = new unsigned char;
+		pF[0] = F.data();
+				//pointers[1] = new unsigned char;
+		pV[0] = &V(0);//V.data();
+		//pointers[2] = new unsigned char;
+		//pointers[2] = (unsigned char*)N.data();
+		
+		meshSize[0] = F.cols() * F.rows();
+		meshSize[1] = V.cols() * V.rows();
+		//meshSize[2] = N.cols() * N.rows();
+
+// 		delete cpath;
+// 		cpath = NULL;
 	}
 
 	void LoadPLYDirect(int* charF, float* charV, float* charN, int meshSize[])
