@@ -10,6 +10,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <ostream>
+#include <filesystem>
 
 using namespace osr;
 using namespace osr::gui;
@@ -474,7 +475,10 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 // 		system(strcmd.c_str());
 		// end of zhenyi
 
-		std::rename(scanPath.c_str(), savePathPLY.string().c_str());
+		// zhenyi copy file , not cut file, so that after unity read the ply, then remove it
+		std::experimental::filesystem::copy(scanPath.c_str(), savePathPLY.string().c_str());
+		//std::rename(scanPath.c_str(), savePathPLY.string().c_str());
+		// end of zhenyi
 
 		std::string oldPNG = (sessionPath.parent_path() / boost::filesystem::path("currentScan.png")).string();
 		std::string newPNG = (sessionPath / boost::filesystem::path((fmtPNG % i).str())).string();

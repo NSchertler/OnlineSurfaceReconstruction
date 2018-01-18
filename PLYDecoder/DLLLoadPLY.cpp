@@ -38,7 +38,8 @@ extern "C" {
 
 		if (!ply_read_header(ply)) {
 			ply_close(ply);
-			throw std::runtime_error("Unable to open PLY header of \"" + filename + "\"!");
+			std::cerr << "Unable to open PLY header of \"" << filename << "\"!";
+			//throw std::runtime_error("Unable to open PLY header of \"" + filename + "\"!");
 		}
 
 		const float gamma = 2.2f;
@@ -307,7 +308,7 @@ extern "C" {
 		meshSize[2] = N.cols() * N.rows();
 	}
 
-	void LoadPLY3(const char* path, unsigned int ** pF, float ** pV, int meshSize[])
+	float * LoadPLY3(const char* path, unsigned char ** pF, float ** pV, int meshSize[])
 	{
 		MatrixXu F;
 		Matrix3Xf V, N;
@@ -328,9 +329,9 @@ extern "C" {
 		//OutputDebugString(std::to_string(nF).c_str());
 		//unsigned char * charF, *charV, *charN;
 		//pointers[0] = new unsigned char;
-		pF[0] = F.data();
+		//pF[0] = (unsigned char *)&F(0);
 				//pointers[1] = new unsigned char;
-		pV[0] = &V(0);//V.data();
+		//pV[0] = &V(0);//V.data();
 		//pointers[2] = new unsigned char;
 		//pointers[2] = (unsigned char*)N.data();
 		
@@ -340,6 +341,7 @@ extern "C" {
 
 // 		delete cpath;
 // 		cpath = NULL;
+		return &V(0);
 	}
 
 	void LoadPLYDirect(int* charF, float* charV, float* charN, int meshSize[])

@@ -1,12 +1,10 @@
 ﻿  DLLLoadPLY.cpp
-DLLLoadPLY.cpp(41): warning C4297: 'load_ply': function assumed not to throw an exception but does
-  DLLLoadPLY.cpp(41): note: The function is extern "C" and /EHc was specified
-DLLLoadPLY.cpp(82): warning C4297: 'load_ply': function assumed not to throw an exception but does
-  DLLLoadPLY.cpp(82): note: The function is extern "C" and /EHc was specified
-DLLLoadPLY.cpp(194): warning C4297: 'load_ply': function assumed not to throw an exception but does
-  DLLLoadPLY.cpp(194): note: The function is extern "C" and /EHc was specified
-DLLLoadPLY.cpp(207): warning C4297: 'load_ply': function assumed not to throw an exception but does
-  DLLLoadPLY.cpp(207): note: The function is extern "C" and /EHc was specified
+DLLLoadPLY.cpp(83): warning C4297: 'load_ply': function assumed not to throw an exception but does
+  DLLLoadPLY.cpp(83): note: The function is extern "C" and /EHc was specified
+DLLLoadPLY.cpp(195): warning C4297: 'load_ply': function assumed not to throw an exception but does
+  DLLLoadPLY.cpp(195): note: The function is extern "C" and /EHc was specified
+DLLLoadPLY.cpp(208): warning C4297: 'load_ply': function assumed not to throw an exception but does
+  DLLLoadPLY.cpp(208): note: The function is extern "C" and /EHc was specified
   rply.c
      Creating library D:\Projects\OnlineSurfaceReconstruction\build_msvc14_64\Release\PLYDecoder.lib and object D:\Projects\OnlineSurfaceReconstruction\build_msvc14_64\Release\PLYDecoder.exp
   PLYDecoder.vcxproj -> D:\Projects\OnlineSurfaceReconstruction\build_msvc14_64\Release\PLYDecoder.dll

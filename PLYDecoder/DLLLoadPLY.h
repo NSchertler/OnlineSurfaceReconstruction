@@ -10,6 +10,6 @@ extern "C" {
 
 	DLL_LOAD_PLY void LoadPLY(unsigned char * charF, unsigned char * charV, unsigned char * charN, int meshSize[]);
 	DLL_LOAD_PLY void LoadPLY2(unsigned char * charF, unsigned char * charV, unsigned char * charN, int meshSize[]);
-	DLL_LOAD_PLY void LoadPLY3(const char* path, unsigned int ** pF, float ** pV, int meshSize[]);
+	DLL_LOAD_PLY float* LoadPLY3(const char* path, unsigned char ** pF, float ** pV, int meshSize[]);
 	DLL_LOAD_PLY void LoadPLYDirect(int* charF, float* charV, float* charN, int meshSize[]);
 }
