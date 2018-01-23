@@ -12,12 +12,14 @@
 #include <ostream>
 #include <filesystem>
 
+#include "zmq/zmqClient.h"
+
 using namespace osr;
 using namespace osr::gui;
 using namespace osr::gui::loaders;
 
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
-const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
+const std::string scanPath = "D:\\Scans\\currentScan_osr.ply"; //TODO::Generalize
 
 DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
@@ -114,6 +116,9 @@ void DavidViveScanLoader::setup(nanogui::Window*)
 
 	scannerControllerMatrix.linear().setConstant(std::numeric_limits<float>::quiet_NaN());
 	secondaryControllerMatrix.linear().setConstant(std::numeric_limits<float>::quiet_NaN());
+
+	// zhenyi
+	zmqClient::getInstance()->connect();
 }
 
 void DavidViveScanLoader::draw(const Matrix4f & mv, const Matrix4f & proj)
@@ -336,6 +341,14 @@ void DavidViveScanLoader::track()
 					Eigen::Affine3f transformUncalibrated = Eigen::Translation3f(axisCenter) * Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection) * Eigen::Translation3f(-axisCenter) * scannerControllerMatrix;
 					Eigen::Affine3f transformCalibrated = adaptAfterCalibration * transformUncalibrated * transformScannerControllerToDavidSystem;
 					TakeScan(transformCalibrated);
+					// zhenyi
+					std::vector<Eigen::Affine3f> matrixs;
+					matrixs.push_back(transformUncalibrated);
+					matrixs.push_back(transformCalibrated);
+					matrixs.push_back(scannerControllerMatrix);
+					matrixs.push_back(transformScannerControllerToDavidSystem);
+					zmqClient::getInstance()->send(matrixs);
+					// end of zhenyi
 
 					currentScan->davidViveData.transformUncalibrated = transformUncalibrated;
 					currentScan->davidViveData.turntableRotation = Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection);
@@ -447,7 +460,12 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 	Matrix3Xf V, N;
 	Matrix3Xus C;
 	std::cout << "out of while loop, loading ply file " << scanPath << "\n";
-	load_ply(scanPath, F, V, N, C, true);
+	// zhenyi give unity time to rename the ply file
+	bool loadret = false;
+	while (!loadret) {
+		loadret = load_ply(scanPath, F, V, N, C, true);
+	}
+	// end of zhenyi
 
 	if (state == Scanning)
 	{
@@ -476,8 +494,8 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 		// end of zhenyi
 
 		// zhenyi copy file , not cut file, so that after unity read the ply, then remove it
-		std::experimental::filesystem::copy(scanPath.c_str(), savePathPLY.string().c_str());
-		//std::rename(scanPath.c_str(), savePathPLY.string().c_str());
+		//std::experimental::filesystem::copy(scanPath.c_str(), savePathPLY.string().c_str());
+		std::rename(scanPath.c_str(), savePathPLY.string().c_str());
 		// end of zhenyi
 
 		std::string oldPNG = (sessionPath.parent_path() / boost::filesystem::path("currentScan.png")).string();

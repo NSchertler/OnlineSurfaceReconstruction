@@ -37,7 +37,7 @@ namespace osr
 
 	extern void load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V);
 
-	extern void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
+	extern bool load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		Matrix3Xf &N, Matrix3Xus &C, bool pointcloud = false);
 
 	extern void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N);

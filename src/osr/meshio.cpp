@@ -93,7 +93,7 @@ void osr::write_mesh(const std::string &filename, const MatrixXu &F,
         throw std::runtime_error("write_mesh: Unknown file extension \"" + extension + "\" (.ply/.obj are supported)");
 }
 
-void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
+bool osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
               Matrix3Xf &N, Matrix3Xus &C, bool pointcloud)
 {
     auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
@@ -103,12 +103,16 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
     std::cout.flush();
 
     p_ply ply = ply_open(filename.c_str(), message_cb, 0, nullptr);
-    if (!ply)
-        throw std::runtime_error("Unable to open PLY file \"" + filename + "\"!");
+	if (!ply) {
+		std::cerr << "Unable to open PLY file \"" << filename << "\"!";
+		return false;
+	}
+        
 
     if (!ply_read_header(ply)) {
         ply_close(ply);
-        throw std::runtime_error("Unable to open PLY header of \"" + filename + "\"!");
+        std::cerr << "Unable to open PLY header of \"" << filename << "\"!";
+		return false;
     }
 
 	const float gamma = 2.2f;
@@ -330,6 +334,7 @@ void osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
     if (faceCount > 0)
 		std::cout << ", F=" << faceCount;
 	std::cout << ", took " << nse::util::timeString(timer.value()) << ")" << std::endl;
+	return true;
 }
 
 void osr::write_ply(const std::string &filename, const MatrixXu &F,
