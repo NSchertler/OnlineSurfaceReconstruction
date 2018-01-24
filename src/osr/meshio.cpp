@@ -337,6 +337,25 @@ bool osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 	return true;
 }
 
+bool osr::valid_ply(const std::string &filename)
+{
+	auto message_cb = [](p_ply ply, const char *msg) { std::cerr << "rply: " << msg << std::endl; };
+	p_ply ply = ply_open(filename.c_str(), message_cb, 0, nullptr);
+	if (!ply) {
+		std::cerr << "Unable to open PLY file \"" << filename << "\"!";
+		return false;
+	}
+
+
+	if (!ply_read_header(ply)) {
+		ply_close(ply);
+		std::cerr << "Unable to open PLY header of \"" << filename << "\"!";
+		return false;
+	}
+
+	return true;
+}
+
 void osr::write_ply(const std::string &filename, const MatrixXu &F,
                const Matrix3Xf &V, const Matrix3Xf &N, const Matrix3Xf &Nf, const Matrix3Xf &UV,
                const Matrix3Xf &C)

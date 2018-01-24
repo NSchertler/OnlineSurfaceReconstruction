@@ -40,6 +40,8 @@ namespace osr
 	extern bool load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		Matrix3Xf &N, Matrix3Xus &C, bool pointcloud = false);
 
+	extern bool valid_ply(const std::string &filename);
+
 	extern void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N);
 
 	template <typename DataSink>

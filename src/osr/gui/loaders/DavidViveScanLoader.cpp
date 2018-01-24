@@ -12,6 +12,7 @@
 #include <ostream>
 #include <filesystem>
 
+#include "zmq/zmqPub.h"
 #include "zmq/zmqClient.h"
 
 using namespace osr;
@@ -20,6 +21,7 @@ using namespace osr::gui::loaders;
 
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 const std::string scanPath = "D:\\Scans\\currentScan_osr.ply"; //TODO::Generalize
+const std::string scanPathUnity = "D:\\Scans\\currentScan.ply"; // zhenyi
 
 DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
@@ -118,7 +120,8 @@ void DavidViveScanLoader::setup(nanogui::Window*)
 	secondaryControllerMatrix.linear().setConstant(std::numeric_limits<float>::quiet_NaN());
 
 	// zhenyi
-	zmqClient::getInstance()->connect();
+	zmqPub::getInstance()->connect();
+	//zmqClient::getInstance()->connect();
 }
 
 void DavidViveScanLoader::draw(const Matrix4f & mv, const Matrix4f & proj)
@@ -302,6 +305,8 @@ void DavidViveScanLoader::track()
 {
 	vr::TrackedDevicePose_t poses[16];
 
+
+
 	while (tracking)
 	{
 		//check if the trigger has been pushed
@@ -340,16 +345,17 @@ void DavidViveScanLoader::track()
 					state = Scanning;
 					Eigen::Affine3f transformUncalibrated = Eigen::Translation3f(axisCenter) * Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection) * Eigen::Translation3f(-axisCenter) * scannerControllerMatrix;
 					Eigen::Affine3f transformCalibrated = adaptAfterCalibration * transformUncalibrated * transformScannerControllerToDavidSystem;
-					TakeScan(transformCalibrated);
+					//TakeScan(transformCalibrated);	// zhenyi: test without scanning
 					// zhenyi
 					std::vector<Eigen::Affine3f> matrixs;
 					matrixs.push_back(transformUncalibrated);
 					matrixs.push_back(transformCalibrated);
 					matrixs.push_back(scannerControllerMatrix);
 					matrixs.push_back(transformScannerControllerToDavidSystem);
-					zmqClient::getInstance()->send(matrixs);
-					// end of zhenyi
+					zmqPub::getInstance()->send("m64", matrixs);
 
+
+					/* zhenyi test
 					currentScan->davidViveData.transformUncalibrated = transformUncalibrated;
 					currentScan->davidViveData.turntableRotation = Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection);
 					currentScan->davidViveData.davidToVive = scannerControllerMatrix * transformScannerControllerToDavidSystem;
@@ -365,6 +371,9 @@ void DavidViveScanLoader::track()
 					aln.close();
 
 					NewScan(currentScan);
+
+					zhenyi test
+					*/
 					currentScan = nullptr;
 					state = Normal;
 				}
@@ -449,6 +458,17 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 
 	std::string command = "\"" + autoItPath + "\" TakeDavidScan.au3";
 	system(command.c_str());
+
+	// zhenyi check if the file is ready, then notify unity to load
+	while (!boost::filesystem::exists(scanPathUnity)) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+	bool validRet = false;
+	while (!validRet) {
+		validRet = valid_ply(scanPathUnity);
+	}
+	zmqPub::getInstance()->send("s01");
+	// end of zhenyi netmq 
 
 	while (!boost::filesystem::exists(scanPath))
 	{

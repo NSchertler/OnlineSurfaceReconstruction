@@ -50,4 +50,15 @@ void zmqClient::send(std::vector<Eigen::Affine3f> m)
 	//f = NULL;
 }
 
+void zmqClient::send()
+{
+	zmq::message_t msg(5);
+	memcpy(msg.data(),"hello", 5);
+	m_socket->send(msg);
+
+	zmq::message_t reply;
+	m_socket->recv(&reply);
+	std::cout << "Received" << std::endl;
+}
+
 zmqClient* zmqClient::m_instance=NULL;

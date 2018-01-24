@@ -17,6 +17,7 @@ public:
 	static zmqClient* getInstance();
 	void connect();
 	void send(std::vector<Eigen::Affine3f> m);
+	void send();
 
 private:
 	static zmqClient* m_instance;
