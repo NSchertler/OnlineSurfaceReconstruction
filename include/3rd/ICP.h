@@ -27,6 +27,7 @@
 #include "osr/INeighborQueryable.h"
 #include <nsessentials/util/TimedBlock.h>
 #include "osr/common.h"
+#include <iostream>
 
 /// Compute the rigid motion for point-to-point and point-to-plane distances
 namespace RigidMotionEstimator {
