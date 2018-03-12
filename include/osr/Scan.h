@@ -25,7 +25,7 @@
 #include <nsessentials/math/BoundingBox.h>
 #include <nsessentials/gui/GLBuffer.h>
 #include <nsessentials/gui/GLVertexArray.h>
-#include <nsessentials/util/IndentationLog.h>
+#include <nsessentials/util/TimedBlock.h>
 
 #include <random>
 #include <iostream>

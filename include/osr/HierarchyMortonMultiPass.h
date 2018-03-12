@@ -23,6 +23,7 @@
 #include "osr/Hierarchy.h"
 #include "osr/Optimizer.h"
 #include "osr/HierarchyCapabilities.h"
+#include "osr/PreparedVertexSet.h"
 #include <nsessentials/data/PersistentIndexContainer.h>
 #include <nsessentials/data/Serialization.h>
 #include <nsessentials/math/Morton.h>
@@ -33,6 +34,8 @@
 
 namespace osr
 {
+	class ExtractedMesh;
+
 	//Octree-based hierarchy with Morton Index-based data storage
 	namespace HierarchyMortonMultiPass
 	{
@@ -598,9 +601,6 @@ namespace osr
 			~Hierarchy();
 
 			// ---- begin public hierarchy interface  ----
-
-			//this is the type referred to by vertices()
-			typedef Index VertexIndex;
 
 			//access to the data stored in the hierarchy
 			template<Attribute A> typename AttributeTraits<A>::Type& attribute(const Index& i) { return mLevels[i.level].originalData[i.idx].attribute<A>(); }

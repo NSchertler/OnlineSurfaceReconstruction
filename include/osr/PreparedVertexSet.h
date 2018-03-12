@@ -18,7 +18,7 @@
 #include <string>
 #include "osr/common.h"
 #include "osr/Attributes.h"
-#include <nsessentials/util/IndentationLog.h>
+#include <nsessentials/util/TimedBlock.h>
 #include "osr/Optimizer.h"
 
 // This file contains structures that represent a set of vertex that have been prepared for optimization

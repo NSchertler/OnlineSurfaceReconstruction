@@ -16,12 +16,14 @@
 
 #include "osr/Attributes.h"
 #include "osr/AttributeConsistency.h"
+#include "osr/ExtractedMesh.h"
 #include <nsessentials/util/TimedBlock.h>
 
 #include <random>
 #include <fstream>
 
 #include <boost/iterator/transform_iterator.hpp>
+#include <tbb/parallel_sort.h>
 
 using namespace osr;
 using namespace HierarchyMortonMultiPass;

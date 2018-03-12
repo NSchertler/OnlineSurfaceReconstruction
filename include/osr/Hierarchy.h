@@ -15,13 +15,13 @@
 
 #include <boost/signals2.hpp>
 #include "osr/common.h"
-#include "osr/ExtractedMesh.h"
+#include "osr/Optimizer.h"
 
 #include <nsessentials/math/BoundingBox.h>
 
 namespace osr
 {
-	class Optimizer;
+	class ExtractedMesh;
 
 	//All implemented hierarchies must conform to this interface in order to work.
 	template <typename TVertexIndex>
