@@ -21,6 +21,7 @@
 #include <nsessentials/gui/AbstractViewer.h>
 #include <nsessentials/gui/GLBuffer.h>
 #include <nsessentials/gui/GLVertexArray.h>
+#include <nsessentials/math/BoundingBox.h>
 
 #include "osr/gui/HierarchyRenderer.h"
 #include "osr/gui/loaders/ScanLoader.h"
@@ -94,6 +95,8 @@ namespace osr {
 
 			std::vector<loaders::ScanLoader*> scanLoader;
 			tbb::concurrent_queue<Scan*> scansToIntegrate;
+
+			nse::math::BoundingBox<float, 3> allScansBoundingBox;
 
 			//Tools
 			nanogui::Widget* toolsWidget;

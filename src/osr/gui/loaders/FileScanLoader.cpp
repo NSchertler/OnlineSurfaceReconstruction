@@ -16,6 +16,7 @@
 #include <nanogui/button.h>
 #include "osr/meshio.h"
 #include <nsessentials/data/FileHelper.h>
+#include <nsessentials/util/TimedBlock.h>
 
 using namespace osr;
 using namespace gui;

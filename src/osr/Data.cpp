@@ -12,6 +12,7 @@
 */
 
 #include "osr/Data.h"
+#include <nsessentials/util/TimedBlock.h>
 
 using namespace osr;
 

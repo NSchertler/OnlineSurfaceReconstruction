@@ -16,7 +16,7 @@
 
 #include "osr/common.h"
 #include "osr/Scan.h"
-#include <nsessentials/util/IndentationLog.h>
+#include <nsessentials/util/Timer.h>
 #include <nsessentials/data/FileHelper.h>
 
 #include <fstream>

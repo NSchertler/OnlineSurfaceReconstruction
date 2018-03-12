@@ -22,6 +22,8 @@
 
 #include <fstream>
 
+#include <nsessentials/util/TimedBlock.h>
+
 using namespace osr;
 
 Scan::Scan(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C, const MatrixXu& F, const std::string& name, const Eigen::Affine3f& transform)

@@ -38,7 +38,7 @@
 #include "3rd/stb_image_write.h"
 
 #include "osr/gui/ShaderPool.h"
-#include <nsessentials/util/IndentationLog.h>
+#include <nsessentials/util/TimedBlock.h>
 
 #include "osr/gui/loaders/FileScanLoader.h"
 #include "osr/gui/loaders/ProceduralScanLoader.h"
@@ -236,6 +236,7 @@ void Viewer::SetupGUI()
 			data.loadFromFile(filename);
 			if(chkFocus->checked())
 				_camera.FocusOnBBox(data.hierarchy.boundingBox());
+			allScansBoundingBox = data.hierarchy.boundingBox();
 			selectionRadius = 1.0f * data.meshSettings.scale();
 		}
 	});	
@@ -312,6 +313,7 @@ void Viewer::SetupGUI()
 		updateFocus(nullptr);
 
 		data.Reset();
+		allScansBoundingBox.reset();
 		selectionRadius = 0;
 
 		for (auto widget : toolsWidget->children())
@@ -552,9 +554,11 @@ void Viewer::ScanAdded(Scan* s)
 {
 	s->initialize();
 
+	allScansBoundingBox.unite(allScansBoundingBox, s->getTransformedBoundingBox(), allScansBoundingBox);
 	if(selectedTool == nullptr && data.scans.size() == 1 && data.hierarchy.vertexCount() == 0)
 		_camera.FocusOnBBox(s->getTransformedBoundingBox());
-	
+	_camera.SetSceneExtent(allScansBoundingBox);
+
 	if(selectionRadius == 0)
 		selectionRadius = 1.0f * data.meshSettings.scale();		
 

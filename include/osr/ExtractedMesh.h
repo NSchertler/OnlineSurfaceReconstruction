@@ -345,7 +345,7 @@ namespace osr
 			if (vertices[vid].incidentEdges.size() == 0)
 				vertices.erase(vid);
 
-		b.earlyExit();
+		b.closeBlock();
 
 		post_extract();
 

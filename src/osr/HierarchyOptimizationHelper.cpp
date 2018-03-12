@@ -18,6 +18,7 @@
 #include <random>
 
 #include <nsessentials/data/Parallelization.h>
+#include <nsessentials/util/Timer.h>
 
 using namespace osr;
 
