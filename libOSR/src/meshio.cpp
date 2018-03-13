@@ -27,7 +27,8 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/lambda/lambda.hpp>
 
-#include <stb_image.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "3rd/stb_image.h"
 
 #include <nsessentials/util/Timer.h>
 #include "osr/Colors.h"

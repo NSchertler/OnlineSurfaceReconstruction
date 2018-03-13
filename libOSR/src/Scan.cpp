@@ -13,7 +13,6 @@
 
 #include "osr/Scan.h"
 
-#include "osr/gui/ShaderPool.h"
 #include "osr/Colors.h"
 
 #include "osr/HierarchyDef.h"
@@ -23,12 +22,15 @@
 #include <fstream>
 
 #include <nsessentials/util/TimedBlock.h>
+#pragma warning(push)
+#pragma warning(disable: 4348) //redefinition of default parameter
+#include <nanoflann.hpp>
+#pragma warning(pop)
 
 using namespace osr;
 
 Scan::Scan(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C, const MatrixXu& F, const std::string& name, const Eigen::Affine3f& transform)
-	: positionBuffer(nse::gui::VertexBuffer), normalBuffer(nse::gui::VertexBuffer), colorBuffer(nse::gui::VertexBuffer), indexBuffer(nse::gui::IndexBuffer),
-	showInput(true), showNormals(false), mTransform(transform)
+	:  mTransform(transform)
 {
 	mV = V;
 	mN = N;
@@ -65,24 +67,8 @@ void Scan::initialize()
 		}
 	}
 
-	inputMesh.generate();
-
-	Matrix3Xf dummy(3, 1);
-	gui::ShaderPool::Instance()->ObjectShader.bind();
-	inputMesh.bind();
-	positionBuffer.uploadData(dummy).bindToAttribute("position");
-	normalBuffer.uploadData(dummy).bindToAttribute("normal");
-	colorBuffer.uploadData(dummy).bindToAttribute("color");	
-	indexBuffer.uploadData(mF);
-
-	gui::ShaderPool::Instance()->NormalShader.bind();
-	positionBuffer.bindToAttribute("position");
-	normalBuffer.bindToAttribute("normal");
-	inputMesh.unbind();
-
-	uploadData();
-
-	indexCount = mF.rows() * mF.cols();
+	if (renderer != nullptr)
+		renderer->initialize(*this);
 }
 
 void Scan::calculateNormalsFromFaces()
@@ -155,42 +141,6 @@ void Scan::calculateNormalsPCA()
 	}
 }
 
-void Scan::draw(const Eigen::Matrix4f & v, const Eigen::Matrix4f & proj) const
-{
-	if (!showInput && !showNormals)
-		return;
-
-	Eigen::Matrix4f mv = v * mTransform.matrix();
-	Eigen::Matrix4f mvp = proj * mv;
-
-	if (showInput)
-	{
-		glPointSize(5);
-		//Draw input Mesh
-		auto& shader = gui::ShaderPool::Instance()->ObjectShader;
-		shader.bind();
-		shader.setUniform("mv", mv);
-		shader.setUniform("mvp", mvp);
-		inputMesh.bind();
-		if(mF.size() == 0)
-			glDrawArrays(GL_POINTS, 0, V().cols());
-		else
-			glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-		inputMesh.unbind();
-	}
-
-	if (showNormals)
-	{
-		auto& shader = gui::ShaderPool::Instance()->NormalShader;
-		shader.bind();
-		shader.setUniform("mvp", mvp);
-		shader.setUniform("scale", 0.01f * bbox.diagonal().norm());
-		inputMesh.bind();
-		glDrawArrays(GL_POINTS, 0, V().cols());
-		inputMesh.unbind();
-	}
-}
-
 void Scan::calculateNormals()
 {
 	if (mN.size() == 0)
@@ -217,29 +167,6 @@ nse::math::BoundingBox<float, 3> Scan::getTransformedBoundingBox() const
 	return bbox.transform(mTransform);
 }
 
-void Scan::uploadData()
-{
-	if (mV.size() > 0)
-	{
-		bbox.expand(mV);
-		positionBuffer.uploadData(mV);
-	}
-
-	if (mN.size() > 0)
-		normalBuffer.uploadData(mN);
-
-	if (mC.size() > 0)
-	{
-		Matrix3Xf C_gpu(3, mC.cols());
-#pragma omp parallel for
-		for (int i = 0; i < mC.cols(); ++i)
-		{
-			C_gpu.col(i) = LabToRGB(mC.col(i)).cast<float>() / 65535.0f;
-		}
-		colorBuffer.uploadData(C_gpu);
-	}
-}
-
 void Scan::cleanOverlap(const THierarchy& hierarchy, float distance)
 {
 #pragma omp parallel for
@@ -252,7 +179,14 @@ void Scan::cleanOverlap(const THierarchy& hierarchy, float distance)
 			mV.col(i).setConstant(std::numeric_limits<float>::quiet_NaN());
 	}
 
-	uploadData();
+	if (renderer != nullptr)
+		renderer->updateData(*this);
+}
+
+void Scan::buildTree()
+{
+	kdTree = new KdTreeType(3, *this, nanoflann::KDTreeSingleIndexAdaptorParams());
+	kdTree->buildIndex();
 }
 
 struct ClosestCompatibleAggregator

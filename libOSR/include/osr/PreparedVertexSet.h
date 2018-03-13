@@ -20,6 +20,7 @@
 #include "osr/Attributes.h"
 #include <nsessentials/util/TimedBlock.h>
 #include "osr/Optimizer.h"
+#include "osr/ForEachHelper.h"
 
 // This file contains structures that represent a set of vertex that have been prepared for optimization
 // (i.e. all relevant information is immediately available, e.g. parallelization strategy or attributes)

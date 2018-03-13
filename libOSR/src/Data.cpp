@@ -167,12 +167,7 @@ Data::Data()
 	: extractedMesh(meshSettings)
 { }
 
-DataGL::DataGL()
-	: extractedMesh(meshSettings)
-{ }
-
 namespace osr
 {
 	template class DataBase<Data>;
-	template class DataBase<DataGL>;
 }

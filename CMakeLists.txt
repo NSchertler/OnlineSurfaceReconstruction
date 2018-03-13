@@ -27,15 +27,9 @@ set(NANOGUI_USE_GLAD ON)
 set(ADDITIONAL_SRC)
 set(LIBS)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-
-# Enable folders for projects in Visual Studio
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-endif()
-
 # Sanitize build environment for static build with C++11
 if (MSVC)
+
   add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
   add_definitions (/D "__TBB_NO_IMPLICIT_LINKAGE")
 
@@ -60,6 +54,9 @@ if (MSVC)
   foreach(CompilerFlag ${CompilerFlags})
     string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
   endforeach()
+  
+  # Enable folders for projects in Visual Studio
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 elseif(APPLE)
   # Try to auto-detect a suitable SDK
   execute_process(COMMAND bash -c "xcodebuild -version -sdk | grep MacOSX | grep Path | head -n 1 | cut -f 2 -d ' '" OUTPUT_VARIABLE CMAKE_OSX_SYSROOT)
@@ -69,83 +66,29 @@ endif()
 
 set (CMAKE_CXX_STANDARD 14)
 
-# Build NanoGUI
+#left-over
+SET(NSE_SSBO_SUPPORT ON CACHE BOOL " " FORCE)
+SET(NSE_TESSELLATION_SUPPORT ON CACHE BOOL " " FORCE)
+SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
+
+# Add NanoGUI dependency
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
-set_property(TARGET nanogui glfw glfw_objects PROPERTY FOLDER "dependencies")
+set_property(TARGET nanogui nanogui-obj glfw glfw_objects PROPERTY FOLDER "dependencies")
 include_directories(ext/nanogui/include
 					${NANOGUI_EXTRA_INCS})
 set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
 add_definitions(${NANOGUI_EXTRA_DEFS})
-SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
-SET(NSE_WITH_EIGEN ON CACHE BOOL " " FORCE)
 
-# Build TBB
-set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
-set(TBB_BUILD_SHARED OFF CACHE BOOL " " FORCE)
-set(TBB_BUILD_TBBMALLOC OFF CACHE BOOL " " FORCE)
-set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
-set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/tbb ext_build/tbb)
-set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
-include_directories(ext/tbb/include)
-set(LIBS ${LIBS} tbb_static)
-SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
-SET(NSE_SSBO_SUPPORT ON CACHE BOOL " " FORCE)
-SET(NSE_TESSELLATION_SUPPORT ON CACHE BOOL " " FORCE)
-
-# Build NSEssentials
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nsessentials ext_build/nsessentials)
-set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
-include_directories(ext/nsessentials/include)
-set(LIBS nsessentials ${LIBS})
-add_definitions(${NSE_EXTRA_DEFS})
-
-set(BOOST_COMPONENTS)
-if(OSR_USE_MEMORY_MAPPED_FILE)
-	set(BOOST_COMPONENTS ${BOOST_COMPONENTS} iostreams)
-	add_definitions(/DOSR_USE_MEMORY_MAPPED_FILE)
-endif()
-
-# Boost required for any and cstdint on MSVC < 2010
-find_package(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
-if(MSVC AND (MSVC_VERSION LESS 1600))
-	add_definitions(-DBOOST_STDINT)
-endif(MSVC AND (MSVC_VERSION LESS 1600))
-include_directories(${Boost_INCLUDE_DIRS})
-if(NOT "${BOOST_COMPONENTS}" STREQUAL "")
-	message("We have some boost components")
-	link_directories(${Boost_LIBRARY_DIRS})
-endif()
-
-find_package(OpenMP)
-if(OPENMP_FOUND)
-  add_definitions(-DOPENMP)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
-
-#Do not use Eigen parallelization as we will parallelize manually
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
-
-if(OSR_ACCURATE_TIMING)
-	add_definitions (/DACCURATE_TIMING)
-endif(OSR_ACCURATE_TIMING)
-
-if(OSR_DEBUG_VISUALIZATION)
-	add_definitions(/DDEBUG_VISUALIZATION)
-endif(OSR_DEBUG_VISUALIZATION)
-
-if(OSR_REDUCED_TIMINGS)
-	add_definitions(/DREDUCED_TIMINGS)
-endif(OSR_REDUCED_TIMINGS)
-
-if(OSR_GEOMETRIC_LAPLACIAN)
-	add_definitions (/DGEOMETRIC_LAPLACIAN)
-endif(OSR_GEOMETRIC_LAPLACIAN)
+# Add libOSR
+add_subdirectory(libOSR)
+set(LIBS ${LIBS} LibOnlineSurfaceReconstruction)
+include_directories(libOSR/include)
+include_directories(${OSR_ADDITIONAL_INCLUDE_DIR})
+set(LIBS ${LIBS} ${OSR_ADDITIONAL_LIBS})
+add_definitions(${OSR_EXTRA_DEFS})
 
 set(GLSL_FILES 	mesh.vert
 				mesh_flat.vert
@@ -179,10 +122,6 @@ add_custom_command(
   DEPENDS ${GLSL_FILES}
   COMMENT "Running bin2c"
   PRE_BUILD VERBATIM)
-
-SET(THIRD_PARTY 	ext/rply/rply.c
-					include/3rd/ICP.h)
-source_group(third_party FILES ${THIRD_PARTY})
 
 SET(GUI_FILES	src/osr/gui/Viewer.cpp include/osr/gui/Viewer.h				
 				include/osr/gui/GUIObject.h								
@@ -237,54 +176,16 @@ endif(OSR_USE_DAVIDVIVE)
 
 source_group(gui\\loaders FILES ${GUI_LOADERS_FILES})				
 
-include_directories(
-  include  
-  # Resource file
-  ${CMAKE_CURRENT_BINARY_DIR}
-  # RPLY mesh I/O library
-  ext/rply
-  # Disjoint set data structure
-  ext/dset
-  # nanoflann
-  ext/nanoflann
-)
+include_directories(include)
 
 add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	glsl.cpp
-	src/main.cpp
-	include/osr/Attributes.h
-	include/osr/AttributeConsistency.h
-	src/osr/common.cpp include/osr/common.h
-	src/osr/Data.cpp include/osr/Data.h
-	include/osr/MeshSettings.h
-	src/osr/field.cpp include/osr/field.h
-	include/osr/Indexing.h
-	include/osr/HierarchyOptions.h
-	include/osr/HierarchyDecl.h
-	include/osr/HierarchyDef.h
-	include/osr/Hierarchy.h
-	include/osr/PreparedVertexSet.h
-	src/osr/HierarchyOptimizationHelper.cpp include/osr/HierarchyOptimizationHelper.h	
-	#src/HierarchyUnstructured.cpp include/HierarchyUnstructured.h
-	#src/HierarchyRegularSubdiv.cpp include/HierarchyRegularSubdiv.h
-	#src/HierarchyOctree.cpp include/HierarchyOctree.h
-	src/osr/HierarchyMortonMultiPass.cpp include/osr/HierarchyMortonMultiPass.h
-	include/osr/HierarchyCapabilities.h
-	include/osr/INeighborQueryable.h
-	src/osr/meshio.cpp include/osr/meshio.h
-	src/osr/Optimizer.cpp include/osr/Optimizer.h
-	src/osr/Scan.cpp include/osr/Scan.h
-	src/osr/ExtractedMesh.cpp include/osr/ExtractedMesh.h
-	src/osr/MeshVisitor.cpp include/osr/MeshVisitor.h
-	include/osr/ExtractionUtils.h
-	src/osr/ExtractionAttributeMapping.cpp include/osr/ExtractionAttributeMapping.h		
+	src/main.cpp	
 	src/osr/BatchSession.cpp include/osr/BatchSession.h
-	src/osr/Colors.cpp include/osr/Colors.h
 	${GUI_FILES}
 	${GUI_TOOL_FILES}
 	${GUI_LOADERS_FILES}
 	${ADDITIONAL_SRC}
-	${GLSL_FILES}
-	${THIRD_PARTY})
+	${GLSL_FILES})
 
 target_link_libraries(OnlineSurfaceReconstruction ${LIBS})

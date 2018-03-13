@@ -24,6 +24,7 @@
 #include "osr/Optimizer.h"
 #include "osr/HierarchyCapabilities.h"
 #include "osr/PreparedVertexSet.h"
+#include "osr/ForEachHelper.h"
 #include <nsessentials/data/PersistentIndexContainer.h>
 #include <nsessentials/data/Serialization.h>
 #include <nsessentials/math/Morton.h>

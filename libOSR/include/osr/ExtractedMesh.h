@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include "dset.h"
-
 #include "osr/MeshSettings.h"
 #include "osr/PreparedVertexSet.h"
 #include "osr/HierarchyDef.h"

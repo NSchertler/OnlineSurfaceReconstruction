@@ -13,6 +13,7 @@
 */
 
 #include "osr/ExtractedMesh.h"
+#include "dset.h"
 
 #include <tbb/tbb.h>
 #include <tbb/concurrent_vector.h>

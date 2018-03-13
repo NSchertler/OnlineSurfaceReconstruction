@@ -19,8 +19,7 @@
 #include "osr/HierarchyDef.h"
 #include "osr/Optimizer.h"
 #include "osr/MeshSettings.h"
-
-#include "osr/gui/ExtractedMeshGL.h"
+#include "osr/ExtractedMesh.h"
 
 #include <boost/signals2.hpp>
 
@@ -81,14 +80,5 @@ namespace osr
 		ExtractedMesh extractedMesh;
 
 		Data();
-	};
-
-	//Specialization of the DataBase class that holds a renderable final mesh.
-	class DataGL : public DataBase<DataGL>
-	{
-	public:
-		gui::ExtractedMeshGL extractedMesh;
-
-		DataGL();
-	};
+	};	
 }

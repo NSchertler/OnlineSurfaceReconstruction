@@ -16,8 +16,7 @@
 #include "osr/common.h"
 #include "osr/INeighborQueryable.h"
 #include "osr/HierarchyDecl.h"
-
-#include "osr/gui/ShaderPool.h"
+#include "osr/nanoflannForwardDeclare.h"
 
 #include "3rd/ICP.h"
 
@@ -29,10 +28,18 @@
 
 #include <random>
 #include <iostream>
-#include <nanoflann.hpp>
+#include <memory>
 
 namespace osr
 {
+	class Scan;
+	class IScanRenderer
+	{
+	public:
+		virtual void initialize(const Scan& scan) = 0;
+		virtual void updateData(const Scan& scan) = 0;
+	};
+
 	//Represents data of a single scan
 	class Scan : public IPointQueryable<size_t>
 	{
@@ -40,18 +47,12 @@ namespace osr
 		Scan(const Matrix3Xf& V = Matrix3Xf(), const Matrix3Xf& N = Matrix3Xf(), const Matrix3Xus& C = Matrix3Xus(), const MatrixXu& F = MatrixXu(), const std::string& name = "unnamed", const Eigen::Affine3f& transform = Eigen::Affine3f::Identity());
 		~Scan();
 
-		void initialize();
-		bool isInitialized() const { return inputMesh.valid(); }
-
-		void draw(const Eigen::Matrix4f& view, const Eigen::Matrix4f& projection) const;
+		void initialize();		
 
 		//Calculates the vertex normals if not already present.
 		//If there are faces in the data set, uses averaged face normals.
 		//Otherwise, uses PCA. PCA assumes normals to point towards the origin.
-		void calculateNormals();
-
-		bool showInput;
-		bool showNormals;
+		void calculateNormals();		
 
 		//Access to transformed attributes
 		Vector3f p(size_t idx) const; //vertex position
@@ -68,10 +69,7 @@ namespace osr
 		const Matrix3Xf& N() const { return mN; }
 		Matrix3Xf& N() { return mN; }
 		const Matrix3Xus& C() const { return mC; }
-		Matrix3Xus& C() { return mC; }
-
-		//Uploads scan data to the GPU.
-		void uploadData();
+		Matrix3Xus& C() { return mC; }		
 
 		//Modifies the scan transform via ICP so as to register to other.
 		template <typename Index>
@@ -83,8 +81,10 @@ namespace osr
 		const Eigen::Affine3f& transform() const { return mTransform; }
 		Eigen::Affine3f& transform() { return mTransform; }
 
+		std::shared_ptr<IScanRenderer> renderer;
+
 		// ----------  nanoflann interface  ----------
-		typedef nanoflann::KDTreeSingleIndexAdaptor< nanoflann::metric_L2::traits<float, Scan>::distance_t, Scan, 3, size_t>  KdTreeType;
+		typedef nanoflann::KDTreeSingleIndexAdaptor< nanoflann::L2_Adaptor<float, Scan>, Scan, 3, size_t>  KdTreeType;
 
 		inline size_t kdtree_get_point_count() const { return mV.cols(); }
 		inline float kdtree_distance(const float *p1, const size_t idx_p2, size_t size) const
@@ -113,11 +113,7 @@ namespace osr
 
 		// ----------  end nanoflann interface  ----------
 
-		void buildTree()
-		{
-			kdTree = new KdTreeType(3, *this, nanoflann::KDTreeSingleIndexAdaptorParams());
-			kdTree->buildIndex();
-		}
+		void buildTree();
 
 		Vector3f neighborP(const size_t& i) const { return mV.col(i); } //access to point position
 		Vector3f neighborN(const size_t& i) const { return mN.col(i); }; //access to point normal
@@ -145,11 +141,6 @@ namespace osr
 
 		void calculateNormalsFromFaces();
 		void calculateNormalsPCA();
-
-		nse::gui::GLBuffer positionBuffer, normalBuffer, colorBuffer, indexBuffer;
-		nse::gui::GLVertexArray inputMesh;
-
-		int indexCount;
 
 		Matrix3Xf mV; //positions
 		Matrix3Xf mN; //normals
