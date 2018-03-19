@@ -17,11 +17,13 @@
 #include <fstream>
 #include <Eigen/Dense>
 
+#include "osr/OSRLibrary.h"
+
 namespace osr
 {
 
 	// Abstract base class for visitors that process an extracted mesh.
-	class MeshVisitor
+	class OSR_EXPORT MeshVisitor
 	{
 	public:
 		virtual void begin(unsigned int vertices, unsigned int faces) = 0;
@@ -30,7 +32,7 @@ namespace osr
 		virtual void end() = 0;
 	};
 
-	class WritePLYMeshVisitor : public MeshVisitor
+	class OSR_EXPORT WritePLYMeshVisitor : public MeshVisitor
 	{
 	public:
 		WritePLYMeshVisitor(const std::string& path);

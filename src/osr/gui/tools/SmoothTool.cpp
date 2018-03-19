@@ -112,10 +112,10 @@ void SmoothTool::draw(const Matrix4f & mv, const Matrix4f & proj)
 		if (tempScanDirty)
 		{
 			std::lock_guard<std::mutex> lock(tempScanMutex);
-			tempScan->uploadData();
+			tempScan->updateData();
 			tempScanDirty = false;
 		}
-		tempScan->draw(mv, proj);
+		tempScan->renderer->draw(*tempScan, mv, proj);
 	}
 		
 

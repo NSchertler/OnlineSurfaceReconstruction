@@ -246,7 +246,7 @@ void FillHoleTool::addPoints(const Vector3f& center, float radius, int n)
 		if ((scan->V().col(myIdx) - center).squaredNorm() > radius * radius)
 			scan->V().col(myIdx).setConstant(std::numeric_limits<float>::quiet_NaN());
 	}
-	scan->uploadData();
+	scan->updateData();
 }
 
 void FillHoleTool::exitTool()
@@ -261,7 +261,7 @@ void FillHoleTool::draw(const Matrix4f& mv, const Matrix4f& proj)
 
 	if (state == AddingPoints)
 	{
-		scan->draw(mv, proj);
+		scan->renderer->draw(*scan, mv, proj);
 	}
 
 	if (state != DefineSupport)

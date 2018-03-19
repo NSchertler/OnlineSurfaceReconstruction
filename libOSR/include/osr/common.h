@@ -18,6 +18,7 @@
 #endif
 
 #include <Eigen/Core>
+#include "osr/OSRLibrary.h"
 
 namespace osr
 {
@@ -77,7 +78,7 @@ namespace osr
 	typedef Eigen::Matrix<unsigned short, 3, Eigen::Dynamic>		Matrix3Xus;
 
 
-	extern std::string memString(size_t size, bool precise = false);
+	extern OSR_EXPORT std::string memString(size_t size, bool precise = false);
 
 	template <typename Matrix>
 	inline size_t sizeInBytes(const Matrix &matrix)
@@ -85,14 +86,14 @@ namespace osr
 		return matrix.size() * sizeof(typename Matrix::Scalar);
 	}
 
-	extern void coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c);
+	extern OSR_EXPORT void coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c);
 
-	extern Float signum(Float value);
+	extern OSR_EXPORT Float signum(Float value);
 
 	/// Always-positive modulo function, Float precision version (assumes b > 0)
-	Float modulo(Float a, Float b);
+	OSR_EXPORT Float modulo(Float a, Float b);
 
-	extern float fast_acos(float x);	
+	extern OSR_EXPORT float fast_acos(float x);
 
 	template <typename TData>
 	struct Neighbor

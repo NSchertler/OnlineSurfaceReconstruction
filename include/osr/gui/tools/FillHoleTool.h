@@ -16,10 +16,10 @@
 #include <nanogui/window.h>
 #include <nanogui/label.h>
 
-#include "osr/Data.h"
 #include "osr/common.h"
 #include "osr/gui/tools/Tool.h"
 #include "osr/gui/tools/Selection.h"
+#include "osr/gui/DataGL.h"
 
 #include <nsessentials/gui/GLBuffer.h>
 #include <nsessentials/gui/GLVertexArray.h>

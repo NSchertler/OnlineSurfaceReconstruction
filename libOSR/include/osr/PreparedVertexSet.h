@@ -30,7 +30,7 @@
 namespace osr
 {
 	// This index type wraps size_t and is used to distinguish queries for the vertex set and for the original hierarchy.
-	struct VertexSetIndex
+	struct OSR_EXPORT VertexSetIndex
 	{
 		VertexSetIndex(size_t i) : index(i) { }
 		size_t index;
@@ -38,7 +38,7 @@ namespace osr
 
 	// Commonalities of both variants of the vertex set
 	template <typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
-	struct PreparedVertexSetBase
+	struct OSR_EXPORT PreparedVertexSetBase
 	{
 		PreparedVertexSetBase()
 			: hierarchy(nullptr) { }

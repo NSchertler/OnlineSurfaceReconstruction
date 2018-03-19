@@ -35,12 +35,12 @@ namespace osr
 
 	// ## Internals - not for public use ##
 
-	extern void load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V);
+	extern OSR_EXPORT void load_obj(const std::string &filename, MatrixXu &F, Matrix3Xf &V);
 
-	extern void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
+	extern OSR_EXPORT void load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 		Matrix3Xf &N, Matrix3Xus &C, bool pointcloud = false);
 
-	extern void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N);
+	extern OSR_EXPORT void load_xyz(const std::string &filename, Matrix3Xf &V, Matrix3Xf &N);
 
 	template <typename DataSink>
 	void load_aln(const std::string &filename, DataSink& dataSink);
@@ -48,21 +48,21 @@ namespace osr
 	template <typename DataSink>
 	void load_frames(const std::string &filename, DataSink& dataSink);
 
-	extern void write_mesh(const std::string &filename, const MatrixXu &F,
+	extern OSR_EXPORT void write_mesh(const std::string &filename, const MatrixXu &F,
 		const Matrix3Xf &V,
 		const Matrix3Xf &N = Matrix3Xf(),
 		const Matrix3Xf &Nf = Matrix3Xf(),
 		const Matrix3Xf &UV = Matrix3Xf(),
 		const Matrix3Xf &C = Matrix3Xf());
 
-	extern void write_obj(const std::string &filename, const MatrixXu &F,
+	extern OSR_EXPORT void write_obj(const std::string &filename, const MatrixXu &F,
 		const Matrix3Xf &V,
 		const Matrix3Xf &N = Matrix3Xf(),
 		const Matrix3Xf &Nf = Matrix3Xf(),
 		const Matrix3Xf &UV = Matrix3Xf(),
 		const Matrix3Xf &C = Matrix3Xf());
 
-	extern void write_ply(const std::string &filename, const MatrixXu &F,
+	extern OSR_EXPORT void write_ply(const std::string &filename, const MatrixXu &F,
 		const Matrix3Xf &V,
 		const Matrix3Xf &N = Matrix3Xf(),
 		const Matrix3Xf &Nf = Matrix3Xf(),

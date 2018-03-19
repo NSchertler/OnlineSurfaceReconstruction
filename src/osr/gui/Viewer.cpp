@@ -12,8 +12,8 @@
 */
 
 #include "osr/gui/Viewer.h"
-
 #include "osr/meshio.h"
+#include "osr/gui/ScanRenderer.h"
 
 #include <iostream>
 
@@ -504,15 +504,15 @@ void Viewer::SetupScanGUI(Scan* scan)
 	posBtn->setFlags(nanogui::Button::Flags::ToggleButton);
 	posBtn->setFixedSize(Vector2i(25, 25));
 	posBtn->setTooltip("Show Points");
-	posBtn->setChangeCallback([scan](bool checked) { scan->showInput = checked; });
-	posBtn->setPushed(scan->showInput);
+	posBtn->setChangeCallback([scan](bool checked) { scan->renderer->showInput = checked; });
+	posBtn->setPushed(scan->renderer->showInput);
 
 	auto normalsBtn = new nanogui::Button(toolsWidget, "N");
 	normalsBtn->setFlags(nanogui::Button::Flags::ToggleButton);
 	normalsBtn->setFixedSize(Vector2i(25, 25));
 	normalsBtn->setTooltip("Show Normals");
-	normalsBtn->setChangeCallback([scan](bool checked) { scan->showNormals = checked; });
-	normalsBtn->setPushed(scan->showNormals);
+	normalsBtn->setChangeCallback([scan](bool checked) { scan->renderer->showNormals = checked; });
+	normalsBtn->setPushed(scan->renderer->showNormals);
 
 	auto btnCoarseReg = new nanogui::Button(toolsWidget, "MR");
 	btnCoarseReg->setFixedSize(Vector2i(25, 25));
@@ -552,6 +552,7 @@ void Viewer::SetupScanGUI(Scan* scan)
 
 void Viewer::ScanAdded(Scan* s)
 {
+	s->renderer = std::make_shared<ScanRenderer>();
 	s->initialize();
 
 	allScansBoundingBox.unite(allScansBoundingBox, s->getTransformedBoundingBox(), allScansBoundingBox);
@@ -590,7 +591,7 @@ void Viewer::render(const Eigen::Matrix4f& mv, const Eigen::Matrix4f& proj)
 	{
 		if (showScans->checked())
 			for (auto mesh : data.scans)
-				mesh->draw(mv, proj);
+				mesh->renderer->draw(*mesh, mv, proj);
 
 
 		data.extractedMesh.draw(mv, proj);

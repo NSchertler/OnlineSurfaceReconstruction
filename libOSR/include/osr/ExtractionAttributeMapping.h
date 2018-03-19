@@ -18,7 +18,7 @@
 
 namespace osr
 {
-	struct LaplacianEntry
+	struct OSR_EXPORT LaplacianEntry
 	{
 		struct Data
 		{
@@ -33,7 +33,7 @@ namespace osr
 		void reset();
 	};
 
-	class LeastSquaresSystemBuilder
+	class OSR_EXPORT LeastSquaresSystemBuilder
 	{
 	public:
 		LeastSquaresSystemBuilder(size_t totalTexels);
@@ -56,7 +56,7 @@ namespace osr
 		virtual Eigen::SparseMatrix<float>::InnerIterator rowIterator(size_t row) = 0;
 	};
 
-	class HeightFieldLeastSquaresSystemBuilder : public LeastSquaresSystemBuilder
+	class OSR_EXPORT HeightFieldLeastSquaresSystemBuilder : public LeastSquaresSystemBuilder
 	{
 	public:
 		HeightFieldLeastSquaresSystemBuilder(size_t totalTexels);
@@ -80,7 +80,7 @@ namespace osr
 		std::vector<nse::math::LinearSystemRow<4>> rowWorkingSet; //these rows are used as temporary data stores (one for each OMP thread)
 	};
 
-	class GeometricLeastSquaresSystemBuilder : public LeastSquaresSystemBuilder
+	class OSR_EXPORT GeometricLeastSquaresSystemBuilder : public LeastSquaresSystemBuilder
 	{
 	public:
 		GeometricLeastSquaresSystemBuilder(size_t totalTexels);

@@ -17,7 +17,7 @@ namespace osr
 {
 	//Can be specifialized for a certain hierarchy to describe its capabilities.
 	template <typename Hierarchy>
-	struct HierarchyCapabilities
+	struct OSR_EXPORT HierarchyCapabilities
 	{
 		// Determines if data from all hierarchy levels can be accessed. 
 		// This requires the implementation of:

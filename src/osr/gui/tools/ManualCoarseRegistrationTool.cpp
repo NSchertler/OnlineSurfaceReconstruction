@@ -56,7 +56,7 @@ void ManualCoarseRegistrationTool::exitTool()
 void ManualCoarseRegistrationTool::draw(const Matrix4f & mv, const Matrix4f & proj)
 {
 	if (state == ClickOnScan)
-		scan->draw(mv, proj);
+		scan->renderer->draw(*scan, mv, proj);
 	if(state == ClickOnHierarchy)
 		data.extractedMesh.draw(mv, proj);
 }

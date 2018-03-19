@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.1)
-project(LibOnlineSurfaceReconstruction)
+project(OSR)
 
 option(OSR_USE_DAVIDVIVE "[Under Construction] Use the DAVID/Vive scan loader")
 option(OSR_ACCURATE_TIMING "Display all timings in ms")
@@ -10,8 +10,6 @@ option(OSR_USE_MEMORY_MAPPED_FILE "Use the boost memory-mapped file for XYZ inpu
 
 set(LIBS)
 set(OSR_ADDITIONAL_INCLUDE_DIR)
-set(OSR_ADDITIONAL_LIBRARY_DIR)
-set(OSR_ADDITIONAL_LIBS)
 set(OSR_EXTRA_DEFS)
 
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -71,7 +69,14 @@ function(FindOrFallBack packageName pathVariable extPath)
   endif()
 endfunction()
 
-# ------- Private dependencies -------
+function(PublicIncludeDir directory)
+  set(OSR_ADDITIONAL_INCLUDE_DIR ${OSR_ADDITIONAL_INCLUDE_DIR} ${directory} PARENT_SCOPE)
+  include_directories(${directory})
+endfunction()
+
+# ------- Public dependencies (cascade to parent) -------
+
+PublicIncludeDir(${CMAKE_CURRENT_LIST_DIR}/include)
 
 # Add TBB dependency
 FindOrFallBack(TBB TBB_ROOT tbb)
@@ -80,16 +85,14 @@ set(TBB_BUILD_SHARED OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
-add_subdirectory(${TBB_ROOT} ext_build/tbb)
+add_subdirectory(${TBB_ROOT} ${CMAKE_BINARY_DIR}/ext_build/tbb)
 set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
-include_directories(${TBB_ROOT}/include)
+PublicIncludeDir(${TBB_ROOT}/include)
 set(LIBS ${LIBS} tbb_static)
-
-# ------- Public dependencies (cascade to parent) -------
 
 # Add Eigen dependency
 FindOrFallBack(Eigen3 EIGEN3_INCLUDE_DIR eigen)
-set(OSR_ADDITIONAL_INCLUDE_DIR ${OSR_ADDITIONAL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
+PublicIncludeDir(${EIGEN3_INCLUDE_DIR})
 #Do not use Eigen parallelization as we will parallelize manually
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 
@@ -97,11 +100,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 FindOrFallBack(NSEssentials NSE_ROOT nsessentials)
 SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
 SET(NSE_WITH_EIGEN ON CACHE BOOL " " FORCE)
-add_subdirectory(${NSE_ROOT} ext_build/nsessentials)
+add_subdirectory(${NSE_ROOT} ${CMAKE_BINARY_DIR}/ext_build/nsessentials)
 set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
-set(OSR_ADDITIONAL_LIBS ${OSR_ADDITIONAL_LIBS} nsessentials)
-set(OSR_ADDITIONAL_INCLUDE_DIR ${OSR_ADDITIONAL_INCLUDE_DIR} ${NSE_ROOT}/include)
+set(LIBS ${LIBS} nsessentials)
+PublicIncludeDir(${NSE_ROOT}/include)
 set(OSR_EXTRA_DEFS ${OSR_EXTRA_DEFS} ${NSE_EXTRA_DEFS})
+add_definitions(${NSE_EXTRA_DEFS})
 
 # Add Boost dependency
 set(BOOST_COMPONENTS)
@@ -112,9 +116,10 @@ endif()
 
 find_package(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 if(MSVC AND (MSVC_VERSION LESS 1600))
+	set(OSR_EXTRA_DEFS ${OSR_EXTRA_DEFS} -DBOOST_STDINT)
 	add_definitions(-DBOOST_STDINT)
-endif(MSVC AND (MSVC_VERSION LESS 1600))
-include_directories(${Boost_INCLUDE_DIRS})
+endif()
+PublicIncludeDir(${Boost_INCLUDE_DIRS})
 if(NOT "${BOOST_COMPONENTS}" STREQUAL "")
 	message("We have some boost components")
 	link_directories(${Boost_LIBRARY_DIRS})
@@ -166,15 +171,13 @@ endif(OSR_GEOMETRIC_LAPLACIAN)
 
 source_group(third_party FILES ${THIRD_PARTY})
 
-include_directories(include ${OSR_ADDITIONAL_INCLUDE_DIR})
 set(LIBS ${LIBS} ${OSR_ADDITIONAL_LIBS})
-add_definitions(${OSR_EXTRA_DEFS})
 
 SET(OSR_ADDITIONAL_INCLUDE_DIR ${OSR_ADDITIONAL_INCLUDE_DIR} PARENT_SCOPE)
 SET(OSR_ADDITIONAL_LIBS ${OSR_ADDITIONAL_LIBS} PARENT_SCOPE)
 SET(OSR_EXTRA_DEFS ${OSR_EXTRA_DEFS} PARENT_SCOPE)
 
-add_library(LibOnlineSurfaceReconstruction SHARED	
+add_library(OSR SHARED	
 	include/osr/Attributes.h
 	include/osr/AttributeConsistency.h
 	src/common.cpp include/osr/common.h
@@ -204,4 +207,4 @@ add_library(LibOnlineSurfaceReconstruction SHARED
 	src/Colors.cpp include/osr/Colors.h	
 	${THIRD_PARTY})
 
-target_link_libraries(LibOnlineSurfaceReconstruction ${LIBS})
+target_link_libraries(OSR ${LIBS})

@@ -13,8 +13,6 @@
 
 #include "osr/Scan.h"
 
-#include "osr/Colors.h"
-
 #include "osr/HierarchyDef.h"
 
 #include <tbb/tbb.h>
@@ -150,6 +148,17 @@ void Scan::calculateNormals()
 		else
 			calculateNormalsPCA();
 	}
+}
+
+void Scan::updateData()
+{
+	if (mV.size() > 0)
+	{
+		bbox.expand(mV);
+	}
+
+	if (renderer != nullptr)
+		renderer->updateData(*this);
 }
 
 Vector3f Scan::p(size_t idx) const

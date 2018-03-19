@@ -18,7 +18,7 @@
 namespace osr
 {
 	template <typename IndexType>
-	class IPointQueryable
+	class OSR_EXPORT IPointQueryable
 	{
 	public:
 		typedef IndexType PointQueryableIndexType;

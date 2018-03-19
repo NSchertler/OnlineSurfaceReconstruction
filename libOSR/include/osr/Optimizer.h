@@ -24,7 +24,7 @@
 
 namespace osr
 {
-	class Optimizer
+	class OSR_EXPORT Optimizer
 	{
 	public:
 		Optimizer(const MeshSettings& _meshSettings);

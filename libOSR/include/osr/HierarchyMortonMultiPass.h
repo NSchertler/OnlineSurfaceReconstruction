@@ -55,7 +55,7 @@ namespace osr
 		const nse::math::MortonCode64 offsetMorton(5, 5, 5);
 
 		//type of nodes that are stored in the hierarchy
-		struct Node
+		struct OSR_EXPORT Node
 		{
 			Node();
 
@@ -94,18 +94,18 @@ namespace osr
 			template<Attribute A> typename AttributeTraits<A>::Type& attribute();
 		};
 
-		template<> typename AttributeTraits<Position>::Type& Node::attribute<Position>();
-		template<> typename AttributeTraits<Normal>::Type& Node::attribute<Normal>();
-		template<> typename AttributeTraits<DirField>::Type& Node::attribute<DirField>();
-		template<> typename AttributeTraits<PosField>::Type& Node::attribute<PosField>();
-		template<> typename AttributeTraits<Area>::Type& Node::attribute<Area>();
-		template<> typename AttributeTraits<MeshVertex>::Type& Node::attribute<MeshVertex>();
-		template<> typename AttributeTraits<MeshVertexGeneration>::Type& Node::attribute<MeshVertexGeneration>();
-		template<> typename AttributeTraits<Color>::Type& Node::attribute<Color>();
-		template<> typename AttributeTraits<DirFieldConstraint>::Type& Node::attribute<DirFieldConstraint>();
+		template<> OSR_EXPORT typename AttributeTraits<Position>::Type& Node::attribute<Position>();
+		template<> OSR_EXPORT typename AttributeTraits<Normal>::Type& Node::attribute<Normal>();
+		template<> OSR_EXPORT typename AttributeTraits<DirField>::Type& Node::attribute<DirField>();
+		template<> OSR_EXPORT typename AttributeTraits<PosField>::Type& Node::attribute<PosField>();
+		template<> OSR_EXPORT typename AttributeTraits<Area>::Type& Node::attribute<Area>();
+		template<> OSR_EXPORT typename AttributeTraits<MeshVertex>::Type& Node::attribute<MeshVertex>();
+		template<> OSR_EXPORT typename AttributeTraits<MeshVertexGeneration>::Type& Node::attribute<MeshVertexGeneration>();
+		template<> OSR_EXPORT typename AttributeTraits<Color>::Type& Node::attribute<Color>();
+		template<> OSR_EXPORT typename AttributeTraits<DirFieldConstraint>::Type& Node::attribute<DirFieldConstraint>();
 
 		//This class holds information on how the average values of a node should be updated as well as the old field values.
-		class NodeState
+		class OSR_EXPORT NodeState
 		{
 		public:
 			NodeState()
@@ -251,7 +251,7 @@ namespace osr
 		}
 
 		//Represents a reference to a node whose position has been shifted
-		struct ShiftedRepresentation
+		struct OSR_EXPORT ShiftedRepresentation
 		{
 			ShiftedRepresentation() { }
 
@@ -288,7 +288,7 @@ namespace osr
 		//T must have a constructor that takes a MortonCode64
 		//T must have a field size_t vRef
 		template <typename T>
-		class MortonContainer
+		class OSR_EXPORT MortonContainer
 		{
 		public:
 
@@ -494,7 +494,7 @@ namespace osr
 		};
 
 		//Holds all relevant information for a level within the hierarchy.
-		struct LevelInfo
+		struct OSR_EXPORT LevelInfo
 		{
 			//alignment improves performance by a tiny bit
 			typedef nse::data::PersistentIndexContainer<Node, boost::alignment::aligned_allocator<Node, 64>> DataContainer;
@@ -560,7 +560,7 @@ namespace osr
 			}
 		};
 
-		struct Index
+		struct OSR_EXPORT Index
 		{
 			Index() { }
 
@@ -594,7 +594,7 @@ namespace osr
 
 	namespace HierarchyMortonMultiPass
 	{
-		class Hierarchy : public AbstractHierarchy<Index>, public IPointQueryable<size_t>
+		class OSR_EXPORT Hierarchy : public AbstractHierarchy<Index>, public IPointQueryable<size_t>
 		{
 		public:
 
@@ -652,7 +652,7 @@ namespace osr
 
 			// ----     end other interfaces        ----
 
-			class VertexIterator : public std::iterator<std::forward_iterator_tag, Index>
+			class OSR_EXPORT VertexIterator : public std::iterator<std::forward_iterator_tag, Index>
 			{
 			public:
 				VertexIterator(LevelInfo::DataContainer::iterator it, int level);

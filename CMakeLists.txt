@@ -83,11 +83,10 @@ set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
 # Add libOSR
-add_subdirectory(libOSR)
-set(LIBS ${LIBS} LibOnlineSurfaceReconstruction)
+add_subdirectory(libOSR ext_build/libOSR)
+set(LIBS ${LIBS} OSR nsessentials)
 include_directories(libOSR/include)
 include_directories(${OSR_ADDITIONAL_INCLUDE_DIR})
-set(LIBS ${LIBS} ${OSR_ADDITIONAL_LIBS})
 add_definitions(${OSR_EXTRA_DEFS})
 
 set(GLSL_FILES 	mesh.vert
@@ -127,7 +126,9 @@ SET(GUI_FILES	src/osr/gui/Viewer.cpp include/osr/gui/Viewer.h
 				include/osr/gui/GUIObject.h								
 				src/osr/gui/HierarchyRenderer.cpp include/osr/gui/HierarchyRenderer.h
 				src/osr/gui/ExtractedMeshGL.cpp include/osr/gui/ExtractedMeshGL.h
-				src/osr/gui/ShaderPool.cpp include/osr/gui/ShaderPool.h)
+				src/osr/gui/ShaderPool.cpp include/osr/gui/ShaderPool.h
+				src/osr/gui/ScanRenderer.cpp include/osr/gui/ScanRenderer.h
+				src/osr/gui/DataGL.cpp include/osr/gui/DataGL.h)				
 source_group(gui FILES ${GUI_FILES})
 
 SET(GUI_TOOL_FILES
@@ -176,7 +177,7 @@ endif(OSR_USE_DAVIDVIVE)
 
 source_group(gui\\loaders FILES ${GUI_LOADERS_FILES})				
 
-include_directories(include)
+include_directories(include ${CMAKE_BINARY_DIR})
 
 add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	glsl.cpp
@@ -187,5 +188,10 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	${GUI_LOADERS_FILES}
 	${ADDITIONAL_SRC}
 	${GLSL_FILES})
+	
+add_custom_command(TARGET OnlineSurfaceReconstruction POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_BINARY_DIR}/ext_build/libOSR/$<CONFIGURATION>"
+        $<TARGET_FILE_DIR:OnlineSurfaceReconstruction>)
 
 target_link_libraries(OnlineSurfaceReconstruction ${LIBS})

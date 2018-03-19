@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "osr/Data.h"
+#include "osr/gui/DataGL.h"
 #include "osr/gui/tools/Tool.h"
 #include "osr/gui/tools/Selection.h"
 

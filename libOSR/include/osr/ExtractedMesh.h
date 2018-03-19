@@ -59,7 +59,7 @@ namespace osr
 
 	//Represents the final output of the extraction process. This class is also responsible
 	//for performing the actual extraction.
-	class ExtractedMesh : public ExtractionHelper::IEntityContainer
+	class OSR_EXPORT ExtractedMesh : public ExtractionHelper::IEntityContainer
 	{
 	public:	
 		ExtractedMesh(const MeshSettings& meshSettings);

@@ -19,7 +19,7 @@
 
 namespace osr
 {
-	class IOrientationFieldTraits
+	class OSR_EXPORT IOrientationFieldTraits
 	{
 	public:
 		IOrientationFieldTraits(int rosy);
@@ -50,9 +50,9 @@ namespace osr
 	};
 
 	//Returns the RoSy object for the requested RoSy symmetry
-	extern IOrientationFieldTraits* getOrientationFieldTraits(int roSy);
+	extern OSR_EXPORT IOrientationFieldTraits* getOrientationFieldTraits(int roSy);
 
-	class IPositionFieldTraits
+	class OSR_EXPORT IPositionFieldTraits
 	{
 	public:
 		IPositionFieldTraits(int posy);
@@ -81,7 +81,7 @@ namespace osr
 	};
 
 	template <int PoSy>
-	class PositionFieldTraits : public IPositionFieldTraits
+	class OSR_EXPORT PositionFieldTraits : public IPositionFieldTraits
 	{
 	public:
 		PositionFieldTraits();
@@ -102,5 +102,5 @@ namespace osr
 	};
 
 	//Returns the PoSy object for the requested PoSy symmetry
-	extern IPositionFieldTraits* getPositionFieldTraits(int poSy);
+	extern OSR_EXPORT IPositionFieldTraits* getPositionFieldTraits(int poSy);
 }

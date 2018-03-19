@@ -16,7 +16,7 @@
 #include <nanogui/window.h>
 #include <nanogui/label.h>
 
-#include "osr/Data.h"
+#include "osr/gui/DataGL.h"
 #include "osr/gui/tools/Tool.h"
 
 #include <nsessentials/gui/AbstractViewer.h>

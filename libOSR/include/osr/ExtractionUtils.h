@@ -28,7 +28,7 @@ namespace osr
 		struct Triangle;
 		struct Quad;
 
-		class IEntityContainer
+		class OSR_EXPORT IEntityContainer
 		{
 		public:
 			virtual void getInterpolatedPositionNormal(const Vertex& v, int localIndex, Vector3f& out_position, Vector3f& out_normal) const = 0;
@@ -38,7 +38,7 @@ namespace osr
 		};
 
 		//Base class for geometric primitives from which the final mesh is constructed.
-		struct Entity
+		struct OSR_EXPORT Entity
 		{
 			//Specifies the index of the entity's first texel within a sequence of all texels of the mesh.
 			uint32_t indexInTexelVector;
@@ -54,7 +54,7 @@ namespace osr
 			virtual void getInterpolatedPositionNormal(const IEntityContainer& container, int localIndex, Vector3f& out_position, Vector3f& out_normal) const = 0;
 		};
 
-		struct Triangle : public Entity
+		struct OSR_EXPORT Triangle : public Entity
 		{
 			static const int FaceDegree = 3;
 
@@ -68,7 +68,7 @@ namespace osr
 				container.getInterpolatedPositionNormal(*this, localIndex, out_position, out_normal);
 			}
 		};
-		struct Quad : public Entity
+		struct OSR_EXPORT Quad : public Entity
 		{
 			static const int FaceDegree = 4;
 
@@ -82,7 +82,7 @@ namespace osr
 				container.getInterpolatedPositionNormal(*this, localIndex, out_position, out_normal);
 			}
 		};
-		struct Edge : public Entity
+		struct OSR_EXPORT Edge : public Entity
 		{
 			std::array<uint32_t, 2> v; //reference to vertices
 			std::vector<Vector4f> colorDisplacement;
@@ -96,7 +96,7 @@ namespace osr
 				container.getInterpolatedPositionNormal(*this, localIndex, out_position, out_normal);
 			}
 		};
-		struct Vertex : public Entity
+		struct OSR_EXPORT Vertex : public Entity
 		{
 			Vector3f position, normal;
 			Vector4f colorDisplacement;

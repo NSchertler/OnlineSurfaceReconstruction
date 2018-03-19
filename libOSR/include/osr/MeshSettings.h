@@ -22,7 +22,7 @@
 namespace osr
 {
 	//Stores all settings for the reconstruction
-	class MeshSettings
+	class OSR_EXPORT MeshSettings
 	{
 	public:
 

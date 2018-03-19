@@ -33,15 +33,19 @@
 namespace osr
 {
 	class Scan;
-	class IScanRenderer
+	class OSR_EXPORT IScanRenderer
 	{
 	public:
-		virtual void initialize(const Scan& scan) = 0;
+		virtual void initialize(Scan& scan) = 0;
 		virtual void updateData(const Scan& scan) = 0;
+		virtual void draw(const Scan& scan, const Eigen::Matrix4f & v, const Eigen::Matrix4f & proj) const = 0;
+
+		bool showInput;
+		bool showNormals;
 	};
 
 	//Represents data of a single scan
-	class Scan : public IPointQueryable<size_t>
+	class OSR_EXPORT Scan : public IPointQueryable<size_t>
 	{
 	public:
 		Scan(const Matrix3Xf& V = Matrix3Xf(), const Matrix3Xf& N = Matrix3Xf(), const Matrix3Xus& C = Matrix3Xus(), const MatrixXu& F = MatrixXu(), const std::string& name = "unnamed", const Eigen::Affine3f& transform = Eigen::Affine3f::Identity());
@@ -63,6 +67,7 @@ namespace osr
 		const nse::math::BoundingBox<float, 3> boundingBox() const { return bbox; }
 		nse::math::BoundingBox<float, 3> getTransformedBoundingBox() const;
 
+		void updateData();
 
 		const Matrix3Xf& V() const { return mV; }
 		Matrix3Xf& V() { return mV; }
@@ -70,6 +75,8 @@ namespace osr
 		Matrix3Xf& N() { return mN; }
 		const Matrix3Xus& C() const { return mC; }
 		Matrix3Xus& C() { return mC; }		
+		const MatrixXu& F() const { return mF; }
+		MatrixXu& F() { return mF; }
 
 		//Modifies the scan transform via ICP so as to register to other.
 		template <typename Index>
