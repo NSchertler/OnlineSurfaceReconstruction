@@ -20,8 +20,8 @@ build_script:
   - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% OnlineSurfaceReconstruction.sln
-  - cd Release
-  - 7z a ../osr-windows.zip "OnlineSurfaceReconstruction.exe"
+  - cd bin/Release
+  - 7z a ../osr-windows.zip "OnlineSurfaceReconstruction.exe" "OSR.dll"
   - cd ..
   - appveyor PushArtifact osr-windows.zip -FileName osr-windows.zip
 on_success:

@@ -46,5 +46,5 @@ matrix:
         - cmake -DNANOGUI_USE_GLAD=ON
         - make
         - mkdir build
-        #- cp OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction OnlineSurfaceReconstruction
-        - zip -r build/osr-macos.zip bin
+        - cp bin/OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction bin/OnlineSurfaceReconstruction
+        - zip build/osr-macos.zip bin/libOSR.dylib bin/OnlineSurfaceReconstruction
