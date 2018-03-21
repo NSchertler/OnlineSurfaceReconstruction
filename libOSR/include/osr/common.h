@@ -20,6 +20,8 @@
 #include <Eigen/Core>
 #include "osr/OSRLibrary.h"
 
+#include <iomanip>
+
 namespace osr
 {
 #define SINGLE_PRECISION
@@ -78,7 +80,23 @@ namespace osr
 	typedef Eigen::Matrix<unsigned short, 3, Eigen::Dynamic>		Matrix3Xus;
 
 
-	extern OSR_EXPORT std::string memString(size_t size, bool precise = false);
+	inline std::string memString(size_t size, bool precise = false)
+	{
+		double value = (double)size;
+		const char *suffixes[] = {
+			"B", "KiB", "MiB", "GiB", "TiB", "PiB"
+		};
+		int suffix = 0;
+		while (suffix < 5 && value > 1024.0f) {
+			value /= 1024.0f; ++suffix;
+		}
+
+		std::ostringstream os;
+		os << std::setprecision(suffix == 0 ? 0 : (precise ? 4 : 1))
+			<< std::fixed << value << " " << suffixes[suffix];
+
+		return os.str();
+	}
 
 	template <typename Matrix>
 	inline size_t sizeInBytes(const Matrix &matrix)

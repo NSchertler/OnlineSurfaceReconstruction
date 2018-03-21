@@ -454,8 +454,8 @@ void Viewer::SetupGUI()
 	toolsWidget->setLayout(new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 0, 6));
 	new nanogui::Label(toolsWidget, "Tools:    ");
 
-	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_PLUS, "Fill Holes Tool", fillHoleTool.get());
-	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLED_MINUS, "Delete Points Tool", removeTool.get());
+	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLE_WITH_PLUS, "Fill Holes Tool", fillHoleTool.get());
+	SetupToolGUI(toolsWidget, ENTYPO_ICON_CIRCLE_WITH_MINUS, "Delete Points Tool", removeTool.get());
 	SetupToolGUI(toolsWidget, ENTYPO_ICON_FEATHER, "Smooth Tool", smoothTool.get());
 
 	performLayout(ctx);

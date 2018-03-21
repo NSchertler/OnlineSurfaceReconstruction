@@ -336,6 +336,8 @@ namespace osr
 			typename std::vector<T>::const_iterator find(const T &v) const
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), v);
+				if (it == data.end())
+					return end();
 				if (*it == v)
 					return it;
 				else
@@ -345,6 +347,8 @@ namespace osr
 			typename std::vector<T>::iterator find(const T &v)
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), v);
+				if (it == data.end())
+					return end();
 				if (*it == v)
 					return it;
 				else
@@ -354,6 +358,8 @@ namespace osr
 			typename std::vector<T>::const_iterator find(nse::math::MortonCode64 i) const
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(i));
+				if (it == data.end())
+					return end();
 				if (it->mortonIdx == i)
 					return it;
 				else
@@ -363,6 +369,8 @@ namespace osr
 			typename std::vector<T>::iterator find(nse::math::MortonCode64 i)
 			{
 				auto it = std::lower_bound(data.begin(), data.end(), T(i));
+				if (it == data.end())
+					return end();
 				if (it->mortonIdx == i)
 					return it;
 				else

@@ -15,78 +15,34 @@ FUNCTION(JOIN VALUES GLUE OUTPUT)
   set (${OUTPUT} "${_TMP_STR}" PARENT_SCOPE)
 ENDFUNCTION()
 
-option(OSR_USE_DAVIDVIVE "[Under Construction] Use the DAVID/Vive scan loader")
-option(OSR_ACCURATE_TIMING "Display all timings in ms")
-option(OSR_DEBUG_VISUALIZATION "Generate debug visualizations")
-option(OSR_REDUCED_TIMINGS "Measure time only for high-priority nse::util::TimedBlocks")
-option(OSR_GEOMETRIC_LAPLACIAN "Use the more time-consuming but higher-quality geometric formulation of the Laplacian for displacement map calculation")
-option(OSR_USE_MEMORY_MAPPED_FILE "Use the boost memory-mapped file for XYZ input. This requires the boost iostreams library.")
-
-set(NANOGUI_USE_GLAD ON)
-
 set(ADDITIONAL_SRC)
 set(LIBS)
 
-# Sanitize build environment for static build with C++11
-if (MSVC)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Modules/")
+include(SetupBuildEnvironment)
 
-  add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
-  add_definitions (/D "__TBB_NO_IMPLICIT_LINKAGE")
+# Add NanoGUI dependency
+set(NANOGUI_USE_GLAD ON)
+set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
+set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
+set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
+set(NANOGUI_EIGEN_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
+set_property(TARGET nanogui nanogui-obj glfw glfw_objects PROPERTY FOLDER "dependencies")
+include_directories(ext/nanogui/include
+				${NANOGUI_EXTRA_INCS})
+set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
+add_definitions(${NANOGUI_EXTRA_DEFS})
 
-  add_definitions (-DNOMINMAX )
-
-  # Parallel build on MSVC (all targets)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-
-  if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
-
-    # Disable Eigen vectorization for Windows 32 bit builds (issues with unaligned access segfaults)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DEIGEN_DONT_ALIGN")
-  endif()
-
-  # Static build
-  set(CompilerFlags
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
-        CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-  foreach(CompilerFlag ${CompilerFlags})
-    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-  endforeach()
-  
-  # Enable folders for projects in Visual Studio
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-elseif(APPLE)
-  # Try to auto-detect a suitable SDK
-  execute_process(COMMAND bash -c "xcodebuild -version -sdk | grep MacOSX | grep Path | head -n 1 | cut -f 2 -d ' '" OUTPUT_VARIABLE CMAKE_OSX_SYSROOT)
-  string(REGEX REPLACE "(\r?\n)+$" "" CMAKE_OSX_SYSROOT "${CMAKE_OSX_SYSROOT}")
-  string(REGEX REPLACE "^.*X([0-9.]*).sdk$" "\\1" CMAKE_OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_SYSROOT}")
-endif()
-
-set (CMAKE_CXX_STANDARD 14)
-
-#left-over
+# Configure additional features of NSEssentials (will be included by libOSR)
 SET(NSE_SSBO_SUPPORT ON CACHE BOOL " " FORCE)
 SET(NSE_TESSELLATION_SUPPORT ON CACHE BOOL " " FORCE)
 SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
 
-# Add NanoGUI dependency
-set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
-set_property(TARGET nanogui nanogui-obj glfw glfw_objects PROPERTY FOLDER "dependencies")
-include_directories(ext/nanogui/include
-					${NANOGUI_EXTRA_INCS})
-set(LIBS ${LIBS} nanogui ${NANOGUI_EXTRA_LIBS})
-add_definitions(${NANOGUI_EXTRA_DEFS})
-
 # Add libOSR
 add_subdirectory(libOSR ext_build/libOSR)
 set(LIBS ${LIBS} OSR nsessentials)
-include_directories(libOSR/include)
-include_directories(${OSR_ADDITIONAL_INCLUDE_DIR})
+include_directories(libOSR/include ${OSR_ADDITIONAL_INCLUDE_DIR})
 add_definitions(${OSR_EXTRA_DEFS})
 
 set(GLSL_FILES 	mesh.vert
