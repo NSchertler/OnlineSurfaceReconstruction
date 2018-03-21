@@ -12,3 +12,4 @@
 #  else
 #    define OSR_EXPORT
 #  endif
+#endif

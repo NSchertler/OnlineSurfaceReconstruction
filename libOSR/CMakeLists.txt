@@ -16,6 +16,10 @@ set(OSR_EXTRA_DEFS)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../CMake/Modules/")
 include(SetupBuildEnvironment)
 
+if(CMAKE_COMPILER_IS_GNUCC)
+  add_definitions(-fPIC)
+endif()
+
 # Tries to find a package via find_package. If the package cannot be found,
 # falls back to the local copy in the /ext directory. pathVariable refers to
 # the variable that stores the package's representative path and is used to

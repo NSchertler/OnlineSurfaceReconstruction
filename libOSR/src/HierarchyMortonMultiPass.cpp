@@ -21,6 +21,7 @@
 
 #include <random>
 #include <fstream>
+#include <atomic>
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <tbb/parallel_sort.h>

@@ -20,7 +20,7 @@ matrix:
         - cmake -DCMAKE_CXX_COMPILER=g++-6 -DCMAKE_C_COMPILER=gcc-6 -DNANOGUI_USE_GLAD=ON
         - make
         - mkdir build
-        - zip build/osr-linux.zip OnlineSurfaceReconstruction
+        - zip -r build/osr-linux.zip bin
       addons:
         apt:
           sources:
@@ -46,5 +46,5 @@ matrix:
         - cmake -DNANOGUI_USE_GLAD=ON
         - make
         - mkdir build
-        - cp OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction OnlineSurfaceReconstruction
-        - zip build/osr-macos.zip OnlineSurfaceReconstruction
+        #- cp OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction OnlineSurfaceReconstruction
+        - zip -r build/osr-macos.zip bin

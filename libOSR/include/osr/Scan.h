@@ -91,7 +91,7 @@ namespace osr
 		std::shared_ptr<IScanRenderer> renderer;
 
 		// ----------  nanoflann interface  ----------
-		typedef nanoflann::KDTreeSingleIndexAdaptor< nanoflann::L2_Adaptor<float, Scan>, Scan, 3, size_t>  KdTreeType;
+		typedef nanoflann::KDTreeSingleIndexAdaptor< nanoflann::L2_Adaptor<float, Scan, float>, Scan, 3, size_t>  KdTreeType;
 
 		inline size_t kdtree_get_point_count() const { return mV.cols(); }
 		inline float kdtree_distance(const float *p1, const size_t idx_p2, size_t size) const

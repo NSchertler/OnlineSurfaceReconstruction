@@ -15,6 +15,9 @@ FUNCTION(JOIN VALUES GLUE OUTPUT)
   set (${OUTPUT} "${_TMP_STR}" PARENT_SCOPE)
 ENDFUNCTION()
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 set(ADDITIONAL_SRC)
 set(LIBS)
 
@@ -41,7 +44,7 @@ SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
 
 # Add libOSR
 add_subdirectory(libOSR ext_build/libOSR)
-set(LIBS ${LIBS} OSR nsessentials)
+set(LIBS OSR nsessentials ${LIBS})
 include_directories(libOSR/include ${OSR_ADDITIONAL_INCLUDE_DIR})
 add_definitions(${OSR_EXTRA_DEFS})
 
@@ -145,9 +148,9 @@ add_executable(OnlineSurfaceReconstruction MACOSX_BUNDLE
 	${ADDITIONAL_SRC}
 	${GLSL_FILES})
 	
-add_custom_command(TARGET OnlineSurfaceReconstruction POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_BINARY_DIR}/ext_build/libOSR/$<CONFIGURATION>"
-        $<TARGET_FILE_DIR:OnlineSurfaceReconstruction>)
+#add_custom_command(TARGET OnlineSurfaceReconstruction POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_directory
+#        "${CMAKE_BINARY_DIR}/ext_build/libOSR/$<CONFIG>"
+#        $<TARGET_FILE_DIR:OnlineSurfaceReconstruction>)
 
 target_link_libraries(OnlineSurfaceReconstruction ${LIBS})

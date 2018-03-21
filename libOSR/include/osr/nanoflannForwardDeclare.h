@@ -2,9 +2,9 @@
 
 namespace nanoflann
 {
-	template <typename Distance, class DatasetAdaptor, int DIM = -1, typename IndexType = size_t>
+	template <typename Distance, class DatasetAdaptor, int DIM, typename IndexType>
 	class KDTreeSingleIndexAdaptor;
 
-	template<class T, class DataSource, typename _DistanceType = T>
+	template<class T, class DataSource, typename _DistanceType>
 	struct L2_Adaptor;
 }

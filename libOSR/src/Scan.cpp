@@ -20,10 +20,7 @@
 #include <fstream>
 
 #include <nsessentials/util/TimedBlock.h>
-#pragma warning(push)
-#pragma warning(disable: 4348) //redefinition of default parameter
 #include <nanoflann.hpp>
-#pragma warning(pop)
 
 using namespace osr;
 
