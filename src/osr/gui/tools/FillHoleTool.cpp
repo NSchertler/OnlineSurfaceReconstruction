@@ -18,6 +18,8 @@
 #include "osr/gui/ShaderPool.h"
 #include <nsessentials/util/IndentationLog.h>
 
+#include "osr/gui/ScanRenderer.h"
+
 #include <set>
 
 using namespace osr;
@@ -304,6 +306,7 @@ bool FillHoleTool::mouseButtonEvent(const Eigen::Vector2i & p, int button, bool 
 	{
 		state = AddingPoints;
 		scan = new Scan(Matrix3Xf(), Matrix3Xf(), Matrix3Xus(), MatrixXu(), "fill_" + std::to_string(scanNr++));
+		scan->renderer = std::make_shared<ScanRenderer>();
 		scan->initialize();
 		lastPointsAdded = std::chrono::high_resolution_clock::now();
 		return true;
