@@ -21,8 +21,8 @@ build_script:
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% OnlineSurfaceReconstruction.sln
   - cd bin/Release
-  - 7z a ../osr-windows.zip "OnlineSurfaceReconstruction.exe" "OSR.dll"
-  - cd ..
+  - 7z a ../../osr-windows.zip "OnlineSurfaceReconstruction.exe" "OSR.dll"
+  - cd ../..
   - appveyor PushArtifact osr-windows.zip -FileName osr-windows.zip
 on_success:
   - git config --global credential.helper store
@@ -30,7 +30,7 @@ on_success:
   - git config --global user.email "nico.schertler@tu-dresden.de"
   - git config --global user.name "AppVeyor"
   - git checkout --orphan deploy-windows
-  - git rm -r --cached --ignore-unmatch .
+  - git rm -r --cached .
   - git add osr-windows.zip
   - git commit -m "Windows Build"
   - git push -f origin deploy-windows:deploy-windows
