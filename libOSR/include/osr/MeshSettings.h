@@ -65,7 +65,7 @@ namespace osr
 		//Restores the state of this settings object from file.
 		void loadFromFile(FILE* f)
 		{
-			float v;
+			Float v;
 			fread(&v, sizeof(Float), 1, f);
 			setScale(v);
 
