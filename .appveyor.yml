@@ -30,7 +30,7 @@ on_success:
   - git config --global user.email "nico.schertler@tu-dresden.de"
   - git config --global user.name "AppVeyor"
   - git checkout --orphan deploy-windows
-  - git rm -r --cached .
+  - git rm -r --cached --ignore-unmatch .
   - git add osr-windows.zip
   - git commit -m "Windows Build"
   - git push -f origin deploy-windows:deploy-windows
