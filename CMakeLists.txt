@@ -27,10 +27,10 @@ include(SetupBuildEnvironment)
 # Add NanoGUI dependency
 set(NANOGUI_USE_GLAD ON)
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
-set(NANOGUI_BUILD_SHARED  OFF CACHE BOOL " " FORCE)
+set(NANOGUI_BUILD_SHARED  ON  CACHE BOOL " " FORCE)
 set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
 set(NANOGUI_EIGEN_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR})
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ext_build/nanogui)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ext/nanogui ${CMAKE_BINARY_DIR}/ext_build/nanogui)
 set_property(TARGET nanogui nanogui-obj glfw glfw_objects PROPERTY FOLDER "dependencies")
 include_directories(ext/nanogui/include
 				${NANOGUI_EXTRA_INCS})
@@ -43,7 +43,7 @@ SET(NSE_TESSELLATION_SUPPORT ON CACHE BOOL " " FORCE)
 SET(NSE_WITH_NANOGUI ON CACHE BOOL " " FORCE)
 
 # Add libOSR
-add_subdirectory(libOSR ext_build/libOSR)
+add_subdirectory(libOSR ${CMAKE_BINARY_DIR}/ext_build/libOSR)
 set(LIBS OSR nsessentials ${LIBS})
 include_directories(libOSR/include ${OSR_ADDITIONAL_INCLUDE_DIR})
 add_definitions(${OSR_EXTRA_DEFS})

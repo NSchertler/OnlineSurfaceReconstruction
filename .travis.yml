@@ -1,5 +1,8 @@
 language: cpp
 sudo: required
+branches:
+  only:
+    - master
 matrix:
   include:
     - os: linux
@@ -47,4 +50,4 @@ matrix:
         - make
         - mkdir build
         - cp bin/OnlineSurfaceReconstruction.app/Contents/MacOS/OnlineSurfaceReconstruction bin/OnlineSurfaceReconstruction
-        - zip build/osr-macos.zip bin/libOSR.dylib bin/OnlineSurfaceReconstruction
+        - zip build/osr-macos.zip bin/libOSR.dylib bin/libnanogui.dylib bin/libnsessentials.dylib bin/libtbb.dylib bin/OnlineSurfaceReconstruction

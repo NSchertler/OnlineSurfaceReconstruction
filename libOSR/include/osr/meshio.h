@@ -20,6 +20,7 @@
 #include <nsessentials/data/FileHelper.h>
 
 #include <fstream>
+#include <stdexcept>
 
 #ifndef _WIN32
 #include <libgen.h>
@@ -96,20 +97,28 @@ namespace osr
 
 				FILE* f = fopen(cachePath.c_str(), "rb");
 				size_t n;
-				fread(&n, sizeof(size_t), 1, f);
+				if(fread(&n, sizeof(size_t), 1, f) != 1)
+					throw std::runtime_error("Cannot read enough data from file");
 				V.resize(3, n);
-				fread(V.data(), sizeof(float), V.size(), f);
+				if(fread(V.data(), sizeof(float), V.size(), f) != V.size())
+					throw std::runtime_error("Cannot read enough data from file");
 
-				fread(&n, sizeof(size_t), 1, f);
+				if(fread(&n, sizeof(size_t), 1, f) != 1)
+					throw std::runtime_error("Cannot read enough data from file");
 				N.resize(3, n);
-				fread(N.data(), sizeof(float), N.size(), f);
+				if(fread(N.data(), sizeof(float), N.size(), f) != N.size())
+					throw std::runtime_error("Cannot read enough data from file");
 
-				fread(&n, sizeof(size_t), 1, f);
+				if(fread(&n, sizeof(size_t), 1, f) != 1)
+					throw std::runtime_error("Cannot read enough data from file");
 				C.resize(3, n);
-				fread(C.data(), sizeof(unsigned short), C.size(), f);
-				fread(&n, sizeof(size_t), 1, f);
+				if(fread(C.data(), sizeof(unsigned short), C.size(), f) != C.size())
+					throw std::runtime_error("Cannot read enough data from file");
+				if(fread(&n, sizeof(size_t), 1, f) != 1)
+					throw std::runtime_error("Cannot read enough data from file");
 				F.resize(3, n);
-				fread(F.data(), sizeof(uint32_t), F.size(), f);
+				if(fread(F.data(), sizeof(uint32_t), F.size(), f) != F.size())
+					throw std::runtime_error("Cannot read enough data from file");
 				fclose(f);
 
 				scan = new Scan(V, N, C, F, nse::data::filename_without_extension_and_directory(filename), Eigen::Affine3f(transform));

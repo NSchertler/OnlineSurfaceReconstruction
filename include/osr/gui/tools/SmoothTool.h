@@ -25,6 +25,7 @@
 #include <nanogui/window.h>
 
 #include <thread>
+#include <mutex>
 
 namespace osr {
 	namespace gui {

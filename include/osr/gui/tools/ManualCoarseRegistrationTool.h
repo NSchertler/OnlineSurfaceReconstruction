@@ -20,8 +20,7 @@
 #include "osr/gui/tools/Tool.h"
 
 #include <nsessentials/gui/AbstractViewer.h>
-
-#include <boost/signals2.hpp>
+#include <nsessentials/util/Observer.h>
 
 namespace osr {
 	namespace gui {
@@ -44,7 +43,7 @@ namespace osr {
 
 				bool mouseButtonEvent(const Eigen::Vector2i & p, int button, bool down, int modifiers);
 
-				boost::signals2::signal<void()> finished;
+				nse::util::Observer<> finished;
 
 			private:
 

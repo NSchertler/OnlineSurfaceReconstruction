@@ -16,6 +16,8 @@
 #include "osr/Attributes.h"
 #include "osr/Colors.h"
 
+#include <iostream>
+
 using namespace osr;
 using namespace osr::gui;
 
@@ -192,11 +194,18 @@ HierarchyRenderer::HierarchyRenderer(THierarchy & hierarchy)
 	orientationFieldBuffer(nse::gui::VertexBuffer), positionFieldBuffer(nse::gui::VertexBuffer), adjBuffer(nse::gui::VertexBuffer), adjColorBuffer(nse::gui::VertexBuffer), colorBuffer(nse::gui::VertexBuffer),
 	showInput(false), showNormals(false), showOrientationField(false), showPositionField(false), showAdjacency(false), adjacencyEdges(0), level(0)
 {
-	hierarchy.PositionsChanged.connect([this]() -> void { positionBuffer.dirty = true; });
-	hierarchy.NormalsChanged.connect([this]() -> void { normalBuffer.dirty = true; });
-	hierarchy.AdjacencyChanged.connect([this]() -> void { adjBuffer.dirty = true; });
-	hierarchy.DirFieldChanged.connect([this]() -> void { orientationFieldBuffer.dirty = true; });
-	hierarchy.PosFieldChanged.connect([this]() -> void { positionFieldBuffer.dirty = true; });
+	hierarchy.GeometryChanged.Subscribe([this]() -> void
+	{
+		positionBuffer.dirty = true; 
+		normalBuffer.dirty = true;
+		adjBuffer.dirty = true;
+	});
+
+	hierarchy.FieldsChanged.Subscribe([this]() -> void
+	{
+		orientationFieldBuffer.dirty = true;
+		positionFieldBuffer.dirty = true;
+	});
 }
 
 void HierarchyRenderer::initialize()

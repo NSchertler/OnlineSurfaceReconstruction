@@ -13,11 +13,12 @@
 
 #pragma once
 
-#include <boost/signals2.hpp>
 #include "osr/Scan.h"
 #include "osr/gui/GUIObject.h"
 
 #include <nanogui/window.h>
+
+#include <nsessentials/util/Observer.h>
 
 namespace osr {
 	namespace gui {
@@ -29,7 +30,7 @@ namespace osr {
 			public:
 				virtual ~ScanLoader() { };
 
-				boost::signals2::signal<void(Scan*)> NewScan;
+				nse::util::Observer<Scan*> NewScan;
 
 				virtual void setup(nanogui::Window* window) { }
 			};

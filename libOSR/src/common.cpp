@@ -16,7 +16,27 @@
 #include <tbb/tbb.h>
 #include <Eigen/Geometry>
 
+#include <iomanip>
+
 using namespace osr;
+
+std::string osr::memString(size_t size, bool precise)
+{
+	double value = (double)size;
+	const char *suffixes[] = {
+		"B", "KiB", "MiB", "GiB", "TiB", "PiB"
+	};
+	int suffix = 0;
+	while (suffix < 5 && value > 1024.0f) {
+		value /= 1024.0f; ++suffix;
+	}
+
+	std::ostringstream os;
+	os << std::setprecision(suffix == 0 ? 0 : (precise ? 4 : 1))
+		<< std::fixed << value << " " << suffixes[suffix];
+
+	return os.str();
+}
 
 void osr::coordinate_system(const Vector3f &a, Vector3f &b, Vector3f &c) 
 {

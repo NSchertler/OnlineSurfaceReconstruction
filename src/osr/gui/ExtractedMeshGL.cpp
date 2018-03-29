@@ -13,6 +13,7 @@
 
 #include "osr/gui/ExtractedMeshGL.h"
 #include "osr/gui/ShaderPool.h"
+#include "osr/Colors.h"
 
 #include <nsessentials/util/TimedBlock.h>
 

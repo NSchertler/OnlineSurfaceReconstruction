@@ -8,12 +8,16 @@ namespace osr
 	namespace gui
 	{
 		//Specialization of the DataBase class that holds a renderable final mesh.
-		class DataGL : public DataBase<DataGL>
+		class DataGL : public DataBase
 		{
 		public:
-			ExtractedMeshGL extractedMesh;
+			ExtractedMeshGL extractedMesh;			
 
 			DataGL();
+
+		protected:
+			ExtractedMesh * getExtractedMesh() { return &extractedMesh; }
+			const ExtractedMesh* getExtractedMesh() const { return &extractedMesh; }
 		};
 	}
 }

@@ -123,8 +123,8 @@ Viewer::Viewer()
 	scanLoader.push_back(davidVive);
 #endif		
 
-	data.ScanAdded.connect(boost::bind(&Viewer::ScanAdded, this, _1));
-	data.ScanRemoved.connect(boost::bind(&Viewer::ScanRemoved, this, _1));
+	data.ScanAdded.Subscribe(std::bind(&Viewer::ScanAdded, this, std::placeholders::_1));
+	data.ScanRemoved.Subscribe(std::bind(&Viewer::ScanRemoved, this, std::placeholders::_1));
 
 	glGenFramebuffers(1, &screenshotFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, screenshotFramebuffer);
@@ -150,7 +150,7 @@ Viewer::Viewer()
 	{
 		// The indirection via the scansToIntegrate queue is used to ensure that a valid OpenGL context
 		// is active when scans are initialized (and their buffers a set up).
-		loader->NewScan.connect([this](Scan* scan) { scansToIntegrate.push(scan); });
+		loader->NewScan.Subscribe([this](Scan* scan) { scansToIntegrate.push(scan); });
 	}
 }
 
@@ -175,7 +175,7 @@ void Viewer::SetupGUI()
 	auto scaleTxt = new nanogui::TextBox(scaleWidget, "");
 	auto updateScale = [this, scaleTxt](Float s) { std::stringstream ss; ss.precision(4); ss << data.meshSettings.scale(); scaleTxt->setValue(ss.str()); };
 	updateScale(data.meshSettings.scale());
-	data.meshSettings.ScaleChanged.connect(updateScale);
+	data.meshSettings.ScaleChanged.Subscribe(updateScale);
 	scaleTxt->setCallback([this](const std::string& str) { try { data.meshSettings.setScale(std::stof(str)); return true; } catch (...) {} return false; });
 	scaleTxt->setEditable(true);
 	scaleTxt->setFixedWidth(90);	
@@ -186,7 +186,7 @@ void Viewer::SetupGUI()
 	auto regErrorTxt = new nanogui::TextBox(regErrorWidget, "");
 	auto updateRegError = [this, regErrorTxt](Float s) { std::stringstream ss; ss.precision(4); ss << data.meshSettings.maxRegistrationError(); regErrorTxt->setValue(ss.str()); };
 	updateRegError(data.meshSettings.maxRegistrationError());
-	data.meshSettings.RegistrationErrorChanged.connect(updateRegError);
+	data.meshSettings.RegistrationErrorChanged.Subscribe(updateRegError);
 	regErrorTxt->setCallback([this](const std::string& str) { try { data.meshSettings.setMaxRegistrationError(std::stof(str)); return true; } catch (...) {} return false; });
 	regErrorTxt->setEditable(true);
 	regErrorTxt->setFixedWidth(90);
@@ -448,7 +448,7 @@ void Viewer::SetupGUI()
 	smoothTool = std::make_unique<tools::SmoothTool>(this, data, selectionRadius);
 	removeTool = std::make_unique<tools::RemoveTool>(this, data, selectionRadius);
 	manualCoarseRegistrationTool = std::make_unique<tools::ManualCoarseRegistrationTool>(this, data);
-	manualCoarseRegistrationTool->finished.connect([this]() {selectedTool->exitTool(); selectedTool = nullptr; });
+	manualCoarseRegistrationTool->finished.Subscribe([this]() {selectedTool->exitTool(); selectedTool = nullptr; });
 
 	toolsWidget = new nanogui::Widget(mainWindow);
 	toolsWidget->setLayout(new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 0, 6));

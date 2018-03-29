@@ -23,8 +23,8 @@
 #include "osr/Hierarchy.h"
 #include "osr/Optimizer.h"
 #include "osr/HierarchyCapabilities.h"
-#include "osr/PreparedVertexSet.h"
 #include "osr/ForEachHelper.h"
+#include "osr/Neighbor.h"
 #include <nsessentials/data/PersistentIndexContainer.h>
 #include <nsessentials/data/Serialization.h>
 #include <nsessentials/math/Morton.h>
@@ -36,6 +36,9 @@
 namespace osr
 {
 	class ExtractedMesh;
+
+	template <typename Index, bool StoreNeighbors, bool UseOriginalIndexForNeighbors>
+	struct PreparedVertexSet;
 
 	//Octree-based hierarchy with Morton Index-based data storage
 	namespace HierarchyMortonMultiPass
@@ -602,12 +605,12 @@ namespace osr
 
 	namespace HierarchyMortonMultiPass
 	{
-		class OSR_EXPORT Hierarchy : public AbstractHierarchy<Index>, public IPointQueryable<size_t>
+		class Hierarchy : public AbstractHierarchy<Index>, public IPointQueryable<size_t>
 		{
 		public:
 
-			Hierarchy(const Optimizer& optimizer, ExtractedMesh& extractionResult);
-			~Hierarchy();
+			OSR_EXPORT Hierarchy(const Optimizer& optimizer, ExtractedMesh& extractionResult);
+			OSR_EXPORT ~Hierarchy();
 
 			// ---- begin public hierarchy interface  ----
 
@@ -615,19 +618,19 @@ namespace osr
 			template<Attribute A> typename AttributeTraits<A>::Type& attribute(const Index& i) { return mLevels[i.level].originalData[i.idx].attribute<A>(); }
 			template<Attribute A> const typename AttributeTraits<A>::Type& attribute(const Index& i) const { return mLevels[i.level].originalData[i.idx].attribute<A>(); }
 
-			void addPoints(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C);
+			OSR_EXPORT void addPoints(const Matrix3Xf& V, const Matrix3Xf& N, const Matrix3Xus& C);
 
-			void modifyPoints(const std::vector<VertexIndex>& points, const Matrix3Xf& newV, const Matrix3Xf& newN, const Matrix3Xus& newC);
+			OSR_EXPORT void modifyPoints(const std::vector<VertexIndex>& points, const Matrix3Xf& newV, const Matrix3Xf& newN, const Matrix3Xus& newC);
 
-			void removePoints(std::vector<VertexIndex>& points);
+			OSR_EXPORT void removePoints(std::vector<VertexIndex>& points);
 
-			void optimizeFull();
+			OSR_EXPORT void optimizeFull();
 
-			void reset();
+			OSR_EXPORT void reset();
 
-			class VertexIterator;
+			class OSR_EXPORT VertexIterator;
 			//returns an iterator for all vertices of the finest level
-			ForEachHelper<VertexIterator> vertices(int level = 0);
+			OSR_EXPORT ForEachHelper<VertexIterator> vertices(int level = 0);
 
 			template <typename Callback>
 			void forEachNeighbor(const Index& v, const Callback& callback);
@@ -636,27 +639,27 @@ namespace osr
 			void findNearestPointsRadius(const Vector3f& p, Float radius, const Callback& callback) const;
 
 			//returns the number of vertices on the finest level of the hierarchy
-			size_t vertexCount() const { return mVertexCount; }
-			size_t vertexCount(int level) const { return mVertexCount == 0 ? 0 : mLevels[level].originalData.sizeNotDeleted(); }
+			OSR_EXPORT size_t vertexCount() const { return mVertexCount; }
+			OSR_EXPORT size_t vertexCount(int level) const { return mVertexCount == 0 ? 0 : mLevels[level].originalData.sizeNotDeleted(); }
 
-			size_t sizeInBytes() const;
+			OSR_EXPORT size_t sizeInBytes() const;
 
-			int levels() const;
+			OSR_EXPORT int levels() const;
 
 			size_t optimizedPoints;
 
-			float averagePointSpacing() const { return pointSpacing; }
+			OSR_EXPORT float averagePointSpacing() const { return pointSpacing; }
 
-			void saveToFile(FILE* f) const;
-			void loadFromFile(FILE* f);
+			OSR_EXPORT void saveToFile(FILE* f) const;
+			OSR_EXPORT void loadFromFile(FILE* f);
 
 			// ---- end public hierarchy interface  ----
 
 			// ----       other interfaces          ----
-			size_t findClosestCompatiblePoint(const Vector3f& p, const Vector3f& n) const;
-			bool isIndexValid(const size_t& idx) const;
-			Vector3f neighborP(const size_t& i) const;
-			Vector3f neighborN(const size_t& i) const;
+			OSR_EXPORT size_t findClosestCompatiblePoint(const Vector3f& p, const Vector3f& n) const;
+			OSR_EXPORT bool isIndexValid(const size_t& idx) const;
+			OSR_EXPORT Vector3f neighborP(const size_t& i) const;
+			OSR_EXPORT Vector3f neighborN(const size_t& i) const;
 
 			// ----     end other interfaces        ----
 
@@ -691,7 +694,7 @@ namespace osr
 			template <typename Iterator>
 			VertexIteratorAdaptor<Iterator> adaptToVertexIterator(Iterator it, int level) const;
 
-			nse::math::MortonCode64 mortonCode(const Vector3f& p, int level = 0) const;
+			OSR_EXPORT nse::math::MortonCode64 mortonCode(const Vector3f& p, int level = 0) const;
 
 		private:
 			nse::math::MortonCode64 parent(nse::math::MortonCode64 idx, int childNodeLevel, int levelsUp = 1) const;
@@ -705,10 +708,10 @@ namespace osr
 			void ApplyChangesToHierarchy(std::vector<MortonContainer<NodeState>>& levelStates, bool storeOldAttributes);
 
 			template <Attribute ... Attributes>
-			PreparedVertexSet<Hierarchy, Index, true, false> OptimizePart(std::vector<MortonContainer<NodeState>>& levelStates, bool checkForChildChange);
+			PreparedVertexSet<Index, true, false> OptimizePart(std::vector<MortonContainer<NodeState>>& levelStates, bool checkForChildChange);
 
 			template <Attribute ... Attributes>
-			PreparedVertexSet<Hierarchy, Index, true, false> Optimize();
+			PreparedVertexSet<Index, true, false> Optimize();
 
 			template <bool IncludeReference, typename Callback>
 			void approximateKNN(ShiftedRepresentation& reference, int levelNo, unsigned int k, unsigned int lookAroundSize, float maxDistanceSq, const Callback& callback);

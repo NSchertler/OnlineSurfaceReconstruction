@@ -37,6 +37,7 @@
 #endif
 
 #include <map>
+#include <tbb/concurrent_queue.h>
 
 namespace osr {
 	namespace gui

@@ -64,7 +64,7 @@ namespace osr
 		bool UseOriginalIndexForNeighbors = true>
 		struct HierarchyOptimizationHelper
 	{
-		static PreparedVertexSet<Hierarchy, typename Iterator::value_type, StoreNeighbors> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy);
+		static PreparedVertexSet<typename Iterator::value_type, StoreNeighbors> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy);
 	};
 
 	//No implicit phases
@@ -74,7 +74,7 @@ namespace osr
 	{
 		typedef typename Iterator::value_type Index;
 
-		static PreparedVertexSet<Hierarchy, Index, true> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+		static PreparedVertexSet<Index, true> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 		{
 			std::vector<Index> vertices;
 			std::unordered_map<Index, size_t> indexToVectorPosition;
@@ -86,7 +86,7 @@ namespace osr
 			size_t verticesIncluded = vertices.size();
 			if (verticesIncluded == 0)
 			{
-				PreparedVertexSet<Hierarchy, Index, true> result(&hierarchy);
+				PreparedVertexSet<Index, true> result(&hierarchy);
 				result.includedVertices = 0;
 				return result;
 			}
@@ -114,7 +114,7 @@ namespace osr
 			auto colorData = generateGraphColoring(verticesIncluded, neighbors, color);
 
 			//Write data to vertex set
-			PreparedVertexSet<Hierarchy, Index> vertexSet(&hierarchy);
+			PreparedVertexSet<Index> vertexSet(&hierarchy);
 
 			struct PhaseInfo
 			{
@@ -165,9 +165,9 @@ namespace osr
 	{
 		typedef typename Iterator::value_type Index;
 
-		static PreparedVertexSet<Hierarchy, Index, true, false> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+		static PreparedVertexSet<Index, true, false> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 		{
-			PreparedVertexSet<Hierarchy, Index, true, false> vertexSet(&hierarchy);
+			PreparedVertexSet<Index, true, false> vertexSet(&hierarchy);
 			std::vector<Index> vertices;
 			for (auto it = vertices_begin; it != vertices_end; ++it)
 			{
@@ -177,7 +177,7 @@ namespace osr
 			size_t verticesIncluded = vertices.size();
 			if (verticesIncluded == 0)
 			{
-				PreparedVertexSet<Hierarchy, Index, true, false> result(&hierarchy);
+				PreparedVertexSet<Index, true, false> result(&hierarchy);
 				result.includedVertices = 0;
 				return result;
 			}
@@ -284,7 +284,7 @@ namespace osr
 	{
 		typedef typename Iterator::value_type Index;
 
-		static PreparedVertexSet<Hierarchy, Index, true> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+		static PreparedVertexSet< Index, true> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 		{
 			std::vector<Index> vertices;
 			for (auto it = vertices_begin; it != vertices_end; ++it)
@@ -294,7 +294,7 @@ namespace osr
 			size_t verticesIncluded = vertices.size();
 			if (verticesIncluded == 0)
 			{
-				PreparedVertexSet<Hierarchy, Index, true> result(&hierarchy);
+				PreparedVertexSet<Index, true> result(&hierarchy);
 				result.includedVertices = 0;
 				return result;
 			}
@@ -326,7 +326,7 @@ namespace osr
 			}
 
 			//Write data to vertex set
-			PreparedVertexSet<Hierarchy, Index> vertexSet(&hierarchy);
+			PreparedVertexSet<Index> vertexSet(&hierarchy);
 
 			struct PhaseInfo
 			{
@@ -372,7 +372,7 @@ namespace osr
 	{
 		typedef typename Iterator::value_type Index;
 
-		static PreparedVertexSet<Hierarchy, Index, false> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+		static PreparedVertexSet<Index, false> prepare(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 		{
 			std::vector<std::vector<Index>> phases;
 			size_t verticesIncluded = 0;
@@ -387,13 +387,13 @@ namespace osr
 			}
 			if (verticesIncluded == 0)
 			{
-				PreparedVertexSet<Hierarchy, Index, false> result(&hierarchy);
+				PreparedVertexSet<Index, false> result(&hierarchy);
 				result.includedVertices = 0;
 				return result;
 			}
 
 			//Write data to vertex set
-			PreparedVertexSet<Hierarchy, Index, false> vertexSet(&hierarchy);
+			PreparedVertexSet<Index, false> vertexSet(&hierarchy);
 
 			std::vector<size_t> vertexOffset(phases.size());
 			for (int i = 1; i < phases.size(); ++i)
@@ -419,14 +419,14 @@ namespace osr
 	template <typename Iterator, typename Hierarchy,
 		bool HasImplicitPhases = IndexOptimizationTraits<typename Iterator::value_type, Hierarchy>::HasImplicitPhases,
 		bool StoreNeighbors = IndexOptimizationTraits<typename Iterator::value_type, Hierarchy>::StoreNeighbors>
-		PreparedVertexSet<Hierarchy, typename Iterator::value_type, StoreNeighbors> prepareForOptimization(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+		PreparedVertexSet<typename Iterator::value_type, StoreNeighbors> prepareForOptimization(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 	{
 		return HierarchyOptimizationHelper<Iterator, Hierarchy, HasImplicitPhases, StoreNeighbors>::prepare(vertices_begin, vertices_end, hierarchy);
 	}
 
 	//Convenience method to access the partial specializations above with template argument inference.
 	template <typename Iterator, typename Hierarchy>
-	PreparedVertexSet<Hierarchy, typename Iterator::value_type, true, false> prepareForOptimizationWithIntrinsicNeighborIndices(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
+	PreparedVertexSet<typename Iterator::value_type, true, false> prepareForOptimizationWithIntrinsicNeighborIndices(Iterator vertices_begin, Iterator vertices_end, Hierarchy& hierarchy)
 	{
 		return HierarchyOptimizationHelper<Iterator, Hierarchy, false, true, false>::prepare(vertices_begin, vertices_end, hierarchy);
 	}

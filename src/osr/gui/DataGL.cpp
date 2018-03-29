@@ -3,5 +3,5 @@
 using namespace osr::gui;
 
 DataGL::DataGL()
-	: extractedMesh(meshSettings)
+	: extractedMesh(meshSettings), DataBase(extractedMesh)
 { }

@@ -13,15 +13,19 @@
 */
 
 #include "osr/ExtractedMesh.h"
+#include "osr/Interpolation.h"
+#include "osr/Colors.h"
+#include "osr/ExtractionAttributeMapping.h"
+
 #include "dset.h"
 
 #include <tbb/tbb.h>
 #include <tbb/concurrent_vector.h>
-#include <unordered_set>
 #include <tuple>
 #include <fstream>
 
 #include <nsessentials/util/TimedBlock.h>
+#include <nsessentials/data/Parallelization.h>
 
 using namespace osr;
 using namespace ExtractionHelper;
@@ -42,7 +46,7 @@ void ExtractedMesh::reset()
 	vertexToDependentEdges.clear();
 }
 
-void ExtractedMesh::extract(PreparedVertexSet<THierarchy, THierarchy::VertexIndex, true, false>& modifiedVertices, bool deleteAndExpand, const std::vector<MeshVertexType>& removeVertices)
+void ExtractedMesh::extract(PreparedVertexSet<THierarchy::VertexIndex, true, false>& modifiedVertices, bool deleteAndExpand, const std::vector<MeshVertexType>& removeVertices)
 {
 	nse::util::TimedBlock b("Extracting mesh ..", true);
 
@@ -167,7 +171,7 @@ void ExtractedMesh::extract(PreparedVertexSet<THierarchy, THierarchy::VertexInde
 #endif
 }
 
-void ExtractedMesh::deleteModifiedGeometry(PreparedVertexSet<THierarchy, THierarchy::VertexIndex, true, false>& modifiedVertices, const std::vector<MeshVertexType>& removeVertices)
+void ExtractedMesh::deleteModifiedGeometry(PreparedVertexSet<THierarchy::VertexIndex, true, false>& modifiedVertices, const std::vector<MeshVertexType>& removeVertices)
 {
 	nse::util::TimedBlock b("Deleting geometry that changed ..");
 	std::set<uint32_t> deletedVertices, deletedEdges, deletedDependentEdges;
@@ -285,7 +289,7 @@ void ExtractedMesh::deleteModifiedGeometry(PreparedVertexSet<THierarchy, THierar
 	}
 }
 
-void ExtractedMesh::extract_graph(PreparedVertexSet<THierarchy, THierarchy::VertexIndex, true, false>& modifiedVertices, std::vector<std::vector<TaggedLink>>& adj_new, std::vector<size_t>& newVertices, size_t checkForDuplicatesAboveIndex)
+void ExtractedMesh::extract_graph(PreparedVertexSet<THierarchy::VertexIndex, true, false>& modifiedVertices, std::vector<std::vector<TaggedLink>>& adj_new, std::vector<size_t>& newVertices, size_t checkForDuplicatesAboveIndex)
 {
 	const bool deterministic = false;
 
@@ -1746,7 +1750,7 @@ Vector4f repairSolution(const Vector4f& sol)
 	return r;
 }
 
-void ExtractedMesh::mapAttributes(PreparedVertexSet<THierarchy, THierarchy::VertexIndex, true, false>& modifiedVertices, const std::vector<size_t>& newVertices, const std::vector<size_t>& newEdges, const std::vector<size_t>& newTris, const std::vector<size_t>& newQuads)
+void ExtractedMesh::mapAttributes(PreparedVertexSet<THierarchy::VertexIndex, true, false>& modifiedVertices, const std::vector<size_t>& newVertices, const std::vector<size_t>& newEdges, const std::vector<size_t>& newTris, const std::vector<size_t>& newQuads)
 {
 	assert(R >= 2); //there must be at least one texel on an edge
 
@@ -1874,12 +1878,7 @@ void ExtractedMesh::mapAttributes(PreparedVertexSet<THierarchy, THierarchy::Vert
 	}
 
 	//Set up the least squares system that we solve to find the attributes for each texel
-#ifdef GEOMETRIC_LAPLACIAN
-	GeometricLeastSquaresSystemBuilder
-#else
-	HeightFieldLeastSquaresSystemBuilder
-#endif
-		systemBuilder(totalTexels);
+	MappingBuilder systemBuilder(totalTexels);
 	systemBuilder.reserve(entriesPerRow);
 
 	{
@@ -2048,6 +2047,299 @@ void ExtractedMesh::mapAttributes(PreparedVertexSet<THierarchy, THierarchy::Vert
 				quad.colorDisplacement[i] = repairSolution(solution.row(quad.indexInTexelVector + i));
 			}
 		}
+	}
+}
+
+void ExtractedMesh::prepareLaplacian(const std::vector<size_t>& newVertices, const std::vector<size_t>& newEdges, const std::vector<size_t>& newTris, const std::vector<size_t>& newQuads, float weight, MappingBuilder& systemBuilder)
+{
+	nse::util::TimedBlock b("Preparing Laplacian ..");
+
+	// The number of rows of the linear system that are cached before adding them to the system.
+	// Should be close to a multiple of the number of texels per quad and texels per triangle
+	const int prepareRows = 9720;
+
+	std::vector<LaplacianEntry> preparedRows(prepareRows);
+
+	//Add a row for each new vertex
+	auto generateRowForVertex = [this](size_t vIdx, LaplacianEntry& row)
+	{
+		row.reset();
+		ExtractionHelper::Vertex& v = vertices[vIdx];
+
+		row.center.entity = &v;
+		row.center.localIndex = 0;
+
+		for (auto eid : v.incidentEdges)
+		{
+			auto& e = edges[eid];
+			int localTexelIndex = (vIdx == e.v[0] ? 0 : texelsPerEdge - 1);
+			row.addNeighbor(&e, localTexelIndex);
+		}
+	};
+
+	int processedVertices = 0;
+	while (processedVertices < newVertices.size())
+	{
+		int lower = processedVertices;
+		int upperExcl = std::min<int>(newVertices.size(), lower + prepareRows);
+#pragma omp parallel for
+		for (int i = lower; i < upperExcl; ++i)
+		{
+			auto& v = vertices[newVertices[i]];
+			if (v.incidentEdges.size() == 0 || v.generation != currentGeneration)
+				continue;
+			generateRowForVertex(newVertices[i], preparedRows[i - lower]);
+		}
+
+		for (int i = lower; i < upperExcl; ++i)
+			if (vertices[newVertices[i]].incidentEdges.size() > 0 && vertices[newVertices[i]].generation == currentGeneration)
+				systemBuilder.addLaplacianEntry(preparedRows[i - lower], weight, currentGeneration, *this);
+		processedVertices = upperExcl;
+	}
+
+	//Add rows for each new edge
+	auto generateRowsForEdge = [this](size_t eid, LaplacianEntry* rowPtr)
+	{
+		auto& e = edges[eid];
+
+		struct IterationInfo
+		{
+			const ExtractionHelper::Entity* entity;
+			int offset;
+			int stride;
+			int modulo;
+
+			IterationInfo() {}
+			IterationInfo(ExtractionHelper::Entity* entity, int offset, int stride, int modulo)
+				: entity(entity), offset(offset), stride(stride), modulo(modulo)
+			{ }
+		};
+
+		//this vector specifies which texels of the incident faces are neighbors of the current edge's texels
+		std::vector<IterationInfo> incidentFaceNeighborTexelsStartStride(e.incidentQuads.size() + e.incidentTriangles.size());
+		for (int i = 0; i < e.incidentQuads.size(); ++i)
+		{
+			auto& quad = quads[e.incidentQuads[i]];
+
+			if (quad.edges[0] == eid)
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, 0, 1, texelsPerQuad);
+			else if (edgeIndex(quad.edges[0]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, R - 2, -1, texelsPerQuad);
+			else if (quad.edges[1] == eid)
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, R - 2, R - 1, texelsPerQuad);
+			else if (edgeIndex(quad.edges[1]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, (R - 1) * (R - 1) - 1, -(R - 1), texelsPerQuad);
+			else if (quad.edges[2] == eid)
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, (R - 1) * (R - 1) - 1, -1, texelsPerQuad);
+			else if (edgeIndex(quad.edges[2]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, (R - 1) * (R - 2), 1, texelsPerQuad);
+			else if (quad.edges[3] == eid)
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, (R - 1) * (R - 2), -(R - 1), texelsPerQuad);
+			else if (edgeIndex(quad.edges[3]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i] = IterationInfo(&quad, 0, R - 1, texelsPerQuad);
+		}
+		int texelsOuterRing = 3 * (R - 2);
+		for (int i = 0; i < e.incidentTriangles.size(); ++i)
+		{
+			auto& tri = triangles[e.incidentTriangles[i]];
+
+			if (tri.edges[0] == eid)
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, 0, 1, texelsOuterRing);
+			else if (tri.edges[1] == eid)
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, R - 2, 1, texelsOuterRing);
+			else if (tri.edges[2] == eid)
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, 2 * R - 4, 1, texelsOuterRing);
+			else if (edgeIndex(tri.edges[0]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, R - 2, -1, texelsOuterRing);
+			else if (edgeIndex(tri.edges[1]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, 2 * R - 4, -1, texelsOuterRing);
+			else if (edgeIndex(tri.edges[2]) == eid) //inverse
+				incidentFaceNeighborTexelsStartStride[i + e.incidentQuads.size()] = IterationInfo(&tri, 3 * R - 6, -1, texelsOuterRing);
+		}
+
+		for (int i = 0; i < texelsPerEdge; ++i)
+		{
+			auto& row = *(rowPtr + i);
+			row.reset();
+			row.center.entity = &e;
+			row.center.localIndex = i;
+			if (i == 0)
+			{
+				auto& v = vertices[e.v[0]];
+				row.addNeighbor(&v, 0);
+			}
+			else
+				row.addNeighbor(&e, i - 1);
+
+			if (i == texelsPerEdge - 1)
+			{
+				auto& v = vertices[e.v[1]];
+				row.addNeighbor(&v, 0);
+			}
+			else
+				row.addNeighbor(&e, i + 1);
+
+			for (auto& n : incidentFaceNeighborTexelsStartStride)
+				row.addNeighbor(n.entity, (n.offset + (i * n.stride)) % n.modulo);
+		}
+	};
+	int processedEdges = 0;
+	while (processedEdges < newEdges.size())
+	{
+		int lower = processedEdges;
+		int upperExcl = std::min<int>(newEdges.size(), lower + prepareRows / texelsPerEdge);
+#pragma omp parallel for
+		for (int i = lower; i < upperExcl; ++i)
+		{
+			generateRowsForEdge(newEdges[i], &preparedRows[(i - lower) * texelsPerEdge]);
+		}
+
+		int rows = (upperExcl - lower) * texelsPerEdge;
+		for (int i = 0; i < rows; ++i)
+			systemBuilder.addLaplacianEntry(preparedRows[i], weight, currentGeneration, *this);
+		processedEdges = upperExcl;
+	}
+
+	//Add rows for each new triangle
+	auto generateRowsForTriangle = [this](size_t tid, LaplacianEntry* rowPtr)
+	{
+		const ExtractionHelper::Entity* entity;
+		int localIndex;
+
+		auto& tri = triangles[tid];
+		for (int ring = 1; ring <= triInnerRings; ++ring)
+		{
+			auto ringBase = 3 * (ring - 1) * (R - ring); //all texels from larger rings;
+			int verticesOnRingEdge = R - 2 * ring;
+			int verticesOnRing = 3 * verticesOnRingEdge;
+			for (int edge = 0; edge < 3; ++edge)
+			{
+				//Entries for first vertex on edge
+				int idx = revToIndex(Vector3i(ring, edge, 0));
+				auto ringLocalIdx = idx - ringBase;
+
+				rowPtr->reset();
+				rowPtr->center.entity = &tri;
+				rowPtr->center.localIndex = idx; //current texel
+				rowPtr->addNeighbor(&tri, ringBase + (ringLocalIdx + 1) % verticesOnRing); //next vertex on ring
+				rowPtr->addNeighbor(&tri, ringBase + (ringLocalIdx - 1 + verticesOnRing) % verticesOnRing); //previous vertex on ring
+
+				getEntityTexel(tri, Vector3i(ring - 1, edge, 1), entity, localIndex); //outer ring, same edge
+				rowPtr->addNeighbor(entity, localIndex);
+				getEntityTexel(tri, Vector3i(ring - 1, (edge + 2) % 3, verticesOnRingEdge + 1), entity, localIndex); //outer ring, previous edge
+				rowPtr->addNeighbor(entity, localIndex);
+				rowPtr++;
+
+				for (int v = 1; v < verticesOnRingEdge; ++v)
+				{
+					auto& row = *rowPtr++;
+					row.reset();
+
+					idx = revToIndex(Vector3i(ring, edge, v));
+					ringLocalIdx = idx - ringBase;
+					row.center.entity = &tri;
+					row.center.localIndex = idx; //current texel
+					row.addNeighbor(&tri, ringBase + (ringLocalIdx + 1) % verticesOnRing); //next vertex on ring
+					row.addNeighbor(&tri, ringBase + (ringLocalIdx - 1 + verticesOnRing) % verticesOnRing); //previous vertex on ring
+
+																											//find the neighbor on the inner ring
+					auto innerNeighborEdge = edge;
+					auto innerNeighborV = v - 1;
+					if (innerNeighborV >= R - 2 * (ring + 1)) //if we are at the end of an edge
+					{
+						innerNeighborEdge++; //proceed to the next edge
+						if (innerNeighborEdge >= 3)
+							innerNeighborEdge = 0;
+						innerNeighborV = 0;
+					}
+					getEntityTexel(tri, Vector3i(ring + 1, innerNeighborEdge, innerNeighborV), entity, localIndex); //vertex on inner ring
+					row.addNeighbor(entity, localIndex);
+					getEntityTexel(tri, Vector3i(ring - 1, edge, v + 1), entity, localIndex); //vertex on outer ring
+					row.addNeighbor(entity, localIndex);
+				}
+			}
+		}
+		if (R % 2 == 0)
+		{
+			//center vertex only exists for even resolution
+			rowPtr->reset();
+
+			getEntityTexel(tri, Vector3i(triInnerRings + 1, 0, 0), entity, localIndex);
+			rowPtr->center.entity = entity;
+			rowPtr->center.localIndex = localIndex;
+			getEntityTexel(tri, Vector3i(triInnerRings, 0, 1), entity, localIndex);
+			rowPtr->addNeighbor(entity, localIndex);
+			getEntityTexel(tri, Vector3i(triInnerRings, 1, 1), entity, localIndex);
+			rowPtr->addNeighbor(entity, localIndex);
+			getEntityTexel(tri, Vector3i(triInnerRings, 2, 1), entity, localIndex);
+			rowPtr->addNeighbor(entity, localIndex);
+		}
+	};
+	int processedTriangles = 0;
+	while (processedTriangles < newTris.size())
+	{
+		int lower = processedTriangles;
+		int upperExcl = std::min<int>(newTris.size(), lower + prepareRows / texelsPerTri);
+#pragma omp parallel for
+		for (int i = lower; i < upperExcl; ++i)
+		{
+			generateRowsForTriangle(newTris[i], &preparedRows[(i - lower) * texelsPerTri]);
+		}
+
+		int rows = (upperExcl - lower) * texelsPerTri;
+		for (int i = 0; i < rows; ++i)
+			systemBuilder.addLaplacianEntry(preparedRows[i], weight, currentGeneration, *this);
+		processedTriangles = upperExcl;
+	}
+
+	//Add rows for each new quad
+	auto generateRowsForQuad = [this](size_t qid, LaplacianEntry* rowPtr)
+	{
+		auto& quad = quads[qid];
+
+		const ExtractionHelper::Entity* entity;
+		int localIndex;
+
+		for (int j = 0; j < R - 1; ++j)
+			for (int i = 0; i < R - 1; ++i)
+			{
+				auto& row = *rowPtr++;
+				row.reset();
+				int localIdx = i + (R - 1) * j;
+
+				getEntityTexel(quad, Vector2i(i + 1, j + 1), entity, localIndex);
+				row.center.entity = entity;
+				row.center.localIndex = localIndex;
+
+				getEntityTexel(quad, Vector2i(i + 0, j + 1), entity, localIndex);
+				row.addNeighbor(entity, localIndex);
+
+				getEntityTexel(quad, Vector2i(i + 2, j + 1), entity, localIndex);
+				row.addNeighbor(entity, localIndex);
+
+				getEntityTexel(quad, Vector2i(i + 1, j + 0), entity, localIndex);
+				row.addNeighbor(entity, localIndex);
+
+				getEntityTexel(quad, Vector2i(i + 1, j + 2), entity, localIndex);
+				row.addNeighbor(entity, localIndex);
+			}
+	};
+
+	int processedQuads = 0;
+	while (processedQuads < newQuads.size())
+	{
+		int lower = processedQuads;
+		int upperExcl = std::min<int>(newQuads.size(), lower + prepareRows / texelsPerQuad);
+#pragma omp parallel for
+		for (int i = lower; i < upperExcl; ++i)
+		{
+			generateRowsForQuad(newQuads[i], &preparedRows[(i - lower) * texelsPerQuad]);
+		}
+
+		int rows = (upperExcl - lower) * texelsPerQuad;
+		for (int i = 0; i < rows; ++i)
+			systemBuilder.addLaplacianEntry(preparedRows[i], weight, currentGeneration, *this);
+		processedQuads = upperExcl;
 	}
 }
 
@@ -2373,27 +2665,34 @@ void ExtractedMesh::loadFromFile(FILE * f)
 	vertices.loadFromFile(f);
 
 	size_t n;
-	fread(&n, sizeof(size_t), 1, f);
+	if(fread(&n, sizeof(size_t), 1, f) != 1)
+		throw std::runtime_error("Cannot read enough data from file");
 	for (int i = 0; i < n; ++i)
 	{
 		std::pair<std::pair<uint32_t, uint32_t>, int32_t> entry;
-		fread(&entry, sizeof(std::pair<std::pair<uint32_t, uint32_t>, int32_t>), 1, f);
+		if(fread(&entry, sizeof(std::pair<std::pair<uint32_t, uint32_t>, int32_t>), 1, f) != 1)
+			throw std::runtime_error("Cannot read enough data from file");
 		vertexPairToEdge[entry.first] = entry.second;
 	}	
 
-	fread(&n, sizeof(size_t), 1, f);
+	if(fread(&n, sizeof(size_t), 1, f) != 1)
+		throw std::runtime_error("Cannot read enough data from file");
 	for(int i = 0; i < n; ++i)
 	{
 		uint32_t v;
-		fread(&v, sizeof(uint32_t), 1, f);
+		if(fread(&v, sizeof(uint32_t), 1, f) != 1)
+			throw std::runtime_error("Cannot read enough data from file");
 		size_t dependent;
-		fread(&dependent, sizeof(size_t), 1, f);
+		if(fread(&dependent, sizeof(size_t), 1, f) != 1)
+			throw std::runtime_error("Cannot read enough data from file");
 		auto& entry = vertexToDependentEdges[v];		
 		entry.resize(dependent);
-		fread(entry.data(), sizeof(uint32_t), dependent, f);
+		if(fread(entry.data(), sizeof(uint32_t), dependent, f) != dependent)
+			throw std::runtime_error("Cannot read enough data from file");
 	}
 
-	fread(&currentGeneration, sizeof(uint8_t), 1, f);
+	if(fread(&currentGeneration, sizeof(uint8_t), 1, f) != 1)
+		throw std::runtime_error("Cannot read enough data from file");
 
 	post_extract();
 }

@@ -22,6 +22,8 @@
 #include "osr/Optimizer.h"
 #include "osr/ForEachHelper.h"
 
+#include "osr/HierarchyDef.h"
+
 // This file contains structures that represent a set of vertex that have been prepared for optimization
 // (i.e. all relevant information is immediately available, e.g. parallelization strategy or attributes)
 // Two variants are implemented - one that explicitly stores the neighbors, and another that passes the
@@ -37,19 +39,19 @@ namespace osr
 	};
 
 	// Commonalities of both variants of the vertex set
-	template <typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
+	template <typename Index, typename Derived, typename StoredVertexType>
 	struct OSR_EXPORT PreparedVertexSetBase
 	{
 		PreparedVertexSetBase()
 			: hierarchy(nullptr) { }
 
-		PreparedVertexSetBase(Hierarchy* h)
+		PreparedVertexSetBase(THierarchy* h)
 			: hierarchy(h) { }
 
 		template <Attribute A> typename AttributeTraits<A>::Type& attribute(VertexSetIndex i) { return hierarchy->template attribute<A>(vertices[i.index].vertex); }
 		template <Attribute A> typename AttributeTraits<A>::Type& attribute(Index i) { return hierarchy->template attribute<A>(i); }
 
-		Hierarchy* hierarchy;
+		THierarchy* hierarchy;
 
 		class PhaseIterator : public std::iterator<std::random_access_iterator_tag, size_t>
 		{
@@ -126,45 +128,45 @@ namespace osr
 		}
 	};
 
-	template <bool WithDirFieldConstraints, Attribute A, typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
+	template <bool WithDirFieldConstraints, Attribute A, typename Index, typename Derived, typename StoredVertexType>
 	struct VertexSetOptimizeHelper
 	{
-		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Hierarchy, Index, Derived, StoredVertexType>::PhasesIterator>& phases)
+		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Index, Derived, StoredVertexType>::PhasesIterator>& phases)
 		{ }
 	};
 
-	template <bool WithDirFieldConstraints, typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
-	struct VertexSetOptimizeHelper<WithDirFieldConstraints, DirField, Hierarchy, Index, Derived, StoredVertexType>
+	template <bool WithDirFieldConstraints, typename Index, typename Derived, typename StoredVertexType>
+	struct VertexSetOptimizeHelper<WithDirFieldConstraints, DirField, Index, Derived, StoredVertexType>
 	{
-		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Hierarchy, Index, Derived, StoredVertexType>::PhasesIterator>& phases)
+		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Index, Derived, StoredVertexType>::PhasesIterator>& phases)
 		{
 			o.optimizeOrientations<WithDirFieldConstraints>(dataStore, phases);
 		}
 	};
 
-	template <bool WithDirFieldConstraints, typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
-	struct VertexSetOptimizeHelper<WithDirFieldConstraints, PosField, Hierarchy, Index, Derived, StoredVertexType>
+	template <bool WithDirFieldConstraints,typename Index, typename Derived, typename StoredVertexType>
+	struct VertexSetOptimizeHelper<WithDirFieldConstraints, PosField, Index, Derived, StoredVertexType>
 	{
-		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Hierarchy, Index, Derived, StoredVertexType>::PhasesIterator>& phases)
+		static void optimize(Derived& dataStore, const Optimizer& o, ForEachHelper<typename PreparedVertexSetBase<Index, Derived, StoredVertexType>::PhasesIterator>& phases)
 		{
 			o.optimizePositions(dataStore, phases);
 		}
 	};
 
-	template <typename Hierarchy, typename Index, typename Derived, typename StoredVertexType>
+	template <typename Index, typename Derived, typename StoredVertexType>
 	template <bool WithDirFieldConstraints, Attribute ... Attributes>
-	void PreparedVertexSetBase<Hierarchy, Index, Derived, StoredVertexType>::optimize(const Optimizer& o)
+	void PreparedVertexSetBase<Index, Derived, StoredVertexType>::optimize(const Optimizer& o)
 	{
 		ForEachHelper<PhasesIterator> phasesHelper(PhasesIterator(phaseStarts.begin(), *static_cast<Derived*>(this)), PhasesIterator(phaseStarts.end(), *static_cast<Derived*>(this)));
 
 		nse::util::TimedBlock b("Optimizing " + std::to_string(this->includedVertices) + " vertices ..");
 
-		int dummy[] = { 0, (VertexSetOptimizeHelper<WithDirFieldConstraints, Attributes, Hierarchy, Index, Derived, StoredVertexType>::optimize(*static_cast<Derived*>(this), o, phasesHelper), 0)... };
+		int dummy[] = { 0, (VertexSetOptimizeHelper<WithDirFieldConstraints, Attributes, Index, Derived, StoredVertexType>::optimize(*static_cast<Derived*>(this), o, phasesHelper), 0)... };
 		(void)dummy; //suppress compiler warnings for unused dummy
 	}
 
 	// Base template for the vertex set
-	template <typename Hierarchy, typename Index, bool StoreNeighbors = true, bool UseOriginalIndexForNeighbors = true>
+	template <typename Index, bool StoreNeighbors = true, bool UseOriginalIndexForNeighbors = true>
 	struct PreparedVertexSet
 	{ };
 
@@ -179,13 +181,13 @@ namespace osr
 	};
 
 	// Vertex set that stores neighbors explicitly.
-	template <typename Hierarchy, typename Index>
-	struct PreparedVertexSet<Hierarchy, Index, true, true> : public PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, true, true>, VertexWithNeighbors<Index>>
+	template <typename Index>
+	struct PreparedVertexSet<Index, true, true> : public PreparedVertexSetBase<Index, PreparedVertexSet<Index, true, true>, VertexWithNeighbors<Index>>
 	{
 		PreparedVertexSet() { }
 
-		PreparedVertexSet(Hierarchy* h)
-			: PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, true, true>, VertexWithNeighbors<Index>>(h) { }
+		PreparedVertexSet(THierarchy* h)
+			: PreparedVertexSetBase<Index, PreparedVertexSet<Index, true, true>, VertexWithNeighbors<Index>>(h) { }
 
 		//iterate the stored neighbors
 		template <typename Callback>
@@ -202,13 +204,13 @@ namespace osr
 	};
 
 	// Vertex set that stores neighbors explicitly and addresses them with an internal zero-based integer index.
-	template <typename Hierarchy, typename Index>
-	struct PreparedVertexSet<Hierarchy, Index, true, false> : public PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, true, false>, VertexWithNeighbors<Index>>
+	template <typename Index>
+	struct PreparedVertexSet<Index, true, false> : public PreparedVertexSetBase<Index, PreparedVertexSet<Index, true, false>, VertexWithNeighbors<Index>>
 	{
 		PreparedVertexSet() { }
 
-		PreparedVertexSet(Hierarchy* h)
-			: PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, true, false>, VertexWithNeighbors<Index>>(h) { }
+		PreparedVertexSet(THierarchy* h)
+			: PreparedVertexSetBase<Index, PreparedVertexSet<Index, true, false>, VertexWithNeighbors<Index>>(h) { }
 
 		//iterate the stored neighbors
 		template <typename Callback>
@@ -319,13 +321,13 @@ namespace osr
 	};
 
 	// Vertex set that does not store neighbors explicitly.
-	template <typename Hierarchy, typename Index>
-	struct PreparedVertexSet<Hierarchy, Index, false, true> : public PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, false, true>, VertexWithoutNeighbors<Index>>
+	template <typename Index>
+	struct PreparedVertexSet<Index, false, true> : public PreparedVertexSetBase<Index, PreparedVertexSet<Index, false, true>, VertexWithoutNeighbors<Index>>
 	{
 		PreparedVertexSet() { }
 
-		PreparedVertexSet(Hierarchy* h)
-			: PreparedVertexSetBase<Hierarchy, Index, PreparedVertexSet<Hierarchy, Index, false, true>, VertexWithoutNeighbors<Index>>(h)
+		PreparedVertexSet(THierarchy* h)
+			: PreparedVertexSetBase<Index, PreparedVertexSet<Index, false, true>, VertexWithoutNeighbors<Index>>(h)
 		{ }
 
 		// pass the query on to the hierarchy

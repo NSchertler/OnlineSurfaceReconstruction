@@ -17,7 +17,10 @@
 #include "osr/field.h"
 #include <memory>
 
-#include <boost/signals2.hpp>
+#include <nsessentials/util/Observer.h>
+
+template class OSR_EXPORT std::shared_ptr<osr::IOrientationFieldTraits>;
+template class OSR_EXPORT std::shared_ptr<osr::IPositionFieldTraits>;
 
 namespace osr
 {
@@ -26,8 +29,8 @@ namespace osr
 	{
 	public:
 
-		boost::signals2::signal<void(Float)> ScaleChanged;
-		boost::signals2::signal<void(Float)> RegistrationErrorChanged;
+		nse::util::Observer<Float> ScaleChanged;
+		nse::util::Observer<Float> RegistrationErrorChanged;
 
 		Float scale() const { return _scale; }
 		void setScale(Float s)
@@ -66,18 +69,22 @@ namespace osr
 		void loadFromFile(FILE* f)
 		{
 			Float v;
-			fread(&v, sizeof(Float), 1, f);
+			if(fread(&v, sizeof(Float), 1, f) != 1)
+				throw std::runtime_error("Cannot read enough data from file.");
 			setScale(v);
 
-			fread(&v, sizeof(float), 1, f);
+			if(fread(&v, sizeof(float), 1, f) != 1)
+				throw std::runtime_error("Cannot read enough data from file.");
 			setMaxRegistrationError(v);
 
 			int rosyN;
-			fread(&rosyN, sizeof(int), 1, f);
+			if(fread(&rosyN, sizeof(int), 1, f) != 1)
+				throw std::runtime_error("Cannot read enough data from file.");
 			rosy = std::shared_ptr<IOrientationFieldTraits>(getOrientationFieldTraits(rosyN));
 
 			int posyN;
-			fread(&posyN, sizeof(int), 1, f);
+			if(fread(&posyN, sizeof(int), 1, f) != 1)
+				throw std::runtime_error("Cannot read enough data from file.");
 			posy = std::shared_ptr<IPositionFieldTraits>(getPositionFieldTraits(posyN));
 		}
 

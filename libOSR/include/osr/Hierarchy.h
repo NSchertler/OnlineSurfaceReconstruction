@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include <boost/signals2.hpp>
 #include "osr/common.h"
 #include "osr/Optimizer.h"
 
 #include <nsessentials/math/BoundingBox.h>
+#include <nsessentials/util/Observer.h>
 
 namespace osr
 {
@@ -36,11 +36,8 @@ namespace osr
 		typedef TVertexIndex VertexIndex;
 
 		//signals that are emitted whenever data are changed
-		boost::signals2::signal<void()> PositionsChanged;
-		boost::signals2::signal<void()> NormalsChanged;
-		boost::signals2::signal<void()> AdjacencyChanged;
-		boost::signals2::signal<void()> DirFieldChanged;
-		boost::signals2::signal<void()> PosFieldChanged;
+		nse::util::Observer<> GeometryChanged;
+		nse::util::Observer<> FieldsChanged;
 
 		//attribute access in the following form for every Index possibly emitted by the hierarchy:
 		//  template<Attribute A> typename AttributeTraits<A>::Type& attribute(const Index& i);

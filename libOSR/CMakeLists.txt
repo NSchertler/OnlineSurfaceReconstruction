@@ -13,7 +13,9 @@ set(OSR_ADDITIONAL_INCLUDE_DIR)
 set(OSR_EXTRA_DEFS)
 
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../CMake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} 
+	"${CMAKE_CURRENT_SOURCE_DIR}/../CMake/Modules/"
+	"${CMAKE_CURRENT_SOURCE_DIR}/../ext/nsessentials/CMake/Modules/")
 include(SetupBuildEnvironment)
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -48,15 +50,15 @@ PublicIncludeDir(${CMAKE_CURRENT_LIST_DIR}/include)
 
 # Add TBB dependency
 FindOrFallBack(TBB TBB_ROOT tbb)
-set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
-set(TBB_BUILD_SHARED OFF CACHE BOOL " " FORCE)
+set(TBB_BUILD_STATIC OFF CACHE BOOL " " FORCE)
+set(TBB_BUILD_SHARED ON CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
 set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 add_subdirectory(${TBB_ROOT} ${CMAKE_BINARY_DIR}/ext_build/tbb)
-set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
+set_property(TARGET tbb tbb_def_files PROPERTY FOLDER "dependencies")
 PublicIncludeDir(${TBB_ROOT}/include)
-set(LIBS ${LIBS} tbb_static)
+set(LIBS ${LIBS} tbb)
 
 # Add Eigen dependency
 FindOrFallBack(Eigen3 EIGEN3_INCLUDE_DIR eigen)
@@ -68,12 +70,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 FindOrFallBack(NSEssentials NSE_ROOT nsessentials)
 SET(NSE_WITH_TBB ON CACHE BOOL " " FORCE)
 SET(NSE_WITH_EIGEN ON CACHE BOOL " " FORCE)
-add_subdirectory(${NSE_ROOT} ${CMAKE_BINARY_DIR}/ext_build/nsessentials)
+SET(NSE_BUILD_SHARED ON CACHE BOOL " " FORCE)
+add_subdirectory(${NSE_ROOT} ${CMAKE_BINARY_DIR}/ext_build/nse)
 set_property(TARGET nsessentials PROPERTY FOLDER "dependencies")
 set(LIBS ${LIBS} nsessentials)
 PublicIncludeDir(${NSE_ROOT}/include)
 set(OSR_EXTRA_DEFS ${OSR_EXTRA_DEFS} ${NSE_EXTRA_DEFS})
 add_definitions(${NSE_EXTRA_DEFS})
+list (FIND NSE_EXTRA_DEFS /DNSE_BUILD_SHARED _index)
+if (${_index} GREATER -1)
+	set(LIBS ${LIBS} nsessentials)
+endif()
 
 # Add Boost dependency
 set(BOOST_COMPONENTS)
@@ -111,7 +118,7 @@ include_directories(${DSet_ROOT})
 # Add RPLY dependency
 FindOrFallBack(RPLY RPLY_ROOT rply)
 SET(THIRD_PARTY ${THIRD_PARTY} ${RPLY_ROOT}/rply.c)
-include_directories(${THIRD_PARTY} ${RPLY_ROOT})
+include_directories(${RPLY_ROOT})
 
 # Add nanoflann dependency
 FindOrFallBack(Nanoflann NANOFLANN_ROOT nanoflann)

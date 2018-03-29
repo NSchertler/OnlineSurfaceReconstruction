@@ -21,7 +21,7 @@ build_script:
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% OnlineSurfaceReconstruction.sln
   - cd bin/Release
-  - 7z a ../../osr-windows.zip "OnlineSurfaceReconstruction.exe" "OSR.dll"
+  - 7z a ../../osr-windows.zip "OnlineSurfaceReconstruction.exe" "OSR.dll" "nanogui.dll" "nsessentials.dll" "tbb.dll"
   - cd ../..
   - appveyor PushArtifact osr-windows.zip -FileName osr-windows.zip
 on_success:

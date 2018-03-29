@@ -20,8 +20,6 @@
 #include <Eigen/Core>
 #include "osr/OSRLibrary.h"
 
-#include <iomanip>
-
 namespace osr
 {
 #define SINGLE_PRECISION
@@ -80,23 +78,7 @@ namespace osr
 	typedef Eigen::Matrix<unsigned short, 3, Eigen::Dynamic>		Matrix3Xus;
 
 
-	inline std::string memString(size_t size, bool precise = false)
-	{
-		double value = (double)size;
-		const char *suffixes[] = {
-			"B", "KiB", "MiB", "GiB", "TiB", "PiB"
-		};
-		int suffix = 0;
-		while (suffix < 5 && value > 1024.0f) {
-			value /= 1024.0f; ++suffix;
-		}
-
-		std::ostringstream os;
-		os << std::setprecision(suffix == 0 ? 0 : (precise ? 4 : 1))
-			<< std::fixed << value << " " << suffixes[suffix];
-
-		return os.str();
-	}
+	OSR_EXPORT std::string memString(size_t size, bool precise = false);
 
 	template <typename Matrix>
 	inline size_t sizeInBytes(const Matrix &matrix)
@@ -111,55 +93,5 @@ namespace osr
 	/// Always-positive modulo function, Float precision version (assumes b > 0)
 	OSR_EXPORT Float modulo(Float a, Float b);
 
-	extern OSR_EXPORT float fast_acos(float x);
-
-	template <typename TData>
-	struct Neighbor
-	{
-		Neighbor(TData idx, Float distanceSq)
-			: idx(idx), distanceSq(distanceSq)
-		{ }
-
-		bool operator>(const Neighbor<TData>& other) const { return distanceSq > other.distanceSq; }
-		bool operator<(const Neighbor<TData>& other) const { return distanceSq < other.distanceSq; }
-
-		TData idx;
-		Float distanceSq;
-	};
-
-	template <typename TData>
-	struct NeighborStrictOrder
-	{
-		NeighborStrictOrder(TData idx, Float distanceSq)
-			: idx(idx), distanceSq(distanceSq)
-		{ }
-
-		bool operator>(const NeighborStrictOrder<TData>& other) const
-		{
-			if (distanceSq != other.distanceSq)
-				return distanceSq > other.distanceSq;
-			return idx > other.idx;
-		}
-		bool operator<(const NeighborStrictOrder<TData>& other) const
-		{
-			if (distanceSq != other.distanceSq)
-				return distanceSq < other.distanceSq;
-			return idx < other.idx;
-		}
-
-		TData idx;
-		Float distanceSq;
-	};
-
-	template <typename T>
-	T bilinear(const T& v1, const T& v2, const T& v3, const T& v4, const Vector2f& uv)
-	{
-		return (1 - uv.x()) * ((1 - uv.y()) * v1 + uv.y() * v4) + uv.x() * ((1 - uv.y()) * v2 + uv.y() * v3);
-	}
-
-	template <typename T>
-	T barycentric(const T& v1, const T& v2, const T& v3, const Vector2f& uv)
-	{
-		return uv.x() * v1 + uv.y() * v2 + (1 - uv.x() - uv.y()) * v3;
-	}
+	extern OSR_EXPORT float fast_acos(float x);	
 }

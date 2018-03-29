@@ -13,6 +13,7 @@
 
 #include "osr/HierarchyMortonMultiPass.h"
 #include "osr/HierarchyOptimizationHelper.h"
+#include "osr/PreparedVertexSet.h"
 
 #include "osr/Attributes.h"
 #include "osr/AttributeConsistency.h"
@@ -25,6 +26,7 @@
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <tbb/parallel_sort.h>
+#include <tbb/concurrent_vector.h>
 
 using namespace osr;
 using namespace HierarchyMortonMultiPass;
@@ -110,11 +112,8 @@ void Hierarchy::reset()
 
 	init();
 
-	PositionsChanged();
-	NormalsChanged();
-	AdjacencyChanged();
-	DirFieldChanged();
-	PosFieldChanged();
+	GeometryChanged();
+	FieldsChanged();
 }
 
 void Hierarchy::init()
@@ -470,11 +469,8 @@ void Hierarchy::updateHierarchy(const Matrix3Xf & V, const Matrix3Xf& N, const M
 	std::cout << (float)mVertexCount / mLevels[1].originalData.sizeNotDeleted() << " vertices per cell in average." << std::endl;
 	pointSpacing = sqrt((float)mLevels[1].originalData.sizeNotDeleted() * gridSize * gridSize / mVertexCount);
 
-	DirFieldChanged();
-	PosFieldChanged();
-	PositionsChanged();
-	NormalsChanged();
-	AdjacencyChanged();	
+	GeometryChanged();
+	FieldsChanged();
 }
 
 template <Attribute ... Attributes>
@@ -587,7 +583,7 @@ namespace osr
 }
 
 template <Attribute ... Attributes>
-PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::OptimizePart(std::vector<MortonContainer<NodeState>>& levelStates, bool checkForChildChange)
+PreparedVertexSet<Index, true, false> Hierarchy::OptimizePart(std::vector<MortonContainer<NodeState>>& levelStates, bool checkForChildChange)
 {
 	const float orientationThresholdSq = 0.01f; //the squared threshold above which an orientation is considered to have changed significantly
 	const float positionThreshold = 0.1f; //the squared threshold above which a position is considered to have changed significantly
@@ -764,7 +760,7 @@ PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::OptimizePart(std::ve
 }
 
 template<Attribute ... Attributes>
-PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::Optimize()
+PreparedVertexSet<Index, true, false> Hierarchy::Optimize()
 {
 	nse::util::TimedBlock b("Optimizing full..");
 
@@ -809,8 +805,7 @@ PreparedVertexSet<Hierarchy, Index, true, false> Hierarchy::Optimize()
 	auto vertexSet = prepareForOptimizationWithIntrinsicNeighborIndices(VertexIterator(mLevels[0].originalData.begin(), 0), VertexIterator(mLevels[0].originalData.end(), 0), *this);
 	vertexSet.optimize<false, DirField, PosField>(optimizer);	
 
-	DirFieldChanged();
-	PosFieldChanged();
+	FieldsChanged();
 
 	return vertexSet;
 }
