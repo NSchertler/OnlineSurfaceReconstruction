@@ -35,7 +35,7 @@ If your build environment does not support OpenMP (e.g. Clang on MacOS), the pro
 
 ## Binaries
 The following binaries are compiled from the latest commit with default options:
-* [Windows Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-windows/osr-windows.zip) (Visual Studio 2015)
+* [Windows Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-windows/osr-windows.zip) (Visual Studio 2017)
 * [Linux Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-linux/osr-linux.zip) (GCC 6)
 * [macOS Binaries](https://github.com/NSchertler/OnlineSurfaceReconstruction/raw/deploy-osx/osr-macos.zip) (Clang, without OpenMP support)
 
