@@ -7,7 +7,7 @@ branches:
     - master
     
 environment:   
-  BOOST_ROOT: C:\Libraries\boost_1_63_0
+  BOOST_ROOT: C:\Libraries\boost_1_64_0
   access_token:
     secure: tiZie8oQ9NaxNf87TpXYZ0cE+3qKwfyOhF2YC84efQ0PfrfDZskXI05mrGtEdwMu
     
