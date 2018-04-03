@@ -16,7 +16,7 @@ install:
 build_script:
   - echo Running cmake...
   - cd c:\projects\OnlineSurfaceReconstruction
-  - cmake -G "Visual Studio 14 2015 Win64" -DBOOST_ROOT="%BOOST_ROOT%"
+  - cmake -G "Visual Studio 15 2017 Win64" -DBOOST_ROOT="%BOOST_ROOT%"
   - set MSBuildLogger="C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - set MSBuildOptions=/v:m /p:Configuration=Release /logger:%MSBuildLogger%
   - msbuild %MSBuildOptions% OnlineSurfaceReconstruction.sln
