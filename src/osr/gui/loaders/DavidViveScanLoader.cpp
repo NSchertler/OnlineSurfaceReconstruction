@@ -20,7 +20,7 @@ using namespace osr::gui;
 using namespace osr::gui::loaders;
 
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
-const std::string scanPath = "D:\\Scans\\currentScan_osr.ply"; //TODO::Generalize
+const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 const std::string scanPathUnity = "D:\\Scans\\currentScan.ply"; // zhenyi
 
 DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
@@ -323,7 +323,12 @@ void DavidViveScanLoader::track()
 				{
 					std::cerr << "crashed in GetDeviceToAbsoluteTrackingPose:" << e.what() << "\n";
 				}
-				
+				// zhenyi: test network
+				float testf = rand() % 50 / 50.0;
+				zmqPub::getInstance()->send("A", testf);
+				std::cout << "sending: " << testf << "\n";
+				//return;
+				// end of test
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
@@ -345,17 +350,17 @@ void DavidViveScanLoader::track()
 					state = Scanning;
 					Eigen::Affine3f transformUncalibrated = Eigen::Translation3f(axisCenter) * Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection) * Eigen::Translation3f(-axisCenter) * scannerControllerMatrix;
 					Eigen::Affine3f transformCalibrated = adaptAfterCalibration * transformUncalibrated * transformScannerControllerToDavidSystem;
-					//TakeScan(transformCalibrated);	// zhenyi: test without scanning
+					TakeScan(transformCalibrated);	// zhenyi: test without scanning
 					// zhenyi
 					std::vector<Eigen::Affine3f> matrixs;
 					matrixs.push_back(transformUncalibrated);
 					matrixs.push_back(transformCalibrated);
 					matrixs.push_back(scannerControllerMatrix);
 					matrixs.push_back(transformScannerControllerToDavidSystem);
-					zmqPub::getInstance()->send("m64", matrixs);
+					//zmqPub::getInstance()->send("m64", matrixs);
+					
 
 
-					/* zhenyi test
 					currentScan->davidViveData.transformUncalibrated = transformUncalibrated;
 					currentScan->davidViveData.turntableRotation = Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection);
 					currentScan->davidViveData.davidToVive = scannerControllerMatrix * transformScannerControllerToDavidSystem;
@@ -372,8 +377,6 @@ void DavidViveScanLoader::track()
 
 					NewScan(currentScan);
 
-					zhenyi test
-					*/
 					currentScan = nullptr;
 					state = Normal;
 				}
@@ -467,7 +470,7 @@ void DavidViveScanLoader::TakeScan(const Eigen::Affine3f& transform)
 	while (!validRet) {
 		validRet = valid_ply(scanPathUnity);
 	}
-	zmqPub::getInstance()->send("s01");
+	//zmqPub::getInstance()->send("s01");
 	// end of zhenyi netmq 
 
 	while (!boost::filesystem::exists(scanPath))
