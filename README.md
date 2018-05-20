@@ -54,3 +54,6 @@ If cannot find boost library
 
 If cannot find zmq related files
 * Add corredponding prop file in folder props in OSR project in vs2015
+
+If cannot find openvr related library
+* Check Inherit from parent or project defaults in solution property
