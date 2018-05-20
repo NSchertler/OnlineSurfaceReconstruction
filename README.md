@@ -44,3 +44,13 @@ A selection of data sets that we presented in our paper can be found here: https
 
 ## Documentation
 Source code documentation can be found in the [wiki](https://github.com/NSchertler/OnlineSurfaceReconstruction/wiki)
+
+## Small Tips For Solution Generation
+If cannot find OpenVR during CMAKE
+* Add entry: CMAKE_MODULE_PATH with the value of root dir which includes a FindOpenVR.cmake
+
+If cannot find boost library
+* Download boost library and follow the error message in cmake console to add corredponding entry
+
+If cannot find zmq related files
+* Add corredponding prop file in folder props in OSR project in vs2015
