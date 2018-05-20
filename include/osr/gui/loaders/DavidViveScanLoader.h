@@ -59,6 +59,8 @@ namespace osr {
 				vr::IVRSystem* vrSystem;
 
 				void track();
+				// zhenyi
+				void directIntegrate();
 
 				void Calibrate();
 				void CalibrateTurntable(vr::TrackedDeviceIndex_t device);

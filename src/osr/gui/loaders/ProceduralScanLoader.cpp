@@ -14,6 +14,7 @@
 #include "osr/gui/loaders/ProceduralScanLoader.h"
 
 #include <nanogui/button.h>
+#include <thread>
 
 using namespace osr::gui;
 using namespace loaders;
@@ -99,5 +100,14 @@ void ProceduralScanLoader::LoadData()
 	}
 
 	NewScan(new Scan(V, N, Matrix3Xus(), MatrixXu(), "procedural_" + std::to_string(it)));
+	directIntegrate();
 	++it;
+}
+
+void osr::gui::loaders::ProceduralScanLoader::directIntegrate()
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
+	std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
+	system(command.c_str());
 }

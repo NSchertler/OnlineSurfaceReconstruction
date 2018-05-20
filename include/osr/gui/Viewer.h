@@ -63,6 +63,8 @@ namespace osr {
 			void ScanAdded(Scan * s);
 			void ScanRemoved(Scan * s);
 
+			void directIntegrate();
+
 			void render(const Eigen::Matrix4f& mv, const Eigen::Matrix4f& proj);
 
 			DataGL data;

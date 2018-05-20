@@ -101,6 +101,14 @@ namespace osr
 			HierarchySpecific(Viewer& viewer)
 			{ }
 		};
+
+		void Viewer::directIntegrate()
+		{
+			std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
+			std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
+			system(command.c_str());
+		}
+
 	}
 }
 
@@ -562,6 +570,7 @@ void Viewer::ScanAdded(Scan* s)
 
 	SetupScanGUI(data.scans.back());
 	performLayout(nvgContext());
+	directIntegrate();
 }
 
 void Viewer::ScanRemoved(Scan * scan)

@@ -325,9 +325,9 @@ void DavidViveScanLoader::track()
 				}
 
 				// zhenyi: test network
-				float testf = rand() % 50 / 50.0;
-				zmqPub::getInstance()->send("A", testf);
-				std::cout << "sending: " << testf << "\n";
+// 				float testf = rand() % 50 / 50.0;
+// 				zmqPub::getInstance()->send("A", testf);
+// 				std::cout << "sending: " << testf << "\n";
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
@@ -349,20 +349,26 @@ void DavidViveScanLoader::track()
 					state = Scanning;
 					Eigen::Affine3f transformUncalibrated = Eigen::Translation3f(axisCenter) * Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection) * Eigen::Translation3f(-axisCenter) * scannerControllerMatrix;
 					Eigen::Affine3f transformCalibrated = adaptAfterCalibration * transformUncalibrated * transformScannerControllerToDavidSystem;
+					
 					TakeScan(transformCalibrated);	// zhenyi: test without scanning
+
+					// zhenyi direct integrate now
+					directIntegrate();
 					// zhenyi
 					std::vector<Eigen::Affine3f> matrixs;
-					matrixs.push_back(transformUncalibrated);
-					matrixs.push_back(transformCalibrated);
-					matrixs.push_back(scannerControllerMatrix);
-					matrixs.push_back(transformScannerControllerToDavidSystem);
-					zmqPub::getInstance()->send("m64", matrixs);
-					
+// 					matrixs.push_back(transformUncalibrated);
+// 					matrixs.push_back(transformCalibrated);
+// 					matrixs.push_back(scannerControllerMatrix);
+// 					matrixs.push_back(transformScannerControllerToDavidSystem);
+// 					zmqPub::getInstance()->send("m64", matrixs);
+					// zhenyi: test without scanning
 					currentScan->davidViveData.transformUncalibrated = transformUncalibrated;
 					currentScan->davidViveData.turntableRotation = Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection);
 					currentScan->davidViveData.davidToVive = scannerControllerMatrix * transformScannerControllerToDavidSystem;
 
 					bool withSecondary = ToEigenMatrix(poses[secondaryController], secondaryControllerMatrix);
+					matrixs.push_back(secondaryControllerMatrix);
+					zmqPub::getInstance()->send("m16", matrixs);
 
 					std::ofstream aln("ScanAlignment.aln");
 					aln << (withSecondary ? 3 : 2) << std::endl;
@@ -371,7 +377,7 @@ void DavidViveScanLoader::track()
 						writeALNPart(aln, "controller.ply", secondaryControllerMatrix);
 					writeALNPart(aln, "scan.ply", transformCalibrated);
 					aln.close();
-
+					// zhenyi: test without scanning
 					NewScan(currentScan);
 
 					currentScan = nullptr;
@@ -750,4 +756,10 @@ void DavidViveScanLoader::CalibrateTurntable(vr::TrackedDeviceIndex_t device)
 	ply.write(reinterpret_cast<const char*>(axis), sizeof(axis));
 
 	ply.close();
+}
+
+void osr::gui::loaders::DavidViveScanLoader::directIntegrate()
+{
+	std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
+	system(command.c_str());
 }

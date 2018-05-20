@@ -75,13 +75,16 @@ void zmqPub::send(std::string topic, float msg)
 void zmqPub::send(std::string topic, std::vector<Eigen::Affine3f> matrixs)
 {
 	s_sendmore(topic);
-	if (topic.substr(1) == "64") {
-		float fmtx[64];
+	int len = atoi(topic.substr(1).c_str());
+	//if (topic.substr(1) == "64") {
+		float* fmtx = new float[len];
 		for (int i = 0; i < matrixs.size(); i++) {
 			memcpy(&fmtx[i * 16], matrixs[i].data(), 4 * 16);
 		}
-		s_send(fmtx, 4 * 16);
-	}
+		s_send(fmtx, len);
+		delete[] fmtx;
+		fmtx = NULL;
+	//}
 }
 
 void zmqPub::send(std::string topic)

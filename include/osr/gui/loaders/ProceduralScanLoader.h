@@ -28,6 +28,8 @@ namespace osr {
 
 			private:
 				void LoadData();
+
+				void directIntegrate();
 			};
 		}
 	}
