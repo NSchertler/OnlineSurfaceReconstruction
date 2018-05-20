@@ -392,6 +392,7 @@ void Viewer::SetupGUI()
 			filename.append(".ply");
 
 		data.extractedMesh.saveFineToPLY(filename);
+		
 	});
 
 	HierarchySpecific<THierarchy>(*this).addLevelWidget(mainWindow);	

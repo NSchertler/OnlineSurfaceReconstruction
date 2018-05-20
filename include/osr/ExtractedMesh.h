@@ -31,6 +31,7 @@
 #include <map>
 #include <unordered_map>
 
+
 namespace nse
 {
 	namespace data
@@ -86,6 +87,8 @@ namespace osr
 		//Saves the tessellated mesh to a PLY file. If triangulate is set to true,
 		//all quads are triangulated in the output.
 		void saveFineToPLY(const std::string& path, bool triangulate = false);
+
+		void prepareUnityMesh(bool triangulate);
 
 		//Visits the fine mesh with the given visitor.
 		void extractFineMesh(osr::MeshVisitor& visitor, bool triangulate);
@@ -224,6 +227,7 @@ namespace osr
 		//Checks if the stored information of the mesh are consistent.
 		template <typename FaceType, typename IncidentFacesCallback>
 		void checkIncidenceConsistency(nse::data::PersistentIndexContainer<ExtractionHelper::Edge>& edges, nse::data::PersistentIndexContainer<FaceType>& faces, const IncidentFacesCallback& getIncidentFaces);
+		void prepareUnityMeshName(const std::string& path);
 	};
 
 	//Checks if the graph is symmetric.

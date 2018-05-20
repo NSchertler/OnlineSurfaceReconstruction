@@ -6,6 +6,7 @@ zmqPub::zmqPub()
 {
 	m_context = new zmq::context_t(1);
 	m_socket = new zmq::socket_t(*m_context, ZMQ_PUB);
+	isConnect = false;
 }
 
 
@@ -60,10 +61,22 @@ bool zmqPub::s_send(float f[], int len)
 	return (rc);
 }
 
+bool zmqPub::s_send(byte b[], int len)
+{
+	zmq::message_t message(len);
+	memcpy(message.data(), &b, len);
+
+	bool rc = m_socket->send(message);
+	return (rc);
+}
+
 void zmqPub::connect()
 {
-	m_socket->bind("tcp://*:5563");
-	std::cout << "connecting\n";
+	if (!isConnect) {
+		isConnect = true;
+		m_socket->bind("tcp://*:5563");
+		std::cout << "connecting\n";
+	}	
 }
 
 void zmqPub::send(std::string topic, float msg)
@@ -103,6 +116,18 @@ void zmqPub::send(std::string topic, float msg[])
 {
 	s_sendmore(topic);
 	s_send(msg, 4);
+}
+
+void zmqPub::send(std::string topic, byte* msg, int len)
+{
+	s_sendmore(topic);
+	s_send(msg, len);
+}
+
+void zmqPub::send(std::string topic, const std::string& path)
+{
+	s_sendmore(topic + std::to_string(path.size()));
+	s_send(std::string(path));
 }
 
 zmqPub* zmqPub::m_instance = NULL;
