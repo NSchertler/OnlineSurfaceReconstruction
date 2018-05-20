@@ -14,7 +14,7 @@
 
 #include "zmq/zmqPub.h"
 #include "zmq/zmqClient.h"
-
+//
 using namespace osr;
 using namespace osr::gui;
 using namespace osr::gui::loaders;
@@ -324,6 +324,8 @@ void DavidViveScanLoader::track()
 					std::cerr << "crashed in GetDeviceToAbsoluteTrackingPose:" << e.what() << "\n";
 				}
 				
+				// zhenyi test
+				zmqPub::getInstance()->send("A", 0.612);
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
@@ -354,8 +356,6 @@ void DavidViveScanLoader::track()
 					matrixs.push_back(transformScannerControllerToDavidSystem);
 					zmqPub::getInstance()->send("m64", matrixs);
 
-
-					/* zhenyi test
 					currentScan->davidViveData.transformUncalibrated = transformUncalibrated;
 					currentScan->davidViveData.turntableRotation = Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection);
 					currentScan->davidViveData.davidToVive = scannerControllerMatrix * transformScannerControllerToDavidSystem;
@@ -372,8 +372,6 @@ void DavidViveScanLoader::track()
 
 					NewScan(currentScan);
 
-					zhenyi test
-					*/
 					currentScan = nullptr;
 					state = Normal;
 				}
