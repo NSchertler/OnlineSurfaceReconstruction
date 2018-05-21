@@ -87,6 +87,7 @@ void zmqPub::send(std::string topic, float msg)
 
 void zmqPub::send(std::string topic, std::vector<Eigen::Affine3f> matrixs)
 {
+	std::cout << "zmqPub::send:" << topic << "\n";
 	s_sendmore(topic);
 	int len = atoi(topic.substr(1).c_str());
 	//if (topic.substr(1) == "64") {
@@ -126,6 +127,7 @@ void zmqPub::send(std::string topic, byte* msg, int len)
 
 void zmqPub::send(std::string topic, const std::string& path)
 {
+	std::cout << "zmq send:" << topic << "\n";
 	s_sendmore(topic + std::to_string(path.size()));
 	s_send(std::string(path));
 }

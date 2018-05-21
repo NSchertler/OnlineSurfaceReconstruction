@@ -13,6 +13,8 @@
 #include <filesystem>
 
 #include "zmq/zmqPub.h"
+
+#include "osr/gui/Viewer.h"
 //#include "zmq/zmqClient.h"
 //
 using namespace osr;
@@ -22,6 +24,7 @@ using namespace osr::gui::loaders;
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 const std::string scanPathUnity = "D:\\Scans\\currentScan.ply"; // zhenyi
+const std::string integrateBtn = "D:\\Projects\\OnlineSurfaceReconstruction\\DavidVive\\ClickIntegrateBtn.au3";
 
 DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
@@ -46,6 +49,9 @@ void DavidViveScanLoader::setup(nanogui::Window*)
 	FILE* f = fopen("TakeDavidScan.au3", "wb");
 	fwrite(takedavidscan_au3, 1, takedavidscan_au3_size, f);
 	fclose(f);
+
+	//std::experimental::filesystem::copy(integrateBtn, "ClickIntegrateBtn.au3");
+	boost::filesystem::copy_file(integrateBtn, "ClickIntegrateBtn.au3", boost::filesystem::copy_option::overwrite_if_exists);
 
 	f = fopen("ViveController.ply", "wb");
 	fwrite(vivecontroller_ply, 1, vivecontroller_ply_size, f);
@@ -238,6 +244,21 @@ int DavidViveScanLoader::FindOtherController(vr::TrackedDeviceIndex_t controller
 	return otherController;
 }
 
+int DavidViveScanLoader::IdentifyTheTracker(vr::TrackedDevicePose_t* poses) {
+	int theTracker = -1;
+	for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+	{
+		auto deviceClass = vrSystem->GetTrackedDeviceClass(i);
+		if (deviceClass == vr::TrackedDeviceClass::TrackedDeviceClass_GenericTracker && poses[i].bPoseIsValid && poses[i].eTrackingResult == vr::ETrackingResult::TrackingResult_Running_OK)
+		{
+			theTracker = i;
+			break;
+		}
+	}
+
+	return theTracker;
+}
+
 bool DavidViveScanLoader::ToEigenMatrix(const vr::TrackedDevicePose_t& pose, Eigen::Affine3f& m)
 {
 	if (!pose.bPoseIsValid || pose.eTrackingResult != vr::ETrackingResult::TrackingResult_Running_OK)
@@ -315,6 +336,7 @@ void DavidViveScanLoader::track()
 		{
 			if (e.eventType == vr::VREvent_ButtonUnpress && (e.data.controller.button == vr::k_EButton_SteamVR_Trigger || e.data.controller.button == vr::k_EButton_ApplicationMenu))
 			{
+				std::cout << "trigger or application\n";
 				try
 				{
 					vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
@@ -331,6 +353,17 @@ void DavidViveScanLoader::track()
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
+				int thirdTracker = IdentifyTheTracker(poses);
+				if (thirdTracker == -1) {
+					std::cout << "did not find the tracker\n";
+					continue;
+				}
+				Eigen::Affine3f trackerMatrix;
+				if (!ToEigenMatrix(poses[thirdTracker], trackerMatrix))
+				{
+					std::cout << "Could not track tracker." << std::endl;
+					continue;
+				}
 
 				if (e.data.controller.button == vr::k_EButton_ApplicationMenu)
 					std::swap(primaryController, secondaryController);
@@ -352,8 +385,7 @@ void DavidViveScanLoader::track()
 					
 					TakeScan(transformCalibrated);	// zhenyi: test without scanning
 
-					// zhenyi direct integrate now
-					directIntegrate();
+					
 					// zhenyi
 					std::vector<Eigen::Affine3f> matrixs;
 // 					matrixs.push_back(transformUncalibrated);
@@ -367,19 +399,27 @@ void DavidViveScanLoader::track()
 					currentScan->davidViveData.davidToVive = scannerControllerMatrix * transformScannerControllerToDavidSystem;
 
 					bool withSecondary = ToEigenMatrix(poses[secondaryController], secondaryControllerMatrix);
-					matrixs.push_back(secondaryControllerMatrix);
-					zmqPub::getInstance()->send("m16", matrixs);
-
 					std::ofstream aln("ScanAlignment.aln");
 					aln << (withSecondary ? 3 : 2) << std::endl;
 					writeALNPart(aln, "controller.ply", scannerControllerMatrix);
 					if(withSecondary)
 						writeALNPart(aln, "controller.ply", secondaryControllerMatrix);
 					writeALNPart(aln, "scan.ply", transformCalibrated);
+					if(thirdTracker != -1)
+						writeALNPart(aln, "tracker.ply", trackerMatrix);
 					aln.close();
 					// zhenyi: test without scanning
 					NewScan(currentScan);
 
+					// zhenyi direct integrate now
+					//directIntegrate();
+
+					// save to file and send out the matrix
+					matrixs.push_back(trackerMatrix);
+					zmqPub::getInstance()->send("m16", matrixs);
+					//Viewer* v = (Viewer*)(viewer);
+					//std::string tmpFileName = generateTempFile();
+					
 					currentScan = nullptr;
 					state = Normal;
 				}
@@ -762,4 +802,11 @@ void osr::gui::loaders::DavidViveScanLoader::directIntegrate()
 {
 	std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
 	system(command.c_str());
+}
+
+std::string osr::gui::loaders::DavidViveScanLoader::generateTempFile()
+{
+	std::string prefix = "D:\\Scans\\integrated";
+	static int cnt = 0;
+	return prefix + std::to_string(cnt) + ".ply";
 }

@@ -37,10 +37,10 @@
 
 #include <map>
 
+
 namespace osr {
 	namespace gui
 	{
-
 		//Main class for the GUI
 		class Viewer : public nse::gui::AbstractViewer
 		{
@@ -66,9 +66,10 @@ namespace osr {
 			void directIntegrate();
 
 			void render(const Eigen::Matrix4f& mv, const Eigen::Matrix4f& proj);
-
+			std::string generateTempFile();
+		public:
 			DataGL data;
-
+		private:
 			HierarchyRenderer hierarchyRenderer;
 
 			nanogui::Window* mainWindow;

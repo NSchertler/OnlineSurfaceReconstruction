@@ -43,6 +43,8 @@
 #include "osr/gui/loaders/FileScanLoader.h"
 #include "osr/gui/loaders/ProceduralScanLoader.h"
 
+#include "zmq/zmqPub.h"
+
 using namespace osr;
 using namespace osr::gui;
 
@@ -107,6 +109,13 @@ namespace osr
 			std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 			std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
 			system(command.c_str());
+		}
+
+		std::string Viewer::generateTempFile()
+		{
+			std::string prefix = "D:\\Scans\\integrated";
+			static int cnt = 0;
+			return prefix + std::to_string(cnt++) + ".ply";
 		}
 
 	}
@@ -571,7 +580,18 @@ void Viewer::ScanAdded(Scan* s)
 
 	SetupScanGUI(data.scans.back());
 	performLayout(nvgContext());
-	directIntegrate();
+	std::cout << "ScanAdded: after performLayout\n";
+	// zhenyi
+ 	//directIntegrate();
+	data.IntegrateScan(s);
+	std::cout << "ScanAdded: after IntegrateScan\n";
+ 	std::string tmpFileName = generateTempFile();
+ 	data.extractedMesh.saveFineToPLY(tmpFileName);
+	std::cout << "ScanAdded: after saveFineToPLY:" << tmpFileName << "\n";
+	//data.extractedMesh.saveCoarseToPLY(tmpFileName);
+	//std::cout << "ScanAdded: after saveCoarseToPLY:" << tmpFileName << "\n";
+ 	zmqPub::getInstance()->send("nm", tmpFileName);
+
 }
 
 void Viewer::ScanRemoved(Scan * scan)

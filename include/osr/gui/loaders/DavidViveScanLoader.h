@@ -61,11 +61,13 @@ namespace osr {
 				void track();
 				// zhenyi
 				void directIntegrate();
+				std::string generateTempFile();
 
 				void Calibrate();
 				void CalibrateTurntable(vr::TrackedDeviceIndex_t device);
 				void TakeScan(const Eigen::Affine3f& transform);
 				int FindOtherController(vr::TrackedDeviceIndex_t controller, vr::TrackedDevicePose_t* poses);
+				int IdentifyTheTracker(vr::TrackedDevicePose_t* poses);
 				bool ToEigenMatrix(const vr::TrackedDevicePose_t& pose, Eigen::Affine3f& m);
 				bool waitUntilStill(vr::TrackedDevicePose_t* poses, vr::TrackedDeviceIndex_t device);
 

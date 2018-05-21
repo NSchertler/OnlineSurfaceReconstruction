@@ -108,6 +108,6 @@ void osr::gui::loaders::ProceduralScanLoader::directIntegrate()
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
-	std::string command = "\"" + autoItPath + "\" ClickIntegrateBtn.au3";
+	std::string command = "\"" + autoItPath + "\" D:\\Projects\\OnlineSurfaceReconstruction\\build_msvc14_64\\ClickIntegrateBtn.au3";
 	system(command.c_str());
 }

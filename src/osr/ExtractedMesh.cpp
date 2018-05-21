@@ -955,7 +955,7 @@ void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 	extractFineMesh(visitor, triangulate);
 	// zhenyi
 	//prepareUnityMesh(triangulate);
-	prepareUnityMeshName(path);
+	//prepareUnityMeshName(path);
 }
 
 void ExtractedMesh::saveToFile(FILE * f) const
