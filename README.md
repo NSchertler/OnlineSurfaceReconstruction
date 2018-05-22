@@ -50,10 +50,10 @@ If cannot find OpenVR during CMAKE
 * Add entry: CMAKE_MODULE_PATH with the value of root dir which includes a FindOpenVR.cmake
 
 If cannot find boost library
-* Download boost library and follow the error message in cmake console to add corredponding entry
+* Download boost library and follow the error message in cmake console to add corresponding entry
 
 If cannot find zmq related files
-* Add corredponding prop file in folder props in OSR project in vs2015
+* Add corresponding prop file in folder props in OSR project in vs2015
 
 If cannot find openvr related library
 * Check Inherit from parent or project defaults in solution property
