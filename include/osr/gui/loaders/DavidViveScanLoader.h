@@ -23,6 +23,8 @@
 
 #include <openvr.h>
 
+//int packetId;
+
 namespace osr {
 	namespace gui 	{
 		namespace loaders

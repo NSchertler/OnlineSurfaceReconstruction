@@ -14,6 +14,8 @@
 #include <iostream>
 #include <string>
 
+typedef unsigned char byte;
+
 class zmqPub
 {
 	private:
@@ -29,11 +31,15 @@ public:
 
 	void send(std::string topic, std::vector<Eigen::Affine3f> matrixs);
 
+	//void send(std::string topic, int id, std::vector<Eigen::Affine3f> matrixs);
+
 	void send(std::string topic);	// the trigger for unity to read ply
 
 	void send(std::string topic, float msg[]);
 
 	void send(std::string topic, const std::string& path);
+
+	//void send(std::string topic, int id, const std::string& path);
 
 	void send(std::string topic, byte* msg, int len);
 
@@ -50,9 +56,14 @@ private:
 
 	bool s_send(float f[], int len);
 
+	void incrementId();
+
 private:
 	static zmqPub* m_instance;
 	zmq::socket_t* m_socket;
 	zmq::context_t* m_context;
 	bool isConnect;
+	float* fmtx;
+
+	int packetId;
 };

@@ -48,6 +48,8 @@
 using namespace osr;
 using namespace osr::gui;
 
+
+
 namespace osr
 {
 	namespace gui
@@ -586,6 +588,8 @@ void Viewer::ScanAdded(Scan* s)
 	data.IntegrateScan(s);
 	std::cout << "ScanAdded: after IntegrateScan\n";
  	std::string tmpFileName = generateTempFile();
+	// remove incase it exist
+	std::remove(tmpFileName.c_str());
  	data.extractedMesh.saveFineToPLY(tmpFileName);
 	std::cout << "ScanAdded: after saveFineToPLY:" << tmpFileName << "\n";
 	//data.extractedMesh.saveCoarseToPLY(tmpFileName);

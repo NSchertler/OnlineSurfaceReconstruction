@@ -16,6 +16,8 @@
 #include <nanogui/button.h>
 #include <thread>
 
+#include "zmq/zmqPub.h"
+
 using namespace osr::gui;
 using namespace loaders;
 
@@ -27,6 +29,8 @@ void ProceduralScanLoader::setup(nanogui::Window* window)
 
 void ProceduralScanLoader::LoadData()
 {
+	zmqPub::getInstance()->connect();
+
 	static int it = 0;
 	const int resolution = 50;
 
@@ -101,6 +105,11 @@ void ProceduralScanLoader::LoadData()
 
 	NewScan(new Scan(V, N, Matrix3Xus(), MatrixXu(), "procedural_" + std::to_string(it)));
 	directIntegrate();
+	// test sending matrix
+	Eigen::Affine3f trackerMatrix = Eigen::Affine3f::Identity();
+	std::vector<Eigen::Affine3f> matrixs;
+	matrixs.push_back(trackerMatrix);
+	zmqPub::getInstance()->send("m", matrixs);
 	++it;
 }
 

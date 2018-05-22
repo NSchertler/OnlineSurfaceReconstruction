@@ -26,6 +26,8 @@ const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 const std::string scanPathUnity = "D:\\Scans\\currentScan.ply"; // zhenyi
 const std::string integrateBtn = "D:\\Projects\\OnlineSurfaceReconstruction\\DavidVive\\ClickIntegrateBtn.au3";
 
+//packetId = 0;
+
 DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
 { }
@@ -416,7 +418,7 @@ void DavidViveScanLoader::track()
 
 					// save to file and send out the matrix
 					matrixs.push_back(trackerMatrix);
-					zmqPub::getInstance()->send("m16", matrixs);
+					zmqPub::getInstance()->send("m", matrixs);
 					//Viewer* v = (Viewer*)(viewer);
 					//std::string tmpFileName = generateTempFile();
 					
