@@ -1,5 +1,6 @@
 #include "osr/MeshVisitor.h"
 #include "osr/Colors.h"
+#include <iostream>
 
 using namespace osr;
 
@@ -27,6 +28,9 @@ void WritePLYMeshVisitor::addVertex(const Eigen::Vector3f& pos, const Eigen::Vec
 {
 	ply.write(reinterpret_cast<const char*>(pos.data()), 3 * sizeof(float));
 	auto gammaCorrectedColor = osr::gammaCorrect(color);
+	//Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
+	//std::cout << "debug: color " << color << " gamma color:" << gammaCorrectedColor.format(CleanFmt) << "\n";
+	//std::cout << "debug: color " << color << " gamma color:" << (int)gammaCorrectedColor[0] << " " << (int)gammaCorrectedColor[1] << " " << (int)gammaCorrectedColor[2] << "\n";
 	ply.write(reinterpret_cast<const char*>(gammaCorrectedColor.data()), 3 * sizeof(unsigned char));
 }
 

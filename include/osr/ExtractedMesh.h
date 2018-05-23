@@ -86,6 +86,7 @@ namespace osr
 
 		//Saves the tessellated mesh to a PLY file. If triangulate is set to true,
 		//all quads are triangulated in the output.
+		// zhenyi make true for now
 		void saveFineToPLY(const std::string& path, bool triangulate = false);
 
 		void prepareUnityMesh(bool triangulate);

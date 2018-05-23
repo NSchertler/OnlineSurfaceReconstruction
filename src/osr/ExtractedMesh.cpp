@@ -809,7 +809,10 @@ void ExtractedMesh::extractFineMesh(osr::MeshVisitor& visitor, bool triangulate)
 	int totalTexels = nextIndex;
 
 	visitor.begin(totalTexels, faces);
-
+	auto c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[0].colorDisplacement));
+	std::cout << "check color 0:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
+	c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[1].colorDisplacement));
+	std::cout << "check color 1:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
 	//vertex data
 	for (auto& v : vertices)
 	{
