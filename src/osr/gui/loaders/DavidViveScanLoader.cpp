@@ -373,6 +373,10 @@ void DavidViveScanLoader::track()
 				std::cout << "Waiting until primary controller stays still..." << std::endl;
 				waitUntilStill(poses, primaryController);
 
+				// zhenyi wait until the tracker not move
+				std::cout << "Waiting until tracker stays still..." << std::endl;
+				waitUntilStill(poses, thirdTracker);
+
 				if (!ToEigenMatrix(poses[primaryController], scannerControllerMatrix))
 				{
 					std::cout << "Could not track primary controller." << std::endl;
@@ -385,7 +389,9 @@ void DavidViveScanLoader::track()
 					Eigen::Affine3f transformUncalibrated = Eigen::Translation3f(axisCenter) * Eigen::AngleAxisf(-currentAngle * M_PI / 180.0f, axisDirection) * Eigen::Translation3f(-axisCenter) * scannerControllerMatrix;
 					Eigen::Affine3f transformCalibrated = adaptAfterCalibration * transformUncalibrated * transformScannerControllerToDavidSystem;
 					
-					TakeScan(transformCalibrated);	// zhenyi: test without scanning
+					// transformCalibrate is transformScannerControllerToDavid now, if I use transformTracker?
+					TakeScan(trackerMatrix.inverse() * transformCalibrated);
+					//TakeScan(transformCalibrated);	// zhenyi: test without scanning
 
 					
 					// zhenyi

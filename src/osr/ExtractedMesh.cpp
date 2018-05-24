@@ -13,7 +13,7 @@
 */
 
 #include "osr/ExtractedMesh.h"
-
+//#include "zmq/zmqPub.h"
 #include <tbb/tbb.h>
 #include <tbb/concurrent_vector.h>
 #include <unordered_set>
@@ -22,7 +22,8 @@
 
 #include <nsessentials/util/IndentationLog.h>
 #include "UnityMesh.h"
-//#include "zmq/zmqPub.h"
+
+#include "MeshSplit.h"
 
 
 using namespace osr;
@@ -809,10 +810,10 @@ void ExtractedMesh::extractFineMesh(osr::MeshVisitor& visitor, bool triangulate)
 	int totalTexels = nextIndex;
 
 	visitor.begin(totalTexels, faces);
-	auto c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[0].colorDisplacement));
-	std::cout << "check color 0:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
-	c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[1].colorDisplacement));
-	std::cout << "check color 1:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
+// 	auto c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[0].colorDisplacement));
+// 	std::cout << "check color 0:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
+// 	c = osr::gammaCorrect(colorDisplacementToRGBColor(vertices[1].colorDisplacement));
+// 	std::cout << "check color 1:" << (int)(c[0]) << "," << (int)(c[1]) << "," << (int)(c[2]) << "\n";
 	//vertex data
 	for (auto& v : vertices)
 	{
@@ -950,12 +951,249 @@ void ExtractedMesh::extractFineMesh(osr::MeshVisitor& visitor, bool triangulate)
 	visitor.end();
 }
 
-void ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
+void ExtractedMesh::constructFineMesh(bool triangulate)
+{
+	//set up indices in texel vector
+	uint32_t nextIndex = 0;
+	triangulate = true;
+	int faces = 0;
+	for (auto& v : vertices)
+		v.indexInTexelVector = nextIndex++;
+	for (auto& e : edges)
+	{
+		e.indexInTexelVector = nextIndex;
+		nextIndex += texelsPerEdge;
+	}
+	for (auto& t : triangles)
+	{
+		t.indexInTexelVector = nextIndex;
+		nextIndex += (R - 1) * (R - 2) / 2;
+		faces += R * R;
+	}
+	for (auto& q : quads)
+	{
+		q.indexInTexelVector = nextIndex;
+		nextIndex += texelsPerQuad;
+		if (triangulate)
+			faces += 2 * R * R;
+		else
+			faces += R * R;
+	}
+	int totalTexels = nextIndex;
+	tempV = Eigen::MatrixXd::Zero(totalTexels, 3);
+	tempC = Eigen::MatrixXd::Zero(totalTexels, 3);
+	tempF = Eigen::MatrixXi::Zero(faces, 3);
+	
+	//vertex data
+	int vIdx = 0, cIdx = 0;
+	for (auto& v : vertices)
+	{
+		Vector3f p = v.position + v.colorDisplacement.w() * v.normal;
+		tempV(vIdx,0) = p(0); tempV(vIdx, 1) = p(1); tempV(vIdx, 2) = p(2);
+		++vIdx;
+		Vector3f c = colorDisplacementToRGBColor(v.colorDisplacement);
+		tempC(cIdx, 0) = c(0); tempC(cIdx, 1) = c(1); tempC(cIdx, 2) = c(2);
+		++cIdx;
+	}
+	for (auto& e : edges)
+	{
+		auto& v0 = vertices[e.v[0]];
+		auto& v1 = vertices[e.v[1]];
+		for (int i = 1; i < R; ++i)
+		{
+			float t = (float)i / R;
+			auto& cd = e.colorDisplacement[i - 1];
+			Vector3f n = (1 - t) * v0.normal + t * v1.normal;
+			Vector3f p = (1 - t) * v0.position + t * v1.position + cd.w() * n;
+			tempV(vIdx, 0) = p(0); tempV(vIdx, 1) = p(1); tempV(vIdx, 2) = p(2);
+			++vIdx;
+			Vector3f c = colorDisplacementToRGBColor(cd);
+			tempC(cIdx, 0) = c(0); tempC(cIdx, 1) = c(1); tempC(cIdx, 2) = c(2);
+			++cIdx;
+		}
+	}
+	for (auto& tri : triangles)
+	{
+		auto& v0 = vertices[startVertex(tri.edges[0])];
+		auto& v1 = vertices[startVertex(tri.edges[1])];
+		auto& v2 = vertices[startVertex(tri.edges[2])];
+		for (int v = 1; v < R - 1; ++v)
+			for (int u = 1; u + v < R; ++u)
+			{
+				FaceInterpolationInfo interpolInfo[4];
+				getInterpolationInfo(tri, Vector2f((float)u / R, (float)v / R), interpolInfo);
+
+				Vector4f cd;
+				cd.setZero();
+				for (int i = 0; i < 4; ++i)
+					cd += interpolInfo[i].weight * interpolInfo[i].entity->texel(interpolInfo[i].localTexelIndex);
+
+				Vector3f n = barycentric(v0.normal, v1.normal, v2.normal, Vector2f((float)u / R, (float)v / R));
+				Vector3f p = barycentric(v0.position, v1.position, v2.position, Vector2f((float)u / R, (float)v / R)) + cd.w() * n;
+				tempV(vIdx, 0) = p(0); tempV(vIdx, 1) = p(1); tempV(vIdx, 2) = p(2);
+				++vIdx;
+				Vector3f c = colorDisplacementToRGBColor(cd);
+				tempC(cIdx, 0) = c(0); tempC(cIdx, 1) = c(1); tempC(cIdx, 2) = c(2);
+				++cIdx;
+			}
+	}
+
+	for (auto& q : quads)
+	{
+		auto& v0 = vertices[startVertex(q.edges[0])];
+		auto& v1 = vertices[startVertex(q.edges[1])];
+		auto& v2 = vertices[startVertex(q.edges[2])];
+		auto& v3 = vertices[startVertex(q.edges[3])];
+		for (int v = 1; v < R; ++v)
+			for (int u = 1; u < R; ++u)
+			{
+				auto& cd = q.colorDisplacement[(u - 1) + (R - 1) * (v - 1)];
+				Vector3f n = bilinear(v0.normal, v1.normal, v2.normal, v3.normal, Vector2f((float)u / R, (float)v / R));
+				Vector3f p = bilinear(v0.position, v1.position, v2.position, v3.position, Vector2f((float)u / R, (float)v / R)) + cd.w() * n;
+				tempV(vIdx, 0) = p(0); tempV(vIdx, 1) = p(1); tempV(vIdx, 2) = p(2);
+				++vIdx;
+				Vector3f c = colorDisplacementToRGBColor(cd);
+				tempC(cIdx, 0) = c(0); tempC(cIdx, 1) = c(1); tempC(cIdx, 2) = c(2);
+				++cIdx;
+			}
+	}
+
+	//face data
+	int fIdx = 0;
+	for (auto& tri : triangles)
+	{
+		uint8_t count = 3;
+		uint32_t data[3];
+		for (int v = 0; v < R; ++v)
+			for (int u = 0; u + v < R; ++u)
+			{
+				const Entity* e;
+				int i;
+
+				getEntityTexelBarycentric(tri, Vector2i(u, v), e, i);
+				data[0] = e->indexInTexelVector + i;
+
+				getEntityTexelBarycentric(tri, Vector2i(u + 1, v), e, i);
+				data[1] = e->indexInTexelVector + i;
+
+				getEntityTexelBarycentric(tri, Vector2i(u, v + 1), e, i);
+				data[2] = e->indexInTexelVector + i;
+
+				//visitor.addFace(count, data);
+				//Vector3i curF;
+				//curF << static_cast<int>(data[0]), static_cast<int>(data[1]), static_cast<int>(data[2]);
+				tempF.row(fIdx++) << static_cast<int>(data[0]), static_cast<int>(data[1]), static_cast<int>(data[2]);
+
+				if (u < R - v - 1)
+				{
+					data[0] = data[2];
+
+					getEntityTexelBarycentric(tri, Vector2i(u + 1, v + 1), e, i);
+					data[2] = e->indexInTexelVector + i;
+
+					//visitor.addFace(count, data);
+					//Vector3i curF;
+					//curF << (int)data[0], (int)data[1], (int)data[2];
+					tempF.row(fIdx++) << static_cast<int>(data[0]), static_cast<int>(data[1]), static_cast<int>(data[2]);
+				}
+			}
+	}
+
+	for (auto& q : quads)
+	{
+		uint8_t count = triangulate ? 3 : 4;
+		uint32_t data[4];
+
+		const Entity* e[4];
+		int i[4];
+
+		for (int u = 0; u < R; ++u)
+			for (int v = 0; v < R; ++v)
+			{
+				getEntityTexel(q, Vector2i(u, v), e[0], i[0]);
+				getEntityTexel(q, Vector2i(u + 1, v), e[1], i[1]);
+				getEntityTexel(q, Vector2i(u + 1, v + 1), e[2], i[2]);
+				getEntityTexel(q, Vector2i(u, v + 1), e[3], i[3]);
+
+				if (triangulate)
+				{
+					data[0] = e[0]->indexInTexelVector + i[0];
+					data[1] = e[1]->indexInTexelVector + i[1];
+					data[2] = e[2]->indexInTexelVector + i[2];
+
+					//Vector3i curF;
+					//curF << (int)data[0], (int)data[1], (int)data[2];
+					//tempF.row(fIdx++) = curF;
+					tempF.row(fIdx++) << static_cast<int>(data[0]), static_cast<int>(data[1]), static_cast<int>(data[2]);
+
+					data[0] = e[0]->indexInTexelVector + i[0];
+					data[1] = e[2]->indexInTexelVector + i[2];
+					data[2] = e[3]->indexInTexelVector + i[3];
+
+// 					Vector3i curF2;
+// 					curF2 << (int)data[0], (int)data[1], (int)data[2];
+// 					tempF.row(fIdx++) = curF2;
+					tempF.row(fIdx++) << static_cast<int>(data[0]), static_cast<int>(data[1]), static_cast<int>(data[2]);
+				}
+				else
+				{
+
+					data[0] = e[0]->indexInTexelVector + i[0];
+					data[1] = e[1]->indexInTexelVector + i[1];
+					data[2] = e[2]->indexInTexelVector + i[2];
+					data[3] = e[3]->indexInTexelVector + i[3];
+
+					//visitor.addFace(count, data);
+				}
+			}
+	}
+	//visitor.end();
+}
+
+void ExtractedMesh::saveSubMesh(std::string path, std::vector<Eigen::MatrixXd> subVs, std::vector<Eigen::MatrixXd> subCs, std::vector<Eigen::MatrixXi> subFs) {
+	for (int subIdx = 0; subIdx < subVs.size(); subIdx++) {
+		Eigen::MatrixXd curV = subVs[subIdx];
+		Eigen::MatrixXd curC = subCs[subIdx];
+		Eigen::MatrixXi curF = subFs[subIdx];
+		WritePLYMeshVisitor visitor(path.substr(0, path.find('.')) + std::to_string(subIdx) + ".ply");
+		visitor.begin(curV.rows(), curF.rows());
+		for (int i = 0; i < curV.rows(); i++) {
+			Eigen::Vector3f curVi;
+			curVi << curV(i, 0), curV(i, 1), curV(i, 2);
+			Eigen::Vector3f curCi;
+			curCi << curC(i, 0), curC(i, 1), curC(i, 2);
+			visitor.addVertex(curVi, curCi);
+		}
+		for (int i = 0; i < curF.rows(); i++) {
+			uint32_t data[3];
+			for (int j = 0; j < 3; j++)
+				data[j] = static_cast<uint32_t>(curF(i, j));
+			visitor.addFace(3, data);
+		}
+		visitor.end();
+	}
+	
+	
+}
+
+int ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 {
 	nse::util::TimedBlock b("Exporting fine mesh to PLY");
 	
-	WritePLYMeshVisitor visitor(path);
-	extractFineMesh(visitor, triangulate);
+	
+	// zhenyi: use similar way to construct a eigen matrix of F and V
+	constructFineMesh(true);
+	// zhenyi: then split it into submeshes
+	std::vector<Eigen::MatrixXd> subVs, subCs;
+	std::vector<Eigen::MatrixXi> subFs;
+	splitMesh(tempV, tempF, tempC, subVs, subFs, subCs);
+	// zhenyi: then write it into ply file, including vertices, colors and faces
+	saveSubMesh(path, subVs , subCs, subFs);
+	return subVs.size();
+	// original saving
+	//WritePLYMeshVisitor visitor(path);
+	//extractFineMesh(visitor, triangulate);
+
 	// zhenyi
 	//prepareUnityMesh(triangulate);
 	//prepareUnityMeshName(path);

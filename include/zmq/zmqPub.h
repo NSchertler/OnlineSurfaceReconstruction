@@ -39,6 +39,8 @@ public:
 
 	void send(std::string topic, const std::string& path);
 
+	void send(std::string topic, const std::string& path, int pathAmt);
+
 	//void send(std::string topic, int id, const std::string& path);
 
 	void send(std::string topic, byte* msg, int len);

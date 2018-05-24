@@ -87,12 +87,14 @@ namespace osr
 		//Saves the tessellated mesh to a PLY file. If triangulate is set to true,
 		//all quads are triangulated in the output.
 		// zhenyi make true for now
-		void saveFineToPLY(const std::string& path, bool triangulate = false);
+		int saveFineToPLY(const std::string& path, bool triangulate = false);
 
 		void prepareUnityMesh(bool triangulate);
 
 		//Visits the fine mesh with the given visitor.
 		void extractFineMesh(osr::MeshVisitor& visitor, bool triangulate);
+		void constructFineMesh(bool triangulate);
+		void saveSubMesh(std::string path, std::vector<Eigen::MatrixXd> subVs, std::vector<Eigen::MatrixXd> subCs, std::vector<Eigen::MatrixXi> subFs);
 
 		//Saves the state of the mesh to file.
 		void saveToFile(FILE* f) const;
@@ -143,6 +145,10 @@ namespace osr
 
 		//The current generation of the mesh.
 		uint8_t currentGeneration = -1;
+
+		// zhenyi: temp V and F for saveFine
+		Eigen::MatrixXd tempV, tempC;
+		Eigen::MatrixXi tempF;
 
 	private:
 		//Removes old geometry whose source points have changed or whose source points have been removed completely.

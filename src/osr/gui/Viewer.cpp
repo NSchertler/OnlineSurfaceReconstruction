@@ -590,11 +590,13 @@ void Viewer::ScanAdded(Scan* s)
  	std::string tmpFileName = generateTempFile();
 	// remove incase it exist
 	std::remove(tmpFileName.c_str());
- 	data.extractedMesh.saveFineToPLY(tmpFileName);
+ 	int amt = data.extractedMesh.saveFineToPLY(tmpFileName);
 	std::cout << "ScanAdded: after saveFineToPLY:" << tmpFileName << "\n";
 	//data.extractedMesh.saveCoarseToPLY(tmpFileName);
 	//std::cout << "ScanAdded: after saveCoarseToPLY:" << tmpFileName << "\n";
- 	zmqPub::getInstance()->send("nm", tmpFileName);
+ 	// zhenyi do it inside so that I can get all path names
+	//zmqPub::getInstance()->send("nm", tmpFileName);
+	zmqPub::getInstance()->send("nm", tmpFileName, amt);
 
 }
 

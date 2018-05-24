@@ -172,4 +172,13 @@ void zmqPub::send(std::string topic, std::vector<Eigen::Affine3f> matrixs)
 	//fmtx = NULL;
 }
 
+void zmqPub::send(std::string topic, const std::string& path, int pathAmt)
+{
+	// send several path because it might be splitted
+	s_sendmore(topic + std::to_string(packetId) + std::to_string(path.size()));
+	std::cout << "zmq send:" << topic + std::to_string(packetId) << "\t" << std::string(path) + std::to_string(pathAmt) << "\n";
+	s_send(std::string(path) + std::to_string(pathAmt));
+	incrementId();
+}
+
 zmqPub* zmqPub::m_instance = NULL;
