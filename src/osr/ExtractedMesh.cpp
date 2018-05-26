@@ -1156,6 +1156,7 @@ void ExtractedMesh::saveSubMesh(std::string path, std::vector<Eigen::MatrixXd> s
 		Eigen::MatrixXd curC = subCs[subIdx];
 		Eigen::MatrixXi curF = subFs[subIdx];
 		WritePLYMeshVisitor visitor(path.substr(0, path.find('.')) + std::to_string(subIdx) + ".ply");
+		std::cout << "save sub mesh to" << std::string(path.substr(0, path.find('.')) + std::to_string(subIdx) + ".ply") << "\n";
 		visitor.begin(curV.rows(), curF.rows());
 		for (int i = 0; i < curV.rows(); i++) {
 			Eigen::Vector3f curVi;
@@ -1186,7 +1187,8 @@ int ExtractedMesh::saveFineToPLY(const std::string& path, bool triangulate)
 	// zhenyi: then split it into submeshes
 	std::vector<Eigen::MatrixXd> subVs, subCs;
 	std::vector<Eigen::MatrixXi> subFs;
-	splitMesh(tempV, tempF, tempC, subVs, subFs, subCs);
+	//splitMesh(tempV, tempF, tempC, subVs, subFs, subCs);
+	splitMeshMergeApart(tempV, tempF, tempC, subVs, subFs, subCs);
 	// zhenyi: then write it into ply file, including vertices, colors and faces
 	saveSubMesh(path, subVs , subCs, subFs);
 	return subVs.size();

@@ -32,6 +32,8 @@
 #include <nsessentials/util/Timer.h>
 #include "osr/Colors.h"
 
+#include "MeshSplit.h"
+
 extern "C" {
     #include "rply.h"
 }
@@ -162,6 +164,10 @@ bool osr::load_ply(const std::string &filename, MatrixXu &F, Matrix3Xf &V,
 	N.resize(3, hasNormals ? vertexCount : 0);
 	C.resize(3, hasColor ? vertexCount : 0);
 	Eigen::Matrix<float, 2, Eigen::Dynamic> uv(2, hasUv ? vertexCount : 0);
+
+	// zhenyi do resample
+ 	//Matrix3Xf V_source; MatrixXu  F_source; Matrix3Xf  N_source;  Eigen::MatrixXd  C_result;
+ 	//Resample(V, F, C, V_source, F_source, N_source, C_result);
 
 
     struct VertexCallbackData {

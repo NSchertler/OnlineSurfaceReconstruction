@@ -583,10 +583,20 @@ void Viewer::ScanAdded(Scan* s)
 	SetupScanGUI(data.scans.back());
 	performLayout(nvgContext());
 	std::cout << "ScanAdded: after performLayout\n";
+
+	// test loading point cloud for unity
+// 	zmqPub::getInstance()->send("nm", "D:\\Scans\\currentScan.ply", 1);
+// 	return;
+
 	// zhenyi
- 	//directIntegrate();
-	data.IntegrateScan(s);
-	std::cout << "ScanAdded: after IntegrateScan\n";
+	//directIntegrate();
+// 	if (data.hierarchy.vertexCount() != 0) 
+// 		data.RegisterScan(s);
+// 	std::cout << "ScanAdded: after register\n";
+	// disable directIntegrate to test register function
+	//data.IntegrateScan(s);
+	//std::cout << "ScanAdded: after IntegrateScan\n";
+
  	std::string tmpFileName = generateTempFile();
 	// remove incase it exist
 	std::remove(tmpFileName.c_str());

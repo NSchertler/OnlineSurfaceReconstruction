@@ -1,4 +1,8 @@
-#include "MeshSplit.h"
+﻿#include "MeshSplit.h"
+
+#include <igl/remove_unreferenced.h>
+#include <igl/embree/line_mesh_intersection.h>
+#include <igl/decimate.h>
 
 int findFirstZero(Eigen::VectorXi v) {
 	for (int i = 0; i < v.rows(); i++)
@@ -163,5 +167,110 @@ void splitMesh(Eigen::MatrixXd V, Eigen::MatrixXi F, Eigen::MatrixXd C, std::vec
 		subCs.push_back(subC);
 		subFs.push_back(resF);
 
+	}
+}
+
+void splitMeshMergeApart(const Eigen::MatrixXd & V, const Eigen::MatrixXi & F, const Eigen::MatrixXd & C, std::vector<Eigen::MatrixXd>& subVs, std::vector<Eigen::MatrixXi>& subFs, std::vector<Eigen::MatrixXd>& subCs, int bound /*= 64995*/)
+{
+	// triangle triangle adjacency
+	Eigen::MatrixXi TT;
+	igl::triangle_triangle_adjacency(F, TT);
+
+	// face discover to record if the face is already into the queue
+	//int *FD = new int[F.cols()]{ 0 };
+	Eigen::VectorXi FD = Eigen::VectorXi::Zero(F.rows());
+
+	// face queue
+	std::queue<int> FQ;
+
+	bool isOverSize = false;
+
+	// set of face and vertex for current submesh
+	std::set<int> FS;
+	std::set<int> VS;
+
+	// if there is still face not being discovered.
+	while (!FD.isOnes()) {
+		// find the first non-one
+		int curIdx = findFirstZero(FD);
+		if (curIdx < 0) break;
+
+		// visit it
+		FQ.push(curIdx);
+
+		while (!FQ.empty()) {
+			int curFace = FQ.front();
+			FD(curFace) = 1;
+			FQ.pop();
+			//std::cout << "\ndealing " << curFace << " pushing neighbours ";
+
+			FS.insert(curFace);
+			for (int i = 0; i < F.cols(); i++)
+				VS.insert(F(curFace, i));
+
+			// get three adjacencies and push into the queue aka visit
+			for (int i = 0; i < F.cols(); i++) {
+				int neighbour = TT(curFace, i);
+
+				// check if already discovered
+				if ((neighbour != -1) && (FD(neighbour) == 0)) {
+					FQ.push(neighbour);
+					FD(neighbour) = 2;
+					//std::cout << neighbour << "\t";
+				}
+				//std::cout << "\n";
+			}
+
+			// check the size of vertices and faces
+			if (FS.size() > bound || VS.size() > bound) {
+				isOverSize = true;
+				break;
+			}
+
+		}
+
+		if (isOverSize) {
+			isOverSize = false;
+
+			// deal with current submesh, turn set of faces to MatrixXd
+			Eigen::MatrixXd subV, subC;
+			Eigen::MatrixXi subF(FS.size(), F.cols());
+			Eigen::MatrixXi resF(FS.size(), F.cols());
+			int i = 0;
+			for (std::set<int>::iterator it = FS.begin(); it != FS.end(); ++it, i++) {
+				subF.row(i) = F.row(*it);
+			}
+			Eigen::VectorXi UJ;
+			igl::remove_unreferenced(V, subF, subV, resF, UJ);
+			igl::remove_unreferenced(C, subF, subC, resF, UJ);
+			std::cout << "MeshSplit.cpp: split mesh " << subV.size() << " V and " << resF.size() << " F\n";
+
+			subVs.push_back(subV);
+			subCs.push_back(subC);
+			subFs.push_back(resF);
+
+			FS.clear();
+			VS.clear();
+		}
+	}
+	if (FS.size() > 0) {
+		// deal with current submesh, turn set of faces to MatrixXd
+		Eigen::MatrixXd subV, subC;
+		Eigen::MatrixXi subF(FS.size(), F.cols());
+		Eigen::MatrixXi resF(FS.size(), F.cols());
+		int i = 0;
+		for (std::set<int>::iterator it = FS.begin(); it != FS.end(); ++it, i++) {
+			subF.row(i) = F.row(*it);
+		}
+		Eigen::VectorXi UJ;
+		igl::remove_unreferenced(V, subF, subV, resF, UJ);
+		igl::remove_unreferenced(C, subF, subC, resF, UJ);
+
+		subVs.push_back(subV);
+		subCs.push_back(subC);
+		subFs.push_back(resF);
+
+		FS.clear();
+		VS.clear();
 	}
 }
