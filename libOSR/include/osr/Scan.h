@@ -37,6 +37,7 @@ namespace osr
 	{
 	public:
 		virtual void initialize(Scan& scan) = 0;
+		virtual bool isInitialized() const = 0;
 		virtual void updateData(const Scan& scan) = 0;
 		virtual void draw(const Scan& scan, const Eigen::Matrix4f & v, const Eigen::Matrix4f & proj) const = 0;
 

@@ -18,6 +18,7 @@
 #include "nsessentials/gui/AbstractViewer.h"
 #include "osr/gui/loaders/DavidTurntableConnection.h"
 #include <fstream>
+#include "boost/filesystem.hpp"
 
 #include <thread>
 

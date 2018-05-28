@@ -36,13 +36,13 @@ void ScanRenderer::initialize(Scan& scan)
 
 void ScanRenderer::updateData(const Scan& scan)
 {
-	if (scan.V().size() > 0)
+	if (scan.V().size() > 0 && scan.N().cols() > 0 && scan.N().cols() < 1e17)
 		positionBuffer.uploadData(scan.V());
 
-	if (scan.N().size() > 0)
+	if (scan.N().size() > 0 && scan.N().cols() > 0 && scan.N().cols() < 1e17)
 		normalBuffer.uploadData(scan.N());
 
-	if (scan.C().size() > 0)
+	if (scan.C().size() > 0 && scan.N().cols() > 0 && scan.N().cols() < 1e17)
 	{
 		Matrix3Xf C_gpu(3, scan.C().cols());
 #pragma omp parallel for
