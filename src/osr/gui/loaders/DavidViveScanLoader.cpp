@@ -84,7 +84,6 @@ void DavidViveScanLoader::setup(nanogui::Window*)
 		axisDirection = Vector3f::UnitZ();
 		axisCenter.setZero();
 	}
-
 	boost::filesystem::path p(scanPath);
 	p.remove_filename();
 
@@ -121,16 +120,16 @@ void DavidViveScanLoader::draw(const Matrix4f & mv, const Matrix4f & proj)
 	{
 		if (currentScan)
 		{
-			if (!currentScan->isInitialized())
+			if (!currentScan->renderer->isInitialized())
 				currentScan->initialize();
-			currentScan->draw(mv, proj);
+			currentScan->renderer->draw(*currentScan, mv, proj);
 		}			
 	}
 
 	if (state == CalibratingShowViveController || state == CalibratingShowBoth)
 	{
 		if (viveController)
-			viveController->draw(mv, proj);
+			viveController->renderer->draw(*viveController, mv, proj);
 	}	
 
 	if (state == Scanning)
@@ -168,7 +167,7 @@ bool DavidViveScanLoader::mouseButtonEvent(const Eigen::Vector2i & p, int button
 			float y = 2 * ((float)-p.y() / viewer->height() + 0.5f);
 
 			Eigen::Matrix4f model, view, proj;
-			viewer->camera().ComputeCameraMatrices(model, view, proj);
+			viewer->camera().ComputeCameraMatrices(view, proj);
 
 			Eigen::Matrix4f mvp = proj * view * model;
 			Eigen::Matrix4f invMvp = mvp.inverse();
@@ -260,7 +259,7 @@ bool DavidViveScanLoader::waitUntilStill(vr::TrackedDevicePose_t* poses, vr::Tra
 	while (stillFrames < 10)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
 
 		if (!poses[device].bPoseIsValid || poses[device].eTrackingResult != vr::ETrackingResult::TrackingResult_Running_OK)
 		{
@@ -303,7 +302,7 @@ void DavidViveScanLoader::track()
 		{
 			if (e.eventType == vr::VREvent_ButtonUnpress && (e.data.controller.button == vr::k_EButton_SteamVR_Trigger || e.data.controller.button == vr::k_EButton_ApplicationMenu))
 			{
-				vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+				vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
 
 				int primaryController = e.trackedDeviceIndex;
 				int secondaryController = FindOtherController(e.trackedDeviceIndex, poses);
@@ -589,7 +588,7 @@ void DavidViveScanLoader::CalibrateTurntable(vr::TrackedDeviceIndex_t device)
 	for (int i = 0; i < steps; ++i)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, vr::k_unMaxTrackedDeviceCount);
+		vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, poses, 16);
 		Eigen::Affine3f t;
 		if (ToEigenMatrix(poses[device], t))
 			orientations.push_back(std::make_pair(currentAngle, t));
