@@ -18,7 +18,7 @@ using namespace osr::gui::loaders;
 const std::string autoItPath = "D:\\Program Files (x86)\\AutoIt3\\AutoIt3.exe"; //TODO: Generalize
 const std::string scanPath = "D:\\Scans\\currentScan.ply"; //TODO::Generalize
 
-DavidViveScanLoader::DavidViveScanLoader(AbstractViewer* viewer)
+DavidViveScanLoader::DavidViveScanLoader(nse::gui::AbstractViewer* viewer)
 	: trackingThread(nullptr), tracking(false), viewer(viewer)
 { }
 
