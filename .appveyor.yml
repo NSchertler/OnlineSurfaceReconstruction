@@ -9,7 +9,7 @@ branches:
 environment:   
   BOOST_ROOT: C:\Libraries\boost_1_64_0
   access_token:
-    secure: tiZie8oQ9NaxNf87TpXYZ0cE+3qKwfyOhF2YC84efQ0PfrfDZskXI05mrGtEdwMu
+    secure: 6gyL3wsRIt49AiASzpAT+BdUmr+vGvQ0oo7mnQoQWfWQ0n8ykhAGFT+brWJCOsGE
     
 install:
   - git submodule update --init --recursive  
