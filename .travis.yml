@@ -7,8 +7,6 @@ matrix:
   include:
     - os: linux
       deploy:
-        edge:
-          branch: v1.8.47 #work-around for broken Travis Deploy (https://github.com/travis-ci/travis-ci/issues/9312)
         provider: pages
         skip_cleanup: true
         github_token: $GITHUB_TOKEN
@@ -37,8 +35,6 @@ matrix:
             - libglu1-mesa-dev
     - os: osx
       deploy:
-        edge:
-          branch: v1.8.47 #work-around for broken Travis Deploy (https://github.com/travis-ci/travis-ci/issues/9312)
         provider: pages
         skip_cleanup: true
         github_token: $GITHUB_TOKEN
